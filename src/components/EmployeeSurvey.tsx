@@ -216,6 +216,22 @@ const ratingLabels = {
       4: "Often",
       5: "Always"
     }
+  },
+  collaboration: {
+    "us-uk-collaboration": {
+      1: "Very Poor",
+      2: "Poor",
+      3: "Neutral",
+      4: "Good", 
+      5: "Excellent"
+    },
+    "cross-functional-collaboration": {
+      1: "Very Poor",
+      2: "Poor", 
+      3: "Neutral",
+      4: "Good",
+      5: "Excellent"
+    }
   }
 };
 
@@ -581,12 +597,16 @@ function RatingsSection({
                     {[1, 2, 3, 4, 5].map((rating) => {
                       const isAgreementScale = question.section === "Process Efficiency & Innovation";
                       const isLeadershipQuestion = question.section === "Leadership & Communication";
+                      const isCollaborationQuestion = question.section === "Collaboration & Cross-Functional Work";
                       
                       let emojiSet, labelSet;
                       
                       if (isLeadershipQuestion) {
                         emojiSet = ratingEmojis.satisfaction; // Use satisfaction emojis for leadership
                         labelSet = ratingLabels.leadership[question.id as keyof typeof ratingLabels.leadership] || ratingLabels.satisfaction;
+                      } else if (isCollaborationQuestion) {
+                        emojiSet = ratingEmojis.satisfaction; // Use satisfaction emojis for collaboration
+                        labelSet = ratingLabels.collaboration[question.id as keyof typeof ratingLabels.collaboration] || ratingLabels.satisfaction;
                       } else if (isAgreementScale) {
                         emojiSet = ratingEmojis.agreement;
                         labelSet = ratingLabels.agreement;
@@ -612,7 +632,7 @@ function RatingsSection({
                           <span className="text-xl md:text-2xl mb-1 select-none">{emojiSet[rating as keyof typeof emojiSet]}</span>
                           <span className="text-xs font-medium select-none">{rating}</span>
                           <span className="text-xs text-muted-foreground text-center select-none leading-tight">
-                            {isLeadershipQuestion ? labelSet[rating as keyof typeof labelSet] : labelSet[rating as keyof typeof labelSet]}
+                            {(isLeadershipQuestion || isCollaborationQuestion) ? labelSet[rating as keyof typeof labelSet] : labelSet[rating as keyof typeof labelSet]}
                           </span>
                         </button>
                       );
@@ -639,21 +659,6 @@ function RatingsSection({
                 )}
               </div>
             ))}
-            
-            {/* Collaboration Feedback */}
-            {section === "Collaboration & Cross-Functional Work" && (
-              <div className="space-y-2 pt-4 border-t">
-                <Label className="text-sm font-medium">
-                  What would improve communication and collaboration between offices? (Optional)
-                </Label>
-                <Textarea
-                  placeholder="Share your ideas for better collaboration..."
-                  value={collaborationFeedback}
-                  onChange={(e) => onCollaborationFeedbackChange(e.target.value)}
-                  className="min-h-[100px] touch-manipulation"
-                />
-              </div>
-            )}
           </CardContent>
         </Card>
       ))}
