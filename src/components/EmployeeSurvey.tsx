@@ -47,6 +47,19 @@ const multiSelectQuestions: MultiSelectQuestion[] = [
       { value: "printed-signage", label: "Printed Signage" },
       { value: "team-meetings", label: "Team meetings" }
     ]
+  },
+  {
+    id: "motivation-factors",
+    text: "What motivates you to stay with the company?",
+    section: "Collaboration & Cross-Functional Work",
+    options: [
+      { value: "compensation", label: "Compensation" },
+      { value: "benefits-package", label: "Benefits package" },
+      { value: "job-satisfaction", label: "Job satisfaction" },
+      { value: "the-people", label: "The people" },
+      { value: "growth-opportunities", label: "Growth opportunities" },
+      { value: "company-future", label: "Company's future" }
+    ]
   }
 ];
 
@@ -95,7 +108,7 @@ const ratingQuestions: RatingQuestion[] = [
   },
   {
     id: "cross-functional-collaboration",
-    text: "Rate the quality of cross-functional collaboration.",
+    text: "Rate the quality of cross-functional collaboration in your work environment.",
     section: "Collaboration & Cross-Functional Work",
     feedbackPrompt: "Please provide examples of where cross-functional work could be improved."
   },
