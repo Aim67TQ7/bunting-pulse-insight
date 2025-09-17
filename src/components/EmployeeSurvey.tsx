@@ -9,19 +9,28 @@ import { CheckIcon, AlertTriangleIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
-interface Question {
+interface DemographicQuestion {
   id: string;
   text: string;
-  type: "radio" | "multiSelect";
   options: { value: string; label: string }[];
-  followUpPrompt?: string;
 }
 
-const questions: Question[] = [
+interface RatingQuestion {
+  id: string;
+  text: string;
+  followUpPrompt: string;
+}
+
+interface PreferenceQuestion {
+  id: string;
+  text: string;
+  options: { value: string; label: string }[];
+}
+
+const demographicQuestions: DemographicQuestion[] = [
   {
     id: "continent",
     text: "Which Continent is your primary work location?",
-    type: "radio",
     options: [
       { value: "north-america", label: "North America" },
       { value: "europe", label: "Europe" }
@@ -30,7 +39,6 @@ const questions: Question[] = [
   {
     id: "division",
     text: "Which Division of Bunting do you work in?",
-    type: "radio",
     options: [
       { value: "equipment", label: "Equipment" },
       { value: "magnets", label: "Magnets" },
@@ -40,43 +48,51 @@ const questions: Question[] = [
   {
     id: "role",
     text: "Which best explains your role?",
-    type: "radio",
     options: [
       { value: "sales-marketing", label: "Sales/Marketing/Product" },
       { value: "operations", label: "Operations/Engineering/Production" },
       { value: "admin", label: "Admin/HR/Finance" }
     ]
-  },
+  }
+];
+
+const ratingQuestions: RatingQuestion[] = [
   {
     id: "job-satisfaction",
     text: "How satisfied are you with your job?",
-    type: "radio",
-    options: [
-      { value: "1", label: "1 - Least satisfied" },
-      { value: "2", label: "2" },
-      { value: "3", label: "3" },
-      { value: "4", label: "4" },
-      { value: "5", label: "5 - Extremely satisfied" }
-    ],
     followUpPrompt: "Could you share what aspects of your job contribute to this rating?"
   },
   {
     id: "communication-clarity",
     text: "How clear is the communication you receive from leadership regarding company goals and objectives?",
-    type: "radio",
-    options: [
-      { value: "1", label: "1 - Very unclear" },
-      { value: "2", label: "2" },
-      { value: "3", label: "3" },
-      { value: "4", label: "4" },
-      { value: "5", label: "5 - Very clear" }
-    ],
     followUpPrompt: "What would help improve communication clarity from leadership?"
   },
   {
+    id: "safety",
+    text: "How safe do you feel in your work environment?",
+    followUpPrompt: "What safety concerns do you have, or what improvements would you suggest?"
+  },
+  {
+    id: "training",
+    text: "How satisfied are you with the training provided for your current role?",
+    followUpPrompt: "What additional training or support would be most valuable for your role?"
+  },
+  {
+    id: "work-life-balance",
+    text: "How would you rate your current work-life balance?",
+    followUpPrompt: "What changes would help improve your work-life balance?"
+  },
+  {
+    id: "cross-office-communication",
+    text: "How are the overall communication and collaboration between the US and UK offices?",
+    followUpPrompt: "What would improve communication and collaboration between offices?"
+  }
+];
+
+const preferenceQuestions: PreferenceQuestion[] = [
+  {
     id: "communication-style",
-    text: "Which communication styles do you prefer?",
-    type: "multiSelect",
+    text: "Which communication styles do you prefer? (Select all that apply)",
     options: [
       { value: "emails", label: "Company-wide emails" },
       { value: "town-halls", label: "Quarterly Town halls" },
@@ -87,74 +103,28 @@ const questions: Question[] = [
     ]
   },
   {
-    id: "safety",
-    text: "How safe do you feel in your work environment?",
-    type: "radio",
-    options: [
-      { value: "1", label: "1 - Very unsafe" },
-      { value: "2", label: "2" },
-      { value: "3", label: "3" },
-      { value: "4", label: "4" },
-      { value: "5", label: "5 - Very safe" }
-    ],
-    followUpPrompt: "What safety concerns do you have, or what improvements would you suggest?"
-  },
-  {
-    id: "training",
-    text: "How satisfied are you with the training provided for your current role?",
-    type: "radio",
-    options: [
-      { value: "1", label: "1 - Very dissatisfied" },
-      { value: "2", label: "2" },
-      { value: "3", label: "3" },
-      { value: "4", label: "4" },
-      { value: "5", label: "5 - Very satisfied" }
-    ],
-    followUpPrompt: "What additional training or support would be most valuable for your role?"
-  },
-  {
-    id: "work-life-balance",
-    text: "How would you rate your current work-life balance?",
-    type: "radio",
-    options: [
-      { value: "1", label: "1 - Very poor" },
-      { value: "2", label: "2" },
-      { value: "3", label: "3" },
-      { value: "4", label: "4" },
-      { value: "5", label: "5 - Excellent" }
-    ],
-    followUpPrompt: "What changes would help improve your work-life balance?"
-  },
-  {
-    id: "cross-office-communication",
-    text: "How are the overall communication and collaboration between the US and UK offices?",
-    type: "radio",
-    options: [
-      { value: "1", label: "1 - Very poor" },
-      { value: "2", label: "2" },
-      { value: "3", label: "3" },
-      { value: "4", label: "4" },
-      { value: "5", label: "5 - Excellent" }
-    ],
-    followUpPrompt: "What would improve communication and collaboration between offices?"
-  },
-  {
     id: "motivation",
-    text: "What motivates you to stay with the company?",
-    type: "multiSelect",
+    text: "What motivates you to stay with the company? (Select all that apply)",
     options: [
       { value: "compensation", label: "Compensation" },
       { value: "benefits", label: "Benefits package" },
-      { value: "job-satisfaction", label: "Job satisfaction" }
+      { value: "job-satisfaction", label: "Job satisfaction" },
+      { value: "career-growth", label: "Career growth opportunities" },
+      { value: "work-culture", label: "Work culture and environment" },
+      { value: "flexibility", label: "Work flexibility" }
     ]
   }
 ];
 
+type SurveySection = "demographics" | "ratings" | "preferences" | "complete";
+
 export function EmployeeSurvey() {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [currentSection, setCurrentSection] = useState<SurveySection>("demographics");
+  const [currentDemographicIndex, setCurrentDemographicIndex] = useState(0);
+  const [currentPreferenceIndex, setCurrentPreferenceIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, string | string[]>>({});
+  const [ratingResponses, setRatingResponses] = useState<Record<string, number>>({});
   const [followUpResponses, setFollowUpResponses] = useState<Record<string, string>>({});
-  const [showFollowUp, setShowFollowUp] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [submissionCount, setSubmissionCount] = useState(0);
   const { toast } = useToast();
@@ -164,36 +134,55 @@ export function EmployeeSurvey() {
     setSubmissionCount(count);
   }, []);
 
-  const progress = ((currentQuestion + 1) / questions.length) * 100;
-  const question = questions[currentQuestion];
+  const getTotalQuestions = () => {
+    return demographicQuestions.length + 1 + preferenceQuestions.length; // +1 for ratings section
+  };
 
-  const handleResponse = (value: string | string[]) => {
-    setResponses(prev => ({ ...prev, [question.id]: value }));
-    
-    // Check if we need to show follow-up for unfavorable ratings
-    if (question.followUpPrompt && typeof value === "string") {
-      const rating = parseInt(value);
-      if (rating <= 3) {
-        setShowFollowUp(true);
-        return;
-      }
+  const getCurrentQuestionNumber = () => {
+    if (currentSection === "demographics") {
+      return currentDemographicIndex + 1;
+    } else if (currentSection === "ratings") {
+      return demographicQuestions.length + 1;
+    } else if (currentSection === "preferences") {
+      return demographicQuestions.length + 1 + currentPreferenceIndex + 1;
     }
+    return getTotalQuestions();
+  };
+
+  const progress = (getCurrentQuestionNumber() / getTotalQuestions()) * 100;
+
+  const handleDemographicResponse = (value: string) => {
+    const questionId = demographicQuestions[currentDemographicIndex].id;
+    setResponses(prev => ({ ...prev, [questionId]: value }));
     
-    proceedToNext();
+    if (currentDemographicIndex < demographicQuestions.length - 1) {
+      setCurrentDemographicIndex(prev => prev + 1);
+    } else {
+      setCurrentSection("ratings");
+    }
   };
 
-  const handleFollowUpResponse = (value: string) => {
-    setFollowUpResponses(prev => ({ ...prev, [question.id]: value }));
-    setShowFollowUp(false);
-    proceedToNext();
+  const handleRatingResponse = (questionId: string, rating: number) => {
+    setRatingResponses(prev => ({ ...prev, [questionId]: rating }));
   };
 
-  const proceedToNext = () => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
+  const handleRatingsComplete = () => {
+    setCurrentSection("preferences");
+  };
+
+  const handlePreferenceResponse = (value: string[]) => {
+    const questionId = preferenceQuestions[currentPreferenceIndex].id;
+    setResponses(prev => ({ ...prev, [questionId]: value }));
+    
+    if (currentPreferenceIndex < preferenceQuestions.length - 1) {
+      setCurrentPreferenceIndex(prev => prev + 1);
     } else {
       handleSubmit();
     }
+  };
+
+  const handleFollowUpChange = (questionId: string, value: string) => {
+    setFollowUpResponses(prev => ({ ...prev, [questionId]: value }));
   };
 
   const handleSubmit = () => {
@@ -206,9 +195,9 @@ export function EmployeeSurvey() {
       return;
     }
 
-    // Store responses (in a real app, this would go to a backend)
     const surveyData = {
       responses,
+      ratingResponses,
       followUpResponses,
       timestamp: new Date().toISOString()
     };
@@ -265,7 +254,7 @@ export function EmployeeSurvey() {
 
   return (
     <div className="min-h-screen bg-background p-4">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-center mb-2">Employee Satisfaction Survey</h1>
           <p className="text-center text-muted-foreground mb-6">
@@ -273,120 +262,269 @@ export function EmployeeSurvey() {
           </p>
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Question {currentQuestion + 1} of {questions.length}</span>
+              <span>Section {getCurrentQuestionNumber()} of {getTotalQuestions()}</span>
               <span>{Math.round(progress)}% complete</span>
             </div>
             <Progress value={progress} className="h-2" />
           </div>
         </div>
 
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-lg font-medium">
-              {question.text}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {!showFollowUp ? (
-              question.type === "radio" ? (
-                <RadioGroup
-                  value={responses[question.id] as string || ""}
-                  onValueChange={handleResponse}
-                  className="space-y-3"
-                >
-                  {question.options.map((option) => (
-                    <div key={option.value} className="flex items-center space-x-2">
-                      <RadioGroupItem value={option.value} id={option.value} />
-                      <Label
-                        htmlFor={option.value}
-                        className="text-sm font-normal cursor-pointer flex-1"
-                      >
-                        {option.label}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              ) : (
-                <div className="space-y-3">
-                  {question.options.map((option) => (
-                    <div key={option.value} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id={option.value}
-                        checked={(responses[question.id] as string[] || []).includes(option.value)}
-                        onChange={(e) => {
-                          const currentValues = (responses[question.id] as string[]) || [];
-                          if (e.target.checked) {
-                            handleResponse([...currentValues, option.value]);
-                          } else {
-                            handleResponse(currentValues.filter(v => v !== option.value));
-                          }
-                        }}
-                        className="rounded border-input"
-                      />
-                      <Label
-                        htmlFor={option.value}
-                        className="text-sm font-normal cursor-pointer flex-1"
-                      >
-                        {option.label}
-                      </Label>
-                    </div>
-                  ))}
-                  {(responses[question.id] as string[] || []).length > 0 && (
-                    <Button onClick={() => proceedToNext()} className="mt-4">
-                      Continue
-                    </Button>
-                  )}
-                </div>
-              )
-            ) : (
-              <div className="space-y-4">
-                <div className="p-4 bg-warning/10 border border-warning/20 rounded-md">
-                  <p className="text-sm font-medium text-warning-foreground mb-2">
-                    {question.followUpPrompt}
-                  </p>
-                  <Textarea
-                    placeholder="Please share your thoughts..."
-                    value={followUpResponses[question.id] || ""}
-                    onChange={(e) => setFollowUpResponses(prev => ({ 
-                      ...prev, 
-                      [question.id]: e.target.value 
-                    }))}
-                    className="min-h-[100px]"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => handleFollowUpResponse(followUpResponses[question.id] || "")}
-                    disabled={!followUpResponses[question.id]?.trim()}
-                  >
-                    Continue
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setShowFollowUp(false);
-                      proceedToNext();
-                    }}
-                  >
-                    Skip
-                  </Button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {currentSection === "demographics" && (
+          <DemographicSection 
+            question={demographicQuestions[currentDemographicIndex]}
+            onResponse={handleDemographicResponse}
+            canGoBack={currentDemographicIndex > 0}
+            onGoBack={() => setCurrentDemographicIndex(prev => prev - 1)}
+          />
+        )}
 
-        {currentQuestion > 0 && !showFollowUp && (
+        {currentSection === "ratings" && (
+          <RatingsSection 
+            questions={ratingQuestions}
+            responses={ratingResponses}
+            followUpResponses={followUpResponses}
+            onRatingChange={handleRatingResponse}
+            onFollowUpChange={handleFollowUpChange}
+            onComplete={handleRatingsComplete}
+            onGoBack={() => {
+              setCurrentDemographicIndex(demographicQuestions.length - 1);
+              setCurrentSection("demographics");
+            }}
+          />
+        )}
+
+        {currentSection === "preferences" && (
+          <PreferenceSection 
+            question={preferenceQuestions[currentPreferenceIndex]}
+            onResponse={handlePreferenceResponse}
+            canGoBack={currentPreferenceIndex > 0 || currentSection !== "preferences"}
+            onGoBack={() => {
+              if (currentPreferenceIndex > 0) {
+                setCurrentPreferenceIndex(prev => prev - 1);
+              } else {
+                setCurrentSection("ratings");
+              }
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Section Components
+interface DemographicSectionProps {
+  question: DemographicQuestion;
+  onResponse: (value: string) => void;
+  canGoBack: boolean;
+  onGoBack: () => void;
+}
+
+function DemographicSection({ question, onResponse, canGoBack, onGoBack }: DemographicSectionProps) {
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle className="text-lg font-medium">
+          {question.text}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <RadioGroup
+          onValueChange={onResponse}
+          className="space-y-3"
+        >
+          {question.options.map((option) => (
+            <div key={option.value} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.value} id={option.value} />
+              <Label
+                htmlFor={option.value}
+                className="text-sm font-normal cursor-pointer flex-1"
+              >
+                {option.label}
+              </Label>
+            </div>
+          ))}
+        </RadioGroup>
+        
+        {canGoBack && (
           <Button
             variant="outline"
-            onClick={() => setCurrentQuestion(prev => prev - 1)}
-            className="mb-4"
+            onClick={onGoBack}
+            className="mt-4"
           >
             Previous Question
           </Button>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface RatingsSectionProps {
+  questions: RatingQuestion[];
+  responses: Record<string, number>;
+  followUpResponses: Record<string, string>;
+  onRatingChange: (questionId: string, rating: number) => void;
+  onFollowUpChange: (questionId: string, value: string) => void;
+  onComplete: () => void;
+  onGoBack: () => void;
+}
+
+function RatingsSection({ 
+  questions, 
+  responses, 
+  followUpResponses, 
+  onRatingChange, 
+  onFollowUpChange, 
+  onComplete, 
+  onGoBack 
+}: RatingsSectionProps) {
+  const allRatingsComplete = questions.every(q => responses[q.id] !== undefined);
+
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle className="text-xl font-semibold mb-2">
+          Please rate your experience
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Rate each aspect from 1 (poor) to 5 (excellent)
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {questions.map((question) => (
+          <div key={question.id} className="space-y-3">
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium">{question.text}</h3>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground min-w-[30px]">Poor</span>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((rating) => (
+                    <button
+                      key={rating}
+                      onClick={() => onRatingChange(question.id, rating)}
+                      className={cn(
+                        "w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium transition-colors",
+                        responses[question.id] === rating
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      {rating}
+                    </button>
+                  ))}
+                </div>
+                <span className="text-xs text-muted-foreground min-w-[50px]">Excellent</span>
+              </div>
+            </div>
+            
+            {responses[question.id] && responses[question.id] <= 3 && (
+              <div className="mt-4 p-4 bg-accent/50 border border-accent/20 rounded-md">
+                <div className="flex items-start gap-2 mb-3">
+                  <div className="w-5 h-5 rounded-full bg-primary/20lex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs text-primary font-medium">💡</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground mb-1">
+                      Help us improve!
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      {question.followUpPrompt} Your input helps us make work better for everyone.
+                    </p>
+                  </div>
+                </div>
+                <Textarea
+                  placeholder="Your feedback is valuable to us (optional)..."
+                  value={followUpResponses[question.id] || ""}
+                  onChange={(e) => onFollowUpChange(question.id, e.target.value)}
+                  className="min-h-[80px] text-sm"
+                />
+              </div>
+            )}
+          </div>
+        ))}
+        
+        <div className="flex gap-2 pt-4">
+          <Button variant="outline" onClick={onGoBack}>
+            Previous
+          </Button>
+          <Button 
+            onClick={onComplete}
+            disabled={!allRatingsComplete}
+            className="flex-1"
+          >
+            Continue to Preferences
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface PreferenceSectionProps {
+  question: PreferenceQuestion;
+  onResponse: (value: string[]) => void;
+  canGoBack: boolean;
+  onGoBack: () => void;
+}
+
+function PreferenceSection({ question, onResponse, canGoBack, onGoBack }: PreferenceSectionProps) {
+  const [selectedValues, setSelectedValues] = useState<string[]>([]);
+
+  const handleCheckboxChange = (value: string, checked: boolean) => {
+    const newValues = checked 
+      ? [...selectedValues, value]
+      : selectedValues.filter(v => v !== value);
+    setSelectedValues(newValues);
+  };
+
+  const handleContinue = () => {
+    onResponse(selectedValues);
+  };
+
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle className="text-lg font-medium">
+          {question.text}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3 mb-6">
+          {question.options.map((option) => (
+            <div key={option.value} className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id={option.value}
+                checked={selectedValues.includes(option.value)}
+                onChange={(e) => handleCheckboxChange(option.value, e.target.checked)}
+                className="rounded border-input"
+              />
+              <Label
+                htmlFor={option.value}
+                className="text-sm font-normal cursor-pointer flex-1"
+              >
+                {option.label}
+              </Label>
+            </div>
+          ))}
+        </div>
+        
+        <div className="flex gap-2">
+          {canGoBack && (
+            <Button variant="outline" onClick={onGoBack}>
+              Previous
+            </Button>
+          )}
+          <Button 
+            onClick={handleContinue}
+            disabled={selectedValues.length === 0}
+            className="flex-1"
+          >
+            Continue
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
