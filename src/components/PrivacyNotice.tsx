@@ -32,9 +32,9 @@ export function PrivacyNotice() {
             <CookieIcon className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
             <div className="space-y-2">
               <p className="text-sm font-medium">Anonymous Survey</p>
-              <p className="text-xs text-muted-foreground">
-                We use cookies only to track visit count and prevent multiple submissions (maximum 2 per person).
-              </p>
+            <p className="text-xs text-muted-foreground">
+              We use cookies only to track visit count and prevent multiple submissions (one per employee).
+            </p>
             </div>
           </div>
           

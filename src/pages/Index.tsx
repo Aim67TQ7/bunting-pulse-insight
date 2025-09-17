@@ -1,13 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { EmployeeSurvey } from "@/components/EmployeeSurvey";
 import { SurveyDashboard } from "@/components/SurveyDashboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ClipboardListIcon, BarChart3Icon, ShieldCheckIcon, UsersIcon } from "lucide-react";
+import { ClipboardListIcon, BarChart3Icon, ShieldCheckIcon, UsersIcon, LockIcon } from "lucide-react";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<"landing" | "survey" | "dashboard">("landing");
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  useEffect(() => {
+    const submissionCount = parseInt(localStorage.getItem("survey-submissions") || "0");
+    setHasSubmitted(submissionCount > 0);
+  }, [currentView]); // Re-check when returning to landing
 
   if (currentView === "survey") {
     return <EmployeeSurvey />;
@@ -74,19 +80,28 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+          <Card className={`relative overflow-hidden group transition-all duration-300 ${hasSubmitted ? 'hover:shadow-lg' : 'opacity-60'}`}>
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-success/10 rounded-lg">
-                  <BarChart3Icon className="h-6 w-6 text-success" />
+                <div className={`p-2 ${hasSubmitted ? 'bg-success/10' : 'bg-muted'} rounded-lg`}>
+                  {hasSubmitted ? (
+                    <BarChart3Icon className="h-6 w-6 text-success" />
+                  ) : (
+                    <LockIcon className="h-6 w-6 text-muted-foreground" />
+                  )}
                 </div>
-                <CardTitle>View Results</CardTitle>
+                <CardTitle className={hasSubmitted ? '' : 'text-muted-foreground'}>
+                  View Results
+                </CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                Access aggregated survey results and insights. Monitor workplace satisfaction 
-                trends and feedback patterns.
+                {hasSubmitted ? (
+                  'Access aggregated survey results and insights. Monitor workplace satisfaction trends and feedback patterns.'
+                ) : (
+                  'Complete the survey first to unlock access to the results dashboard and analytics.'
+                )}
               </p>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="secondary">Real-time</Badge>
@@ -94,11 +109,12 @@ const Index = () => {
                 <Badge variant="secondary">Insights</Badge>
               </div>
               <Button 
-                onClick={() => setCurrentView("dashboard")}
+                onClick={() => hasSubmitted && setCurrentView("dashboard")}
                 variant="outline"
-                className="w-full group-hover:scale-[1.02] transition-transform"
+                disabled={!hasSubmitted}
+                className={`w-full ${hasSubmitted ? 'group-hover:scale-[1.02] transition-transform' : 'cursor-not-allowed'}`}
               >
-                View Dashboard
+                {hasSubmitted ? 'View Dashboard' : 'Complete Survey First'}
               </Button>
             </CardContent>
           </Card>
@@ -142,9 +158,9 @@ const Index = () => {
           <CardContent className="p-6 text-center">
             <h3 className="font-semibold mb-2">Survey Guidelines</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-              <div>✓ Maximum 2 submissions per person</div>
+              <div>✓ One submission per employee</div>
               <div>✓ Follow-up questions for concerning responses</div>
-              <div>✓ Results available in real-time</div>
+              <div>✓ Results available after submission</div>
             </div>
           </CardContent>
         </Card>

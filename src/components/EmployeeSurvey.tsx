@@ -301,10 +301,10 @@ export function EmployeeSurvey() {
   };
 
   const handleSubmit = () => {
-    if (submissionCount >= 2) {
+    if (submissionCount >= 1) {
       toast({
         title: "Submission limit reached",
-        description: "You have already submitted this survey twice.",
+        description: "You have already submitted this survey.",
         variant: "destructive"
       });
       return;
@@ -333,15 +333,15 @@ export function EmployeeSurvey() {
     });
   };
 
-  if (submissionCount >= 2 && !isComplete) {
+  if (submissionCount >= 1 && !isComplete) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="text-center p-8">
             <AlertTriangleIcon className="h-12 w-12 text-warning mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Survey Limit Reached</h2>
+            <h2 className="text-xl font-semibold mb-2">Survey Already Submitted</h2>
             <p className="text-muted-foreground">
-              You have already completed this survey twice. Thank you for your participation!
+              You have already completed this survey. Thank you for your participation!
             </p>
           </CardContent>
         </Card>
@@ -360,7 +360,7 @@ export function EmployeeSurvey() {
               Your feedback has been submitted successfully and will help improve our workplace.
             </p>
             <p className="text-sm text-muted-foreground">
-              Submissions remaining: {2 - submissionCount - 1}
+              You can now view the survey results dashboard.
             </p>
           </CardContent>
         </Card>
