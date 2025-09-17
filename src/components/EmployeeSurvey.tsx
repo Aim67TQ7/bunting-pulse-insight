@@ -307,7 +307,7 @@ const ratingLabels = {
 
 type SurveySection = "demographics" | "ratings" | "complete";
 
-export function EmployeeSurvey() {
+export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }) {
   const [currentSection, setCurrentSection] = useState<SurveySection>("demographics");
   const [currentDemographicIndex, setCurrentDemographicIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, string>>({});
@@ -525,9 +525,16 @@ export function EmployeeSurvey() {
             <p className="text-muted-foreground mb-4">
               Your feedback has been submitted successfully and will help improve our workplace.
             </p>
-            <p className="text-sm text-muted-foreground">
-              You can now view the survey results dashboard.
+            <p className="text-sm text-muted-foreground mb-6">
+              As a thank you for participating, you can now explore what everyone else shared!
             </p>
+            <Button 
+              onClick={onViewResults}
+              className="w-full"
+              size="lg"
+            >
+              View Survey Results
+            </Button>
           </CardContent>
         </Card>
       </div>

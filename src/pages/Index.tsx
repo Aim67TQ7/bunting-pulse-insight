@@ -28,7 +28,7 @@ const Index = () => {
   };
 
   if (currentView === "survey") {
-    return <EmployeeSurvey />;
+    return <EmployeeSurvey onViewResults={() => setCurrentView("dashboard")} />;
   }
 
   if (currentView === "dashboard") {
