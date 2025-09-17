@@ -193,6 +193,29 @@ const ratingLabels = {
     3: "Neutral",
     4: "Agree",
     5: "Strongly Agree"
+  },
+  leadership: {
+    "leadership-communication-clarity": {
+      1: "Very Unclear",
+      2: "Unclear",
+      3: "Neutral", 
+      4: "Clear",
+      5: "Very Clear"
+    },
+    "leadership-openness": {
+      1: "Not Open at All",
+      2: "Somewhat Closed",
+      3: "Neutral",
+      4: "Open", 
+      5: "Very Open"
+    },
+    "manager-business-connection": {
+      1: "Never",
+      2: "Rarely",
+      3: "Sometimes",
+      4: "Often",
+      5: "Always"
+    }
   }
 };
 
@@ -557,8 +580,20 @@ function RatingsSection({
                   <div className="flex justify-center space-x-2 md:space-x-4 mb-4">
                     {[1, 2, 3, 4, 5].map((rating) => {
                       const isAgreementScale = question.section === "Process Efficiency & Innovation";
-                      const emojiSet = isAgreementScale ? ratingEmojis.agreement : ratingEmojis.satisfaction;
-                      const labelSet = isAgreementScale ? ratingLabels.agreement : ratingLabels.satisfaction;
+                      const isLeadershipQuestion = question.section === "Leadership & Communication";
+                      
+                      let emojiSet, labelSet;
+                      
+                      if (isLeadershipQuestion) {
+                        emojiSet = ratingEmojis.satisfaction; // Use satisfaction emojis for leadership
+                        labelSet = ratingLabels.leadership[question.id as keyof typeof ratingLabels.leadership] || ratingLabels.satisfaction;
+                      } else if (isAgreementScale) {
+                        emojiSet = ratingEmojis.agreement;
+                        labelSet = ratingLabels.agreement;
+                      } else {
+                        emojiSet = ratingEmojis.satisfaction;
+                        labelSet = ratingLabels.satisfaction;
+                      }
                       
                       return (
                         <button
@@ -577,7 +612,7 @@ function RatingsSection({
                           <span className="text-xl md:text-2xl mb-1 select-none">{emojiSet[rating as keyof typeof emojiSet]}</span>
                           <span className="text-xs font-medium select-none">{rating}</span>
                           <span className="text-xs text-muted-foreground text-center select-none leading-tight">
-                            {labelSet[rating as keyof typeof labelSet]}
+                            {isLeadershipQuestion ? labelSet[rating as keyof typeof labelSet] : labelSet[rating as keyof typeof labelSet]}
                           </span>
                         </button>
                       );
