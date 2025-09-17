@@ -22,14 +22,120 @@ interface DemographicQuestion {
 interface RatingQuestion {
   id: string;
   text: string;
-  followUpPrompt: string;
+  section: string;
+  feedbackPrompt: string;
 }
 
-interface PreferenceQuestion {
-  id: string;
-  text: string;
-  options: { value: string; label: string }[];
-}
+// New 15 rating questions based on user's requirements
+const ratingQuestions: RatingQuestion[] = [
+  // 1. Job & Role Satisfaction (3 questions)
+  {
+    id: "job-satisfaction",
+    text: "How satisfied are you with your job?",
+    section: "Job & Role Satisfaction",
+    feedbackPrompt: "Please explain why you feel dissatisfied with your job."
+  },
+  {
+    id: "training-satisfaction",
+    text: "How satisfied are you with the training provided for your current role?",
+    section: "Job & Role Satisfaction",
+    feedbackPrompt: "Please describe gaps in training or support you've experienced."
+  },
+  {
+    id: "work-life-balance",
+    text: "How would you rate your current work-life balance?",
+    section: "Job & Role Satisfaction",
+    feedbackPrompt: "Please explain what affects your work-life balance."
+  },
+  
+  // 2. Leadership & Communication (4 questions)
+  {
+    id: "leadership-communication-clarity",
+    text: "How clear is the communication you receive from leadership regarding company goals and objectives?",
+    section: "Leadership & Communication",
+    feedbackPrompt: "Please describe how communication could be improved."
+  },
+  {
+    id: "strategic-priorities-communication",
+    text: "How effectively does leadership communicate strategic priorities?",
+    section: "Leadership & Communication",
+    feedbackPrompt: "Please explain what makes strategic priorities unclear."
+  },
+  {
+    id: "leadership-openness",
+    text: "Rate leadership's openness to challenging traditional approaches.",
+    section: "Leadership & Communication",
+    feedbackPrompt: "Please share examples where innovative ideas were blocked or ignored."
+  },
+  {
+    id: "manager-business-connection",
+    text: "Does your manager help connect your work to business outcomes?",
+    section: "Leadership & Communication",
+    feedbackPrompt: "Please explain how your work could be better aligned with outcomes."
+  },
+  
+  // 3. Collaboration & Cross-Functional Work (2 questions)
+  {
+    id: "us-uk-collaboration",
+    text: "How are the overall communication and collaboration between the US and UK offices?",
+    section: "Collaboration & Cross-Functional Work",
+    feedbackPrompt: "Please describe the main obstacles to collaboration between offices."
+  },
+  {
+    id: "cross-functional-collaboration",
+    text: "Rate the quality of cross-functional collaboration.",
+    section: "Collaboration & Cross-Functional Work",
+    feedbackPrompt: "Please provide examples of where cross-functional work could be improved."
+  },
+  
+  // 4. Growth & Strategic Alignment (2 questions)
+  {
+    id: "strategic-direction-confidence",
+    text: "Rate your confidence in the company's 3-year strategic direction.",
+    section: "Growth & Strategic Alignment",
+    feedbackPrompt: "Please explain your concerns about the strategic direction."
+  },
+  {
+    id: "advancement-opportunities",
+    text: "Do you see clear advancement opportunities aligned with emerging skill needs?",
+    section: "Growth & Strategic Alignment",
+    feedbackPrompt: "Please describe what's missing in career growth or skill development."
+  },
+  
+  // 5. Process Efficiency & Innovation (3 questions)
+  {
+    id: "manual-processes-impact",
+    text: "How often do manual processes prevent you from higher-impact work?",
+    section: "Process Efficiency & Innovation",
+    feedbackPrompt: "Please describe the manual processes or tasks that slow your work."
+  },
+  {
+    id: "process-improvement-comfort",
+    text: "How comfortable do you feel proposing process improvements?",
+    section: "Process Efficiency & Innovation",
+    feedbackPrompt: "Please explain what prevents you from suggesting improvements."
+  },
+  {
+    id: "learning-from-failures",
+    text: "Are failed experiments treated as learning opportunities?",
+    section: "Process Efficiency & Innovation",
+    feedbackPrompt: "Please provide examples of failed experiments that were not treated as learning opportunities."
+  },
+  
+  // 6. Workplace Experience (2 questions)
+  {
+    id: "workplace-safety",
+    text: "How safe do you feel in your work environment?",
+    section: "Workplace Experience",
+    feedbackPrompt: "Please explain any safety concerns you have."
+  },
+  {
+    id: "company-recommendation",
+    text: "How likely are you to recommend this company as a place to work?",
+    section: "Workplace Experience",
+    feedbackPrompt: "Please share reasons you wouldn't recommend the company."
+  }
+];
 
 const demographicQuestions: DemographicQuestion[] = [
   {
@@ -60,173 +166,32 @@ const demographicQuestions: DemographicQuestion[] = [
   }
 ];
 
-const ratingQuestions: RatingQuestion[] = [
-  {
-    id: "job-satisfaction",
-    text: "How satisfied are you with your job?",
-    followUpPrompt: "Could you share what aspects of your job contribute to this rating?"
-  },
-  {
-    id: "communication-clarity",
-    text: "How clear is the communication you receive from leadership regarding company goals and objectives?",
-    followUpPrompt: "What would help improve communication clarity from leadership?"
-  },
-  {
-    id: "safety",
-    text: "How safe do you feel in your work environment?",
-    followUpPrompt: "What safety concerns do you have, or what improvements would you suggest?"
-  },
-  {
-    id: "training",
-    text: "How satisfied are you with the training provided for your current role?",
-    followUpPrompt: "What additional training or support would be most valuable for your role?"
-  },
-  {
-    id: "work-life-balance",
-    text: "How would you rate your current work-life balance?",
-    followUpPrompt: "What changes would help improve your work-life balance?"
-  },
-  {
-    id: "cross-office-communication",
-    text: "How are the overall communication and collaboration between the US and UK offices?",
-    followUpPrompt: "What would improve communication and collaboration between offices?"
-  },
-  // Productivity & Value Creation
-  {
-    id: "manual-processes-impact",
-    text: "How often do manual processes prevent you from higher-impact work?",
-    followUpPrompt: "Which manual processes create the biggest barriers to your productivity?"
-  },
-  // Retention Risk Indicators
-  {
-    id: "company-recommendation",
-    text: "How likely are you to recommend this company as a place to work?",
-    followUpPrompt: "What would make you more likely to recommend this company?"
-  },
-  {
-    id: "strategic-direction-confidence",
-    text: "Rate your confidence in the company's 3-year strategic direction",
-    followUpPrompt: "What concerns do you have about the company's strategic direction?"
-  },
-  {
-    id: "advancement-opportunities",
-    text: "Do you see clear advancement opportunities aligned with emerging skill needs?",
-    followUpPrompt: "What advancement opportunities would be most valuable to you?"
-  },
-  // Innovation Culture
-  {
-    id: "process-improvement-comfort",
-    text: "How comfortable do you feel proposing process improvements?",
-    followUpPrompt: "What would make you more comfortable proposing improvements?"
-  },
-  {
-    id: "learning-from-failures",
-    text: "Are failed experiments treated as learning opportunities?",
-    followUpPrompt: "How could the company better support learning from failures?"
-  },
-  {
-    id: "leadership-openness",
-    text: "Rate leadership's openness to challenging traditional approaches",
-    followUpPrompt: "What examples have you seen of leadership resistance to new approaches?"
-  },
-  // Leadership Effectiveness
-  {
-    id: "manager-business-connection",
-    text: "Does your manager help connect your work to business outcomes?",
-    followUpPrompt: "How could your manager better connect your work to business outcomes?"
-  },
-  {
-    id: "strategic-priorities-communication",
-    text: "How effectively does leadership communicate strategic priorities?",
-    followUpPrompt: "How could leadership improve communication of strategic priorities?"
-  },
-  {
-    id: "cross-functional-collaboration",
-    text: "Rate the quality of cross-functional collaboration",
-    followUpPrompt: "What would improve cross-functional collaboration in your experience?"
-  }
-];
+// Emojis for 1-5 scale
+const ratingEmojis = {
+  1: "😢",
+  2: "😕", 
+  3: "😐",
+  4: "😊",
+  5: "😃"
+};
 
-const preferenceQuestions: PreferenceQuestion[] = [
-  {
-    id: "communication-style",
-    text: "Which communication styles do you prefer? (Select all that apply)",
-    options: [
-      { value: "emails", label: "Company-wide emails" },
-      { value: "town-halls", label: "Quarterly Town halls" },
-      { value: "intranet", label: "Company Intranet" },
-      { value: "digital-signage", label: "Digital Signage" },
-      { value: "printed-signage", label: "Printed Signage" },
-      { value: "team-meetings", label: "Team meetings" }
-    ]
-  },
-  {
-    id: "motivation",
-    text: "What motivates you to stay with the company? (Select all that apply)",
-    options: [
-      { value: "compensation", label: "Compensation" },
-      { value: "benefits", label: "Benefits package" },
-      { value: "job-satisfaction", label: "Job satisfaction" },
-      { value: "career-growth", label: "Career growth opportunities" },
-      { value: "work-culture", label: "Work culture and environment" },
-      { value: "flexibility", label: "Work flexibility" }
-    ]
-  }
-];
+const ratingLabels = {
+  1: "Poor",
+  2: "Below Average", 
+  3: "Average",
+  4: "Good",
+  5: "Excellent"
+};
 
-interface StrategicQuestion {
-  id: string;
-  text: string;
-  category: string;
-  placeholder: string;
-}
-
-const strategicQuestions: StrategicQuestion[] = [
-  // Productivity & Value Creation
-  {
-    id: "time-consuming-activities",
-    text: "Which work activities consume time but add minimal value?",
-    category: "Productivity & Value Creation",
-    placeholder: "Describe activities that take time but don't add much value..."
-  },
-  {
-    id: "strategic-value-contribution",
-    text: "What would help you contribute 20% more strategic value?",
-    category: "Productivity & Value Creation", 
-    placeholder: "Share what would help you add more strategic value..."
-  },
-  // Skills Gap Intelligence
-  {
-    id: "capability-development-needs",
-    text: "What capabilities do you need to develop to remain valuable?",
-    category: "Skills Gap Intelligence",
-    placeholder: "Describe the skills or capabilities you'd like to develop..."
-  },
-  {
-    id: "customer-process-frustrations",
-    text: "Which current company processes frustrate customers most?",
-    category: "Skills Gap Intelligence",
-    placeholder: "Share insights about processes that frustrate customers..."
-  },
-  {
-    id: "competitive-threats",
-    text: "Where do you see competitive threats that require new capabilities?",
-    category: "Skills Gap Intelligence",
-    placeholder: "Describe competitive threats and needed capabilities..."
-  }
-];
-
-type SurveySection = "demographics" | "ratings" | "strategic" | "preferences" | "complete";
+type SurveySection = "demographics" | "ratings" | "complete";
 
 export function EmployeeSurvey() {
   const [currentSection, setCurrentSection] = useState<SurveySection>("demographics");
   const [currentDemographicIndex, setCurrentDemographicIndex] = useState(0);
-  const [currentStrategicIndex, setCurrentStrategicIndex] = useState(0);
-  const [currentPreferenceIndex, setCurrentPreferenceIndex] = useState(0);
-  const [responses, setResponses] = useState<Record<string, string | string[]>>({});
+  const [responses, setResponses] = useState<Record<string, string>>({});
   const [ratingResponses, setRatingResponses] = useState<Record<string, number>>({});
-  const [strategicResponses, setStrategicResponses] = useState<Record<string, string>>({});
-  const [followUpResponses, setFollowUpResponses] = useState<Record<string, string>>({});
+  const [feedbackResponses, setFeedbackResponses] = useState<Record<string, string>>({});
+  const [collaborationFeedback, setCollaborationFeedback] = useState("");
   const [isComplete, setIsComplete] = useState(false);
   const [submissionCount, setSubmissionCount] = useState(0);
   const { toast } = useToast();
@@ -244,8 +209,8 @@ export function EmployeeSurvey() {
     setIsComplete(false);
     setResponses({});
     setRatingResponses({});
-    setStrategicResponses({});
-    setFollowUpResponses({});
+    setFeedbackResponses({});
+    setCollaborationFeedback("");
     setCurrentSection("demographics");
     toast({
       title: "Survey data reset",
@@ -262,18 +227,14 @@ export function EmployeeSurvey() {
   }, []);
 
   const getTotalQuestions = () => {
-    return demographicQuestions.length + 1 + strategicQuestions.length + preferenceQuestions.length; // +1 for ratings section
+    return demographicQuestions.length + ratingQuestions.length;
   };
 
   const getCurrentQuestionNumber = () => {
     if (currentSection === "demographics") {
       return currentDemographicIndex + 1;
     } else if (currentSection === "ratings") {
-      return demographicQuestions.length + 1;
-    } else if (currentSection === "strategic") {
-      return demographicQuestions.length + 1 + currentStrategicIndex + 1;
-    } else if (currentSection === "preferences") {
-      return demographicQuestions.length + 1 + strategicQuestions.length + currentPreferenceIndex + 1;
+      return demographicQuestions.length + Object.keys(ratingResponses).length + 1;
     }
     return getTotalQuestions();
   };
@@ -295,34 +256,12 @@ export function EmployeeSurvey() {
     setRatingResponses(prev => ({ ...prev, [questionId]: rating }));
   };
 
-  const handleRatingsComplete = () => {
-    setCurrentSection("strategic");
+  const handleFeedbackResponse = (questionId: string, feedback: string) => {
+    setFeedbackResponses(prev => ({ ...prev, [questionId]: feedback }));
   };
 
-  const handleStrategicResponse = (value: string) => {
-    const questionId = strategicQuestions[currentStrategicIndex].id;
-    setStrategicResponses(prev => ({ ...prev, [questionId]: value }));
-    
-    if (currentStrategicIndex < strategicQuestions.length - 1) {
-      setCurrentStrategicIndex(prev => prev + 1);
-    } else {
-      setCurrentSection("preferences");
-    }
-  };
-
-  const handlePreferenceResponse = (value: string[]) => {
-    const questionId = preferenceQuestions[currentPreferenceIndex].id;
-    setResponses(prev => ({ ...prev, [questionId]: value }));
-    
-    if (currentPreferenceIndex < preferenceQuestions.length - 1) {
-      setCurrentPreferenceIndex(prev => prev + 1);
-    } else {
-      handleSubmit();
-    }
-  };
-
-  const handleFollowUpChange = (questionId: string, value: string) => {
-    setFollowUpResponses(prev => ({ ...prev, [questionId]: value }));
+  const isAllQuestionsAnswered = () => {
+    return Object.keys(ratingResponses).length === ratingQuestions.length;
   };
 
   const handleSubmit = () => {
@@ -335,11 +274,20 @@ export function EmployeeSurvey() {
       return;
     }
 
+    if (!isAllQuestionsAnswered()) {
+      toast({
+        title: "Incomplete survey",
+        description: "Please answer all 15 questions before submitting.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const surveyData = {
       responses,
       ratingResponses,
-      strategicResponses,
-      followUpResponses,
+      feedbackResponses,
+      collaborationFeedback,
       timestamp: new Date().toISOString()
     };
     
@@ -404,13 +352,16 @@ export function EmployeeSurvey() {
         </div>
         
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-center mb-2">Employee Satisfaction Survey</h1>
-          <p className="text-center text-muted-foreground mb-6">
-            Your feedback is anonymous and valuable to us
+          <h1 className="text-3xl font-bold text-center mb-2">Employee Survey – Actionable Insights</h1>
+          <p className="text-center text-muted-foreground mb-2">
+            Rate each aspect from 1 (Poor) to 5 (Excellent)
+          </p>
+          <p className="text-center text-sm text-muted-foreground mb-6">
+            If you select 1 or 2, a text box will appear asking for details.
           </p>
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Section {getCurrentQuestionNumber()} of {getTotalQuestions()}</span>
+              <span>Question {getCurrentQuestionNumber()} of {getTotalQuestions()}</span>
               <span>{Math.round(progress)}% complete</span>
             </div>
             <Progress value={progress} className="h-2" />
@@ -430,43 +381,16 @@ export function EmployeeSurvey() {
           <RatingsSection 
             questions={ratingQuestions}
             responses={ratingResponses}
-            followUpResponses={followUpResponses}
+            feedbackResponses={feedbackResponses}
+            collaborationFeedback={collaborationFeedback}
             onRatingChange={handleRatingResponse}
-            onFollowUpChange={handleFollowUpChange}
-            onComplete={handleRatingsComplete}
+            onFeedbackChange={handleFeedbackResponse}
+            onCollaborationFeedbackChange={setCollaborationFeedback}
+            onSubmit={handleSubmit}
+            canSubmit={isAllQuestionsAnswered()}
             onGoBack={() => {
               setCurrentDemographicIndex(demographicQuestions.length - 1);
               setCurrentSection("demographics");
-            }}
-          />
-        )}
-
-        {currentSection === "strategic" && (
-          <StrategicSection 
-            question={strategicQuestions[currentStrategicIndex]}
-            onResponse={handleStrategicResponse}
-            canGoBack={currentStrategicIndex > 0 || currentSection !== "strategic"}
-            onGoBack={() => {
-              if (currentStrategicIndex > 0) {
-                setCurrentStrategicIndex(prev => prev - 1);
-              } else {
-                setCurrentSection("ratings");
-              }
-            }}
-          />
-        )}
-
-        {currentSection === "preferences" && (
-          <PreferenceSection 
-            question={preferenceQuestions[currentPreferenceIndex]}
-            onResponse={handlePreferenceResponse}
-            canGoBack={currentPreferenceIndex > 0 || currentSection !== "preferences"}
-            onGoBack={() => {
-              if (currentPreferenceIndex > 0) {
-                setCurrentPreferenceIndex(prev => prev - 1);
-              } else {
-                setCurrentSection("ratings");
-              }
             }}
           />
         )}
@@ -485,37 +409,22 @@ interface DemographicSectionProps {
 
 function DemographicSection({ question, onResponse, canGoBack, onGoBack }: DemographicSectionProps) {
   return (
-    <Card className="mb-6">
+    <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-medium">
-          {question.text}
-        </CardTitle>
+        <CardTitle>{question.text}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <RadioGroup
-          onValueChange={onResponse}
-          className="space-y-3"
-        >
+      <CardContent className="space-y-4">
+        <RadioGroup onValueChange={onResponse}>
           {question.options.map((option) => (
             <div key={option.value} className="flex items-center space-x-2">
               <RadioGroupItem value={option.value} id={option.value} />
-              <Label
-                htmlFor={option.value}
-                className="text-sm font-normal cursor-pointer flex-1"
-              >
-                {option.label}
-              </Label>
+              <Label htmlFor={option.value}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
-        
         {canGoBack && (
-          <Button
-            variant="outline"
-            onClick={onGoBack}
-            className="mt-4"
-          >
-            Previous Question
+          <Button variant="outline" onClick={onGoBack}>
+            Previous
           </Button>
         )}
       </CardContent>
@@ -526,227 +435,124 @@ function DemographicSection({ question, onResponse, canGoBack, onGoBack }: Demog
 interface RatingsSectionProps {
   questions: RatingQuestion[];
   responses: Record<string, number>;
-  followUpResponses: Record<string, string>;
+  feedbackResponses: Record<string, string>;
+  collaborationFeedback: string;
   onRatingChange: (questionId: string, rating: number) => void;
-  onFollowUpChange: (questionId: string, value: string) => void;
-  onComplete: () => void;
+  onFeedbackChange: (questionId: string, feedback: string) => void;
+  onCollaborationFeedbackChange: (feedback: string) => void;
+  onSubmit: () => void;
+  canSubmit: boolean;
   onGoBack: () => void;
 }
 
 function RatingsSection({ 
   questions, 
   responses, 
-  followUpResponses, 
+  feedbackResponses,
+  collaborationFeedback,
   onRatingChange, 
-  onFollowUpChange, 
-  onComplete, 
+  onFeedbackChange,
+  onCollaborationFeedbackChange,
+  onSubmit,
+  canSubmit,
   onGoBack 
 }: RatingsSectionProps) {
-  const allRatingsComplete = questions.every(q => responses[q.id] !== undefined);
+  const groupedQuestions = questions.reduce((acc, question) => {
+    if (!acc[question.section]) {
+      acc[question.section] = [];
+    }
+    acc[question.section].push(question);
+    return acc;
+  }, {} as Record<string, RatingQuestion[]>);
 
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle className="text-xl font-semibold mb-2">
-          Please rate your experience
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Rate each aspect from 1 (poor) to 5 (excellent)
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {questions.map((question) => (
-          <div key={question.id} className="space-y-3">
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium">{question.text}</h3>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground min-w-[30px]">Poor</span>
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((rating) => (
-                    <button
-                      key={rating}
-                      onClick={() => onRatingChange(question.id, rating)}
-                      className={cn(
-                        "w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-medium transition-colors",
-                        responses[question.id] === rating
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "border-border hover:border-primary/50"
-                      )}
-                    >
-                      {rating}
-                    </button>
-                  ))}
-                </div>
-                <span className="text-xs text-muted-foreground min-w-[50px]">Excellent</span>
-              </div>
-            </div>
-            
-            {responses[question.id] && responses[question.id] <= 3 && (
-              <div className="mt-4 p-4 bg-accent/50 border border-accent/20 rounded-md">
-                <div className="flex items-start gap-2 mb-3">
-                  <div className="w-5 h-5 rounded-full bg-primary/20lex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs text-primary font-medium">💡</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground mb-1">
-                      Help us improve!
-                    </p>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      {question.followUpPrompt} Your input helps us make work better for everyone.
-                    </p>
+    <div className="space-y-8">
+      {Object.entries(groupedQuestions).map(([section, sectionQuestions]) => (
+        <Card key={section}>
+          <CardHeader>
+            <CardTitle className="text-xl">{section}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {sectionQuestions.map((question) => (
+              <div key={question.id} className="space-y-4">
+                <div>
+                  <h3 className="font-medium mb-4">{question.text}</h3>
+                  
+                  {/* Rating Scale with Emojis */}
+                  <div className="flex justify-center space-x-4 mb-4">
+                    {[1, 2, 3, 4, 5].map((rating) => (
+                      <button
+                        key={rating}
+                        onClick={() => onRatingChange(question.id, rating)}
+                        className={cn(
+                          "flex flex-col items-center p-3 rounded-lg border-2 transition-all",
+                          responses[question.id] === rating
+                            ? "border-primary bg-primary/10"
+                            : "border-border hover:border-primary/50"
+                        )}
+                      >
+                        <span className="text-2xl mb-1">{ratingEmojis[rating as keyof typeof ratingEmojis]}</span>
+                        <span className="text-xs font-medium">{rating}</span>
+                        <span className="text-xs text-muted-foreground">{ratingLabels[rating as keyof typeof ratingLabels]}</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <Textarea
-                  placeholder="Your feedback is valuable to us (optional)..."
-                  value={followUpResponses[question.id] || ""}
-                  onChange={(e) => onFollowUpChange(question.id, e.target.value)}
-                  className="min-h-[80px] text-sm"
-                />
+
+                {/* Feedback box for low scores (1-2) */}
+                {responses[question.id] && responses[question.id] <= 2 && (
+                  <div className="space-y-2">
+                    <Label htmlFor={`feedback-${question.id}`} className="text-sm font-medium">
+                      {question.feedbackPrompt}
+                    </Label>
+                    <Textarea
+                      id={`feedback-${question.id}`}
+                      placeholder="Please provide details..."
+                      value={feedbackResponses[question.id] || ""}
+                      onChange={(e) => onFeedbackChange(question.id, e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+                )}
               </div>
-            )}
+            ))}
+          </CardContent>
+        </Card>
+      ))}
+
+      {/* Optional collaboration feedback */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Additional Feedback</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <Label htmlFor="collaboration-feedback">
+              What would improve communication and collaboration between offices? (Optional)
+            </Label>
+            <Textarea
+              id="collaboration-feedback"
+              placeholder="Share your thoughts on improving collaboration..."
+              value={collaborationFeedback}
+              onChange={(e) => onCollaborationFeedbackChange(e.target.value)}
+              rows={4}
+            />
           </div>
-        ))}
-        
-        <div className="flex gap-2 pt-4">
-          <Button variant="outline" onClick={onGoBack}>
-            Previous
-          </Button>
-          <Button 
-            onClick={onComplete}
-            disabled={!allRatingsComplete}
-            className="flex-1"
-          >
-            Continue to Preferences
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+        </CardContent>
+      </Card>
 
-interface PreferenceSectionProps {
-  question: PreferenceQuestion;
-  onResponse: (value: string[]) => void;
-  canGoBack: boolean;
-  onGoBack: () => void;
-}
-
-function PreferenceSection({ question, onResponse, canGoBack, onGoBack }: PreferenceSectionProps) {
-  const [selectedValues, setSelectedValues] = useState<string[]>([]);
-
-  const handleCheckboxChange = (value: string, checked: boolean) => {
-    const newValues = checked 
-      ? [...selectedValues, value]
-      : selectedValues.filter(v => v !== value);
-    setSelectedValues(newValues);
-  };
-
-  const handleContinue = () => {
-    onResponse(selectedValues);
-  };
-
-  return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle className="text-lg font-medium">
-          {question.text}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3 mb-6">
-          {question.options.map((option) => (
-            <div key={option.value} className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id={option.value}
-                checked={selectedValues.includes(option.value)}
-                onChange={(e) => handleCheckboxChange(option.value, e.target.checked)}
-                className="rounded border-input"
-              />
-              <Label
-                htmlFor={option.value}
-                className="text-sm font-normal cursor-pointer flex-1"
-              >
-                {option.label}
-              </Label>
-            </div>
-          ))}
-        </div>
-        
-        <div className="flex gap-2">
-          {canGoBack && (
-            <Button variant="outline" onClick={onGoBack}>
-              Previous
-            </Button>
-          )}
-          <Button 
-            onClick={handleContinue}
-            disabled={selectedValues.length === 0}
-            className="flex-1"
-          >
-            Continue
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// Strategic Questions Section
-interface StrategicSectionProps {
-  question: StrategicQuestion;
-  onResponse: (value: string) => void;
-  canGoBack: boolean;
-  onGoBack: () => void;
-}
-
-function StrategicSection({ question, onResponse, canGoBack, onGoBack }: StrategicSectionProps) {
-  const [response, setResponse] = useState("");
-
-  const handleContinue = () => {
-    onResponse(response.trim());
-  };
-
-  return (
-    <Card className="mb-6">
-      <CardHeader>
-        <div className="space-y-2">
-          <Badge variant="outline" className="text-xs">
-            {question.category}
-          </Badge>
-          <CardTitle className="text-lg font-medium">
-            {question.text}
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Your strategic insights help us make work better for everyone.
-          </p>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <Textarea
-            placeholder={question.placeholder}
-            value={response}
-            onChange={(e) => setResponse(e.target.value)}
-            className="min-h-[120px] text-sm"
-          />
-          
-          <div className="flex gap-2">
-            {canGoBack && (
-              <Button variant="outline" onClick={onGoBack}>
-                Previous
-              </Button>
-            )}
-            <Button 
-              onClick={handleContinue}
-              disabled={!response.trim()}
-              className="flex-1"
-            >
-              Continue
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onGoBack}>
+          Previous
+        </Button>
+        <Button 
+          onClick={onSubmit} 
+          disabled={!canSubmit}
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
+        >
+          {canSubmit ? "Submit Survey" : `Answer All Questions (${Object.keys(responses).length}/${questions.length})`}
+        </Button>
+      </div>
+    </div>
   );
 }
