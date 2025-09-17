@@ -27,7 +27,30 @@ interface RatingQuestion {
   feedbackPrompt: string;
 }
 
-// New 14 rating questions based on user's requirements
+interface MultiSelectQuestion {
+  id: string;
+  text: string;
+  section: string;
+  options: { value: string; label: string }[];
+}
+
+const multiSelectQuestions: MultiSelectQuestion[] = [
+  {
+    id: "communication-preferences",
+    text: "Which communication styles do you prefer?",
+    section: "Leadership & Communication",
+    options: [
+      { value: "companywide-emails", label: "Companywide emails" },
+      { value: "quarterly-town-halls", label: "Quarterly Town halls" },
+      { value: "company-intranet", label: "Company Intranet" },
+      { value: "digital-signage", label: "Digital Signage" },
+      { value: "printed-signage", label: "Printed Signage" },
+      { value: "team-meetings", label: "Team meetings" }
+    ]
+  }
+];
+
+// New 13 rating questions based on user's requirements
 const ratingQuestions: RatingQuestion[] = [
   // 1. Job & Role Satisfaction (3 questions)
   {
@@ -49,18 +72,12 @@ const ratingQuestions: RatingQuestion[] = [
     feedbackPrompt: "Please explain what affects your work-life balance."
   },
   
-  // 2. Leadership & Communication (3 questions)
+  // 2. Leadership & Communication (2 questions)
   {
     id: "leadership-communication-clarity",
     text: "How clear is the communication you receive from leadership regarding company goals and objectives?",
     section: "Leadership & Communication",
     feedbackPrompt: "Please describe how communication could be improved."
-  },
-  {
-    id: "leadership-openness",
-    text: "Rate leadership's openness to challenging traditional approaches.",
-    section: "Leadership & Communication",
-    feedbackPrompt: "Please share examples where innovative ideas were blocked or ignored."
   },
   {
     id: "manager-business-connection",
@@ -253,6 +270,7 @@ export function EmployeeSurvey() {
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [ratingResponses, setRatingResponses] = useState<Record<string, number>>({});
   const [feedbackResponses, setFeedbackResponses] = useState<Record<string, string>>({});
+  const [multiSelectResponses, setMultiSelectResponses] = useState<Record<string, string[]>>({});
   const [collaborationFeedback, setCollaborationFeedback] = useState("");
   const [isComplete, setIsComplete] = useState(false);
   const [submissionCount, setSubmissionCount] = useState(0);
@@ -290,14 +308,16 @@ export function EmployeeSurvey() {
   }, []);
 
   const getTotalQuestions = () => {
-    return demographicQuestions.length + ratingQuestions.length;
+    return demographicQuestions.length + ratingQuestions.length + multiSelectQuestions.length;
   };
 
   const getCurrentQuestionNumber = () => {
     if (currentSection === "demographics") {
       return currentDemographicIndex + 1;
     } else if (currentSection === "ratings") {
-      return demographicQuestions.length + Object.keys(ratingResponses).length + 1;
+      const ratingCount = Object.keys(ratingResponses).length;
+      const multiSelectCount = Object.keys(multiSelectResponses).length;
+      return demographicQuestions.length + ratingCount + multiSelectCount + 1;
     }
     return getTotalQuestions();
   };
@@ -323,8 +343,14 @@ export function EmployeeSurvey() {
     setFeedbackResponses(prev => ({ ...prev, [questionId]: feedback }));
   };
 
+  const handleMultiSelectResponse = (questionId: string, selectedOptions: string[]) => {
+    setMultiSelectResponses(prev => ({ ...prev, [questionId]: selectedOptions }));
+  };
+
   const isAllQuestionsAnswered = () => {
-    return Object.keys(ratingResponses).length === ratingQuestions.length;
+    const allRatingsAnswered = Object.keys(ratingResponses).length === ratingQuestions.length;
+    const allMultiSelectAnswered = Object.keys(multiSelectResponses).length === multiSelectQuestions.length;
+    return allRatingsAnswered && allMultiSelectAnswered;
   };
 
   const handleSubmit = async () => {
@@ -340,7 +366,7 @@ export function EmployeeSurvey() {
     if (!isAllQuestionsAnswered()) {
       toast({
         title: "Incomplete survey",
-        description: "Please answer all 14 questions before submitting.",
+        description: "Please answer all 13 questions before submitting.",
         variant: "destructive"
       });
       return;
@@ -361,12 +387,12 @@ export function EmployeeSurvey() {
         role: responses.role === 'sales-marketing' ? 'Sales/Marketing/Product' :
               responses.role === 'operations' ? 'Operations/Engineering/Production' : 'Admin/HR/Finance',
         
-        // Rating responses
+        // Rating responses - updated to remove leadership-openness
         job_satisfaction: ratingResponses['job-satisfaction'],
         training_satisfaction: ratingResponses['training-satisfaction'],
         work_life_balance: ratingResponses['work-life-balance'],
         communication_clarity: ratingResponses['leadership-communication-clarity'],
-        leadership_openness: ratingResponses['leadership-openness'],
+        leadership_openness: null, // Removed question
         manager_alignment: ratingResponses['manager-business-connection'],
         us_uk_collaboration: ratingResponses['us-uk-collaboration'],
         cross_functional_collaboration: ratingResponses['cross-functional-collaboration'],
@@ -501,11 +527,14 @@ export function EmployeeSurvey() {
         {currentSection === "ratings" && (
           <RatingsSection 
             questions={ratingQuestions}
+            multiSelectQuestions={multiSelectQuestions}
             responses={ratingResponses}
             feedbackResponses={feedbackResponses}
+            multiSelectResponses={multiSelectResponses}
             collaborationFeedback={collaborationFeedback}
             onRatingChange={handleRatingResponse}
             onFeedbackChange={handleFeedbackResponse}
+            onMultiSelectChange={handleMultiSelectResponse}
             onCollaborationFeedbackChange={setCollaborationFeedback}
             onSubmit={handleSubmit}
             canSubmit={isAllQuestionsAnswered()}
@@ -556,11 +585,14 @@ function DemographicSection({ question, onResponse, canGoBack, onGoBack }: Demog
 
 interface RatingsSectionProps {
   questions: RatingQuestion[];
+  multiSelectQuestions: MultiSelectQuestion[];
   responses: Record<string, number>;
   feedbackResponses: Record<string, string>;
+  multiSelectResponses: Record<string, string[]>;
   collaborationFeedback: string;
   onRatingChange: (questionId: string, rating: number) => void;
   onFeedbackChange: (questionId: string, feedback: string) => void;
+  onMultiSelectChange: (questionId: string, selectedOptions: string[]) => void;
   onCollaborationFeedbackChange: (feedback: string) => void;
   onSubmit: () => void;
   canSubmit: boolean;
@@ -570,24 +602,29 @@ interface RatingsSectionProps {
 
 function RatingsSection({ 
   questions, 
+  multiSelectQuestions,
   responses, 
   feedbackResponses,
+  multiSelectResponses,
   collaborationFeedback,
   onRatingChange, 
   onFeedbackChange,
+  onMultiSelectChange,
   onCollaborationFeedbackChange,
   onSubmit,
   canSubmit,
   onGoBack,
   isSubmitting = false
 }: RatingsSectionProps) {
-  const groupedQuestions = questions.reduce((acc, question) => {
+  // Combine rating questions and multi-select questions by section
+  const allQuestions = [...questions, ...multiSelectQuestions];
+  const groupedQuestions = allQuestions.reduce((acc, question) => {
     if (!acc[question.section]) {
       acc[question.section] = [];
     }
     acc[question.section].push(question);
     return acc;
-  }, {} as Record<string, RatingQuestion[]>);
+  }, {} as Record<string, (RatingQuestion | MultiSelectQuestion)[]>);
 
   return (
     <div className="space-y-8">
@@ -599,76 +636,107 @@ function RatingsSection({
           <CardContent className="space-y-6">
             {sectionQuestions.map((question) => (
               <div key={question.id} className="space-y-4">
-                <div>
-                  <h3 className="font-medium mb-4">{question.text}</h3>
-                  
-                  {/* Rating Scale with Emojis */}
-                  <div className="flex justify-center space-x-2 md:space-x-4 mb-4">
-                    {[1, 2, 3, 4, 5].map((rating) => {
-                      const isAgreementScale = question.section === "Process Efficiency & Innovation";
-                      const isLeadershipQuestion = question.section === "Leadership & Communication";
-                      const isCollaborationQuestion = question.section === "Collaboration & Cross-Functional Work";
-                      const isGrowthQuestion = question.section === "Growth & Strategic Alignment";
-                      
-                      let emojiSet, labelSet;
-                      
-                      if (isLeadershipQuestion) {
-                        emojiSet = ratingEmojis.satisfaction;
-                        labelSet = ratingLabels.leadership[question.id as keyof typeof ratingLabels.leadership] || ratingLabels.satisfaction;
-                      } else if (isCollaborationQuestion) {
-                        emojiSet = ratingEmojis.satisfaction;
-                        labelSet = ratingLabels.collaboration[question.id as keyof typeof ratingLabels.collaboration] || ratingLabels.satisfaction;
-                      } else if (isGrowthQuestion) {
-                        emojiSet = ratingEmojis.satisfaction;
-                        labelSet = ratingLabels.growth[question.id as keyof typeof ratingLabels.growth] || ratingLabels.satisfaction;
-                      } else if (isAgreementScale) {
-                        emojiSet = ratingEmojis.agreement;
-                        labelSet = ratingLabels.agreement;
-                      } else {
-                        emojiSet = ratingEmojis.satisfaction;
-                        labelSet = ratingLabels.satisfaction;
-                      }
-                      
-                      return (
-                        <button
-                          key={rating}
-                          onClick={() => onRatingChange(question.id, rating)}
-                          className={cn(
-                            "flex flex-col items-center p-2 md:p-3 rounded-lg border-2 transition-all touch-manipulation",
-                            "select-none focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px] min-w-[60px]",
-                            "active:scale-95 hover:scale-105",
-                            responses[question.id] === rating
-                              ? "border-primary bg-primary/10 ring-2 ring-primary"
-                              : "border-border hover:border-primary/50 active:bg-muted/70"
-                          )}
-                          onTouchStart={(e) => e.preventDefault()}
-                        >
-                          <span className="text-xl md:text-2xl mb-1 select-none">{emojiSet[rating as keyof typeof emojiSet]}</span>
-                          <span className="text-xs font-medium select-none">{rating}</span>
-                          <span className="text-xs text-muted-foreground text-center select-none leading-tight">
-                            {(isLeadershipQuestion || isCollaborationQuestion || isGrowthQuestion) ? labelSet[rating as keyof typeof labelSet] : labelSet[rating as keyof typeof labelSet]}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+                {'feedbackPrompt' in question ? (
+                  // Rating Question
+                  <div>
+                    <h3 className="font-medium mb-4">{question.text}</h3>
+                    
+                    {/* Rating Scale with Emojis */}
+                    <div className="flex justify-center space-x-2 md:space-x-4 mb-4">
+                      {[1, 2, 3, 4, 5].map((rating) => {
+                        const isAgreementScale = question.section === "Process Efficiency & Innovation";
+                        const isLeadershipQuestion = question.section === "Leadership & Communication";
+                        const isCollaborationQuestion = question.section === "Collaboration & Cross-Functional Work";
+                        const isGrowthQuestion = question.section === "Growth & Strategic Alignment";
+                        
+                        let emojiSet, labelSet;
+                        
+                        if (isLeadershipQuestion) {
+                          emojiSet = ratingEmojis.satisfaction;
+                          labelSet = ratingLabels.leadership[question.id as keyof typeof ratingLabels.leadership] || ratingLabels.satisfaction;
+                        } else if (isCollaborationQuestion) {
+                          emojiSet = ratingEmojis.satisfaction;
+                          labelSet = ratingLabels.collaboration[question.id as keyof typeof ratingLabels.collaboration] || ratingLabels.satisfaction;
+                        } else if (isGrowthQuestion) {
+                          emojiSet = ratingEmojis.satisfaction;
+                          labelSet = ratingLabels.growth[question.id as keyof typeof ratingLabels.growth] || ratingLabels.satisfaction;
+                        } else if (isAgreementScale) {
+                          emojiSet = ratingEmojis.agreement;
+                          labelSet = ratingLabels.agreement;
+                        } else {
+                          emojiSet = ratingEmojis.satisfaction;
+                          labelSet = ratingLabels.satisfaction;
+                        }
+                        
+                        return (
+                          <button
+                            key={rating}
+                            onClick={() => onRatingChange(question.id, rating)}
+                            className={cn(
+                              "flex flex-col items-center p-2 md:p-3 rounded-lg border-2 transition-all touch-manipulation",
+                              "select-none focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px] min-w-[60px]",
+                              "active:scale-95 hover:scale-105",
+                              responses[question.id] === rating
+                                ? "border-primary bg-primary/10 ring-2 ring-primary"
+                                : "border-border hover:border-primary/50 active:bg-muted/70"
+                            )}
+                            onTouchStart={(e) => e.preventDefault()}
+                          >
+                            <span className="text-xl md:text-2xl mb-1 select-none">{emojiSet[rating as keyof typeof emojiSet]}</span>
+                            <span className="text-xs font-medium select-none">{rating}</span>
+                            <span className="text-xs text-muted-foreground text-center select-none leading-tight">
+                              {(isLeadershipQuestion || isCollaborationQuestion || isGrowthQuestion) ? labelSet[rating as keyof typeof labelSet] : labelSet[rating as keyof typeof labelSet]}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
 
-                {/* Feedback box for low scores */}
-                {responses[question.id] && (
-                  (question.section === "Process Efficiency & Innovation" ? responses[question.id] <= 2 : responses[question.id] <= 2)
-                ) && (
-                  <div className="space-y-2">
-                    <Label htmlFor={`feedback-${question.id}`} className="text-sm font-medium">
-                      {question.feedbackPrompt}
-                    </Label>
-                    <Textarea
-                      id={`feedback-${question.id}`}
-                      placeholder="Your feedback helps us improve..."
-                      value={feedbackResponses[question.id] || ""}
-                      onChange={(e) => onFeedbackChange(question.id, e.target.value)}
-                      className="min-h-[100px] touch-manipulation"
-                    />
+                    {/* Feedback box for low scores */}
+                    {responses[question.id] && (
+                      (question.section === "Process Efficiency & Innovation" ? responses[question.id] <= 2 : responses[question.id] <= 2)
+                    ) && (
+                      <div className="space-y-2">
+                        <Label htmlFor={`feedback-${question.id}`} className="text-sm font-medium">
+                          {question.feedbackPrompt}
+                        </Label>
+                        <Textarea
+                          id={`feedback-${question.id}`}
+                          placeholder="Your feedback helps us improve..."
+                          value={feedbackResponses[question.id] || ""}
+                          onChange={(e) => onFeedbackChange(question.id, e.target.value)}
+                          className="min-h-[100px] touch-manipulation"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  // Multi-Select Question
+                  <div>
+                    <h3 className="font-medium mb-4">{question.text}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {question.options?.map((option) => (
+                        <div key={option.value} className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors touch-manipulation">
+                          <input
+                            type="checkbox"
+                            id={`${question.id}-${option.value}`}
+                            checked={multiSelectResponses[question.id]?.includes(option.value) || false}
+                            onChange={(e) => {
+                              const currentSelections = multiSelectResponses[question.id] || [];
+                              if (e.target.checked) {
+                                onMultiSelectChange(question.id, [...currentSelections, option.value]);
+                              } else {
+                                onMultiSelectChange(question.id, currentSelections.filter(v => v !== option.value));
+                              }
+                            }}
+                            className="min-w-[20px] min-h-[20px] rounded border-2 border-muted-foreground checked:bg-primary checked:border-primary focus:ring-2 focus:ring-primary"
+                          />
+                          <Label htmlFor={`${question.id}-${option.value}`} className="flex-1 cursor-pointer select-none">
+                            {option.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
