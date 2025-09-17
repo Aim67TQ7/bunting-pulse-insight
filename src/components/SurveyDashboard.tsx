@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { ChevronLeftIcon, UsersIcon, TrendingUpIcon, AlertTriangleIcon } from "lucide-react";
+import { ChevronLeftIcon, UsersIcon, TrendingUpIcon, AlertTriangleIcon, LockIcon, UnlockIcon } from "lucide-react";
 
 interface SurveyResponse {
   responses: Record<string, string | string[]>;
@@ -16,11 +18,24 @@ const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accen
 export function SurveyDashboard({ onBack }: { onBack: () => void }) {
   const [surveyData, setSurveyData] = useState<SurveyResponse[]>([]);
   const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [adminPasscode, setAdminPasscode] = useState("");
+  const [showAdminDialog, setShowAdminDialog] = useState(false);
 
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem("survey-data") || "[]");
     setSurveyData(data);
   }, []);
+
+  const handleAdminAuth = () => {
+    if (adminPasscode === "4155") {
+      setIsAdminAuthenticated(true);
+      setShowAdminDialog(false);
+      setAdminPasscode("");
+    } else {
+      alert("Invalid passcode");
+    }
+  };
 
   const totalResponses = surveyData.length;
 
@@ -165,10 +180,16 @@ export function SurveyDashboard({ onBack }: { onBack: () => void }) {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Follow-up Comments</p>
+                  <p className="text-sm font-medium text-muted-foreground">Comments</p>
                   <p className="text-2xl font-bold">{followUpComments.length}</p>
                 </div>
-                <AlertTriangleIcon className="h-8 w-8 text-warning" />
+                <div className="flex items-center gap-2">
+                  {isAdminAuthenticated ? (
+                    <UnlockIcon className="h-8 w-8 text-success" />
+                  ) : (
+                    <LockIcon className="h-8 w-8 text-warning" />
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -269,31 +290,85 @@ export function SurveyDashboard({ onBack }: { onBack: () => void }) {
           </Card>
         </div>
 
-        {/* Follow-up Comments */}
-        {followUpComments.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Follow-up Comments ({followUpComments.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {followUpComments.map((comment, index) => (
-                  <div key={index} className="border-l-4 border-warning pl-4 py-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="outline" className="text-xs">
-                        {comment.question.replace(/-/g, ' ')}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(comment.timestamp).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <p className="text-sm">{comment.comment}</p>
+        {/* Comments Section - Admin Only */}
+        <div className="mb-8">
+          {!isAdminAuthenticated ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <LockIcon className="h-5 w-5" />
+                  Comments Section - Admin Access Required
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Comments and feedback require admin authentication to view.
+                </p>
+                <Button onClick={() => setShowAdminDialog(true)}>
+                  <UnlockIcon className="h-4 w-4 mr-2" />
+                  Admin Access
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            followUpComments.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <UnlockIcon className="h-5 w-5 text-success" />
+                    Follow-up Comments ({followUpComments.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {followUpComments.map((comment, index) => (
+                      <div key={index} className="border-l-4 border-warning pl-4 py-2">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="outline" className="text-xs">
+                            {comment.question.replace(/-/g, ' ')}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(comment.timestamp).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-sm">{comment.comment}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </CardContent>
+              </Card>
+            )
+          )}
+        </div>
+
+        {/* Admin Authentication Dialog */}
+        <Dialog open={showAdminDialog} onOpenChange={setShowAdminDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Admin Authentication</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Enter the admin passcode to view employee comments and feedback.
+              </p>
+              <Input
+                type="password"
+                placeholder="Enter admin passcode"
+                value={adminPasscode}
+                onChange={(e) => setAdminPasscode(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleAdminAuth()}
+              />
+              <div className="flex gap-2">
+                <Button onClick={handleAdminAuth} className="flex-1">
+                  Authenticate
+                </Button>
+                <Button variant="outline" onClick={() => setShowAdminDialog(false)}>
+                  Cancel
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <div className="mt-8 p-4 bg-muted/50 rounded-lg">
           <p className="text-sm text-muted-foreground text-center">

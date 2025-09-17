@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CheckIcon, AlertTriangleIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { PrivacyNotice } from "./PrivacyNotice";
 
 interface DemographicQuestion {
   id: string;
@@ -254,6 +255,7 @@ export function EmployeeSurvey() {
 
   return (
     <div className="min-h-screen bg-background p-4">
+      <PrivacyNotice />
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-center mb-2">Employee Satisfaction Survey</h1>
