@@ -114,19 +114,19 @@ const ratingQuestions: RatingQuestion[] = [
   // 6. Process Efficiency & Innovation (3 questions) - Moved to bottom with agreement scale
   {
     id: "manual-processes-impact",
-    text: "I rarely spend time on manual processes, allowing me to focus on higher-impact work.",
+    text: "I am able to focus on higher-impact work rather than spending time on manual processes.",
     section: "Process Efficiency & Innovation",
     feedbackPrompt: "Please describe the manual processes or tasks that slow your work."
   },
   {
     id: "process-improvement-comfort",
-    text: "How comfortable do you feel proposing process improvements?",
+    text: "I feel comfortable proposing process improvements.",
     section: "Process Efficiency & Innovation",
     feedbackPrompt: "Please explain what prevents you from suggesting improvements."
   },
   {
     id: "learning-from-failures",
-    text: "Are failed experiments treated as learning opportunities?",
+    text: "Failed experiments are treated as learning opportunities.",
     section: "Process Efficiency & Innovation",
     feedbackPrompt: "Please provide examples of failed experiments that were not treated as learning opportunities."
   }
