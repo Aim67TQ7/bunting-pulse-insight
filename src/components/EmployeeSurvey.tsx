@@ -10,8 +10,8 @@ import { CheckIcon, AlertTriangleIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { PrivacyNotice } from "./PrivacyNotice";
-import buntingLogo from "@/assets/bunting-logo.png";
-import magnetApplicationsLogo from "@/assets/magnet-applications-logo.png";
+import buntingLogo from "@/assets/bunting-logo-2.png";
+import magnetApplicationsLogo from "@/assets/magnet-applications-logo-2.png";
 
 interface DemographicQuestion {
   id: string;
@@ -234,6 +234,31 @@ export function EmployeeSurvey() {
   useEffect(() => {
     const count = parseInt(localStorage.getItem("survey-submissions") || "0");
     setSubmissionCount(count);
+  }, []);
+
+  // Reset function for testing purposes
+  const resetSurveyData = () => {
+    localStorage.removeItem("survey-submissions");
+    localStorage.removeItem("survey-data");
+    setSubmissionCount(0);
+    setIsComplete(false);
+    setResponses({});
+    setRatingResponses({});
+    setStrategicResponses({});
+    setFollowUpResponses({});
+    setCurrentSection("demographics");
+    toast({
+      title: "Survey data reset",
+      description: "You can now take the survey again for testing.",
+    });
+  };
+
+  // Add reset function to window for testing
+  useEffect(() => {
+    (window as any).resetSurvey = resetSurveyData;
+    return () => {
+      delete (window as any).resetSurvey;
+    };
   }, []);
 
   const getTotalQuestions = () => {
