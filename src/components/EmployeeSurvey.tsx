@@ -26,7 +26,7 @@ interface RatingQuestion {
   feedbackPrompt: string;
 }
 
-// New 15 rating questions based on user's requirements
+// New 14 rating questions based on user's requirements
 const ratingQuestions: RatingQuestion[] = [
   // 1. Job & Role Satisfaction (3 questions)
   {
@@ -48,18 +48,12 @@ const ratingQuestions: RatingQuestion[] = [
     feedbackPrompt: "Please explain what affects your work-life balance."
   },
   
-  // 2. Leadership & Communication (4 questions)
+  // 2. Leadership & Communication (3 questions)
   {
     id: "leadership-communication-clarity",
     text: "How clear is the communication you receive from leadership regarding company goals and objectives?",
     section: "Leadership & Communication",
     feedbackPrompt: "Please describe how communication could be improved."
-  },
-  {
-    id: "strategic-priorities-communication",
-    text: "How effectively does leadership communicate strategic priorities?",
-    section: "Leadership & Communication",
-    feedbackPrompt: "Please explain what makes strategic priorities unclear."
   },
   {
     id: "leadership-openness",
@@ -102,10 +96,24 @@ const ratingQuestions: RatingQuestion[] = [
     feedbackPrompt: "Please describe what's missing in career growth or skill development."
   },
   
-  // 5. Process Efficiency & Innovation (3 questions)
+  // 5. Workplace Experience (2 questions)
+  {
+    id: "workplace-safety",
+    text: "How safe do you feel in your work environment?",
+    section: "Workplace Experience",
+    feedbackPrompt: "Please explain any safety concerns you have."
+  },
+  {
+    id: "company-recommendation",
+    text: "How likely are you to recommend this company as a place to work?",
+    section: "Workplace Experience",
+    feedbackPrompt: "Please share reasons you wouldn't recommend the company."
+  },
+  
+  // 6. Process Efficiency & Innovation (3 questions) - Moved to bottom with agreement scale
   {
     id: "manual-processes-impact",
-    text: "How often do manual processes prevent you from higher-impact work?",
+    text: "I rarely spend time on manual processes, allowing me to focus on higher-impact work.",
     section: "Process Efficiency & Innovation",
     feedbackPrompt: "Please describe the manual processes or tasks that slow your work."
   },
@@ -120,20 +128,6 @@ const ratingQuestions: RatingQuestion[] = [
     text: "Are failed experiments treated as learning opportunities?",
     section: "Process Efficiency & Innovation",
     feedbackPrompt: "Please provide examples of failed experiments that were not treated as learning opportunities."
-  },
-  
-  // 6. Workplace Experience (2 questions)
-  {
-    id: "workplace-safety",
-    text: "How safe do you feel in your work environment?",
-    section: "Workplace Experience",
-    feedbackPrompt: "Please explain any safety concerns you have."
-  },
-  {
-    id: "company-recommendation",
-    text: "How likely are you to recommend this company as a place to work?",
-    section: "Workplace Experience",
-    feedbackPrompt: "Please share reasons you wouldn't recommend the company."
   }
 ];
 
@@ -168,19 +162,37 @@ const demographicQuestions: DemographicQuestion[] = [
 
 // Emojis for 1-5 scale
 const ratingEmojis = {
-  1: "😢",
-  2: "😕", 
-  3: "😐",
-  4: "😊",
-  5: "😃"
+  satisfaction: {
+    1: "😢",
+    2: "😕", 
+    3: "😐",
+    4: "😊",
+    5: "😃"
+  },
+  agreement: {
+    1: "😤",
+    2: "😑", 
+    3: "😐",
+    4: "😊",
+    5: "😃"
+  }
 };
 
 const ratingLabels = {
-  1: "Poor",
-  2: "Below Average", 
-  3: "Average",
-  4: "Good",
-  5: "Excellent"
+  satisfaction: {
+    1: "Poor",
+    2: "Below Average", 
+    3: "Average",
+    4: "Good",
+    5: "Excellent"
+  },
+  agreement: {
+    1: "Strongly Disagree",
+    2: "Disagree", 
+    3: "Neutral",
+    4: "Agree",
+    5: "Strongly Agree"
+  }
 };
 
 type SurveySection = "demographics" | "ratings" | "complete";
@@ -480,22 +492,28 @@ function RatingsSection({
                   
                   {/* Rating Scale with Emojis */}
                   <div className="flex justify-center space-x-4 mb-4">
-                    {[1, 2, 3, 4, 5].map((rating) => (
-                      <button
-                        key={rating}
-                        onClick={() => onRatingChange(question.id, rating)}
-                        className={cn(
-                          "flex flex-col items-center p-3 rounded-lg border-2 transition-all",
-                          responses[question.id] === rating
-                            ? "border-primary bg-primary/10"
-                            : "border-border hover:border-primary/50"
-                        )}
-                      >
-                        <span className="text-2xl mb-1">{ratingEmojis[rating as keyof typeof ratingEmojis]}</span>
-                        <span className="text-xs font-medium">{rating}</span>
-                        <span className="text-xs text-muted-foreground">{ratingLabels[rating as keyof typeof ratingLabels]}</span>
-                      </button>
-                    ))}
+                    {[1, 2, 3, 4, 5].map((rating) => {
+                      const isAgreementScale = question.section === "Process Efficiency & Innovation";
+                      const emojiSet = isAgreementScale ? ratingEmojis.agreement : ratingEmojis.satisfaction;
+                      const labelSet = isAgreementScale ? ratingLabels.agreement : ratingLabels.satisfaction;
+                      
+                      return (
+                        <button
+                          key={rating}
+                          onClick={() => onRatingChange(question.id, rating)}
+                          className={cn(
+                            "flex flex-col items-center p-3 rounded-lg border-2 transition-all",
+                            responses[question.id] === rating
+                              ? "border-primary bg-primary/10"
+                              : "border-border hover:border-primary/50"
+                          )}
+                        >
+                          <span className="text-2xl mb-1">{emojiSet[rating as keyof typeof emojiSet]}</span>
+                          <span className="text-xs font-medium">{rating}</span>
+                          <span className="text-xs text-muted-foreground">{labelSet[rating as keyof typeof labelSet]}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
