@@ -5,15 +5,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ClipboardListIcon, BarChart3Icon, ShieldCheckIcon, UsersIcon, LockIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<"landing" | "survey" | "dashboard">("landing");
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const submissionCount = parseInt(localStorage.getItem("survey-submissions") || "0");
     setHasSubmitted(submissionCount > 0);
   }, [currentView]); // Re-check when returning to landing
+
+  const resetSurveyData = () => {
+    localStorage.removeItem("survey-submissions");
+    localStorage.removeItem("survey-data");
+    setHasSubmitted(false);
+    toast({
+      title: "Survey data reset",
+      description: "You can now take the survey again.",
+    });
+  };
 
   if (currentView === "survey") {
     return <EmployeeSurvey />;
@@ -71,12 +83,22 @@ const Index = () => {
                 <Badge variant="secondary">Anonymous</Badge>
                 <Badge variant="secondary">11 questions</Badge>
               </div>
-              <Button 
-                onClick={() => setCurrentView("survey")}
-                className="w-full group-hover:scale-[1.02] transition-transform"
-              >
-                Start Survey
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => setCurrentView("survey")}
+                  className="flex-1 group-hover:scale-[1.02] transition-transform"
+                >
+                  Start Survey
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={resetSurveyData}
+                  className="px-3"
+                >
+                  Reset
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
