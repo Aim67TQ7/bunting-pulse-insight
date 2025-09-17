@@ -527,10 +527,20 @@ export function EmployeeSurvey() {
              WebkitUserSelect: 'none',
              userSelect: 'none'
            }}>
-        {/* Company Logos */}
-        <div className="flex items-center justify-center gap-8 mb-8">
-          <img src={buntingLogo} alt="Bunting" className="h-12" />
-          <img src={magnetApplicationsLogo} alt="Magnet Applications - A Division of Bunting" className="h-12" />
+        {/* Company Logos and Reset Button */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-center gap-8 flex-1">
+            <img src={buntingLogo} alt="Bunting" className="h-12" />
+            <img src={magnetApplicationsLogo} alt="Magnet Applications - A Division of Bunting" className="h-12" />
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={resetSurveyData}
+            className="ml-4"
+          >
+            Reset Survey
+          </Button>
         </div>
         
         <div className="mb-8">
