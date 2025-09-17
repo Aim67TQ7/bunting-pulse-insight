@@ -111,7 +111,7 @@ const ratingQuestions: RatingQuestion[] = [
     feedbackPrompt: "Please share reasons you wouldn't recommend the company."
   },
   
-  // 6. Process Efficiency & Innovation (3 questions) - Moved to bottom with agreement scale
+  // 6. Process Efficiency & Innovation (2 questions) - Moved to bottom with agreement scale
   {
     id: "manual-processes-impact",
     text: "I am able to focus on higher-impact work rather than spending time on manual processes.",
@@ -123,12 +123,6 @@ const ratingQuestions: RatingQuestion[] = [
     text: "I feel comfortable proposing process improvements.",
     section: "Process Efficiency & Innovation",
     feedbackPrompt: "Please explain what prevents you from suggesting improvements."
-  },
-  {
-    id: "learning-from-failures",
-    text: "Failed experiments are treated as learning opportunities.",
-    section: "Process Efficiency & Innovation",
-    feedbackPrompt: "Please provide examples of failed experiments that were not treated as learning opportunities."
   }
 ];
 
@@ -346,7 +340,7 @@ export function EmployeeSurvey() {
     if (!isAllQuestionsAnswered()) {
       toast({
         title: "Incomplete survey",
-        description: "Please answer all 15 questions before submitting.",
+        description: "Please answer all 14 questions before submitting.",
         variant: "destructive"
       });
       return;
@@ -381,10 +375,10 @@ export function EmployeeSurvey() {
         workplace_safety: ratingResponses['workplace-safety'],
         recommend_company: ratingResponses['company-recommendation'],
         
-        // Process efficiency (agreement scale)
+        // Process efficiency (agreement scale) - now only 2 questions
         manual_processes_focus: ratingResponses['manual-processes-impact'],
         comfortable_suggesting_improvements: ratingResponses['process-improvement-comfort'],
-        failed_experiments_learning: ratingResponses['learning-from-failures'],
+        failed_experiments_learning: null, // Removed question
         
         // Follow-up responses
         follow_up_responses: feedbackResponses,
