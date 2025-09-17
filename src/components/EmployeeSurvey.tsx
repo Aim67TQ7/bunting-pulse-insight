@@ -60,6 +60,20 @@ const multiSelectQuestions: MultiSelectQuestion[] = [
       { value: "growth-opportunities", label: "Growth opportunities" },
       { value: "company-future", label: "Company's future" }
     ]
+  },
+  {
+    id: "information-preferences",
+    text: "What information would you like to receive more from the company?",
+    section: "Workplace Experience",
+    options: [
+      { value: "communication-transparency", label: "Communication and transparency" },
+      { value: "strategic-direction", label: "Strategic direction" },
+      { value: "financial-incentives", label: "Financial incentives" },
+      { value: "operational-updates", label: "Operational updates" },
+      { value: "interdepartmental-knowledge", label: "Interdepartmental knowledge" },
+      { value: "career-development", label: "Career development" },
+      { value: "it-systems", label: "IT systems" }
+    ]
   }
 ];
 
@@ -285,6 +299,7 @@ export function EmployeeSurvey() {
   const [feedbackResponses, setFeedbackResponses] = useState<Record<string, string>>({});
   const [multiSelectResponses, setMultiSelectResponses] = useState<Record<string, string[]>>({});
   const [collaborationFeedback, setCollaborationFeedback] = useState("");
+  const [additionalComments, setAdditionalComments] = useState("");
   const [isComplete, setIsComplete] = useState(false);
   const [submissionCount, setSubmissionCount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -305,6 +320,7 @@ export function EmployeeSurvey() {
     setRatingResponses({});
     setFeedbackResponses({});
     setCollaborationFeedback("");
+    setAdditionalComments("");
     setCurrentSection("demographics");
     toast({
       title: "Survey data reset",
@@ -379,7 +395,7 @@ export function EmployeeSurvey() {
     if (!isAllQuestionsAnswered()) {
       toast({
         title: "Incomplete survey",
-        description: "Please answer all 13 questions before submitting.",
+        description: "Please answer all questions before submitting.",
         variant: "destructive"
       });
       return;
@@ -419,9 +435,15 @@ export function EmployeeSurvey() {
         comfortable_suggesting_improvements: ratingResponses['process-improvement-comfort'],
         failed_experiments_learning: null, // Removed question
         
+        // Multi-select responses
+        communication_preferences: multiSelectResponses['communication-preferences'] || [],
+        motivation_factors: multiSelectResponses['motivation-factors'] || [],
+        information_preferences: multiSelectResponses['information-preferences'] || [],
+        
         // Follow-up responses
         follow_up_responses: feedbackResponses,
-        collaboration_feedback: collaborationFeedback || null
+        collaboration_feedback: collaborationFeedback || null,
+        additional_comments: additionalComments || null
       };
 
       const { error } = await supabase
@@ -545,10 +567,12 @@ export function EmployeeSurvey() {
             feedbackResponses={feedbackResponses}
             multiSelectResponses={multiSelectResponses}
             collaborationFeedback={collaborationFeedback}
+            additionalComments={additionalComments}
             onRatingChange={handleRatingResponse}
             onFeedbackChange={handleFeedbackResponse}
             onMultiSelectChange={handleMultiSelectResponse}
             onCollaborationFeedbackChange={setCollaborationFeedback}
+            onAdditionalCommentsChange={setAdditionalComments}
             onSubmit={handleSubmit}
             canSubmit={isAllQuestionsAnswered()}
             isSubmitting={isSubmitting}
@@ -603,10 +627,12 @@ interface RatingsSectionProps {
   feedbackResponses: Record<string, string>;
   multiSelectResponses: Record<string, string[]>;
   collaborationFeedback: string;
+  additionalComments: string;
   onRatingChange: (questionId: string, rating: number) => void;
   onFeedbackChange: (questionId: string, feedback: string) => void;
   onMultiSelectChange: (questionId: string, selectedOptions: string[]) => void;
   onCollaborationFeedbackChange: (feedback: string) => void;
+  onAdditionalCommentsChange: (comments: string) => void;
   onSubmit: () => void;
   canSubmit: boolean;
   onGoBack: () => void;
@@ -620,10 +646,12 @@ function RatingsSection({
   feedbackResponses,
   multiSelectResponses,
   collaborationFeedback,
+  additionalComments,
   onRatingChange, 
   onFeedbackChange,
   onMultiSelectChange,
   onCollaborationFeedbackChange,
+  onAdditionalCommentsChange,
   onSubmit,
   canSubmit,
   onGoBack,
@@ -757,6 +785,24 @@ function RatingsSection({
           </CardContent>
         </Card>
       ))}
+
+      {/* Additional Comments Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">Additional Comments</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <h3 className="font-medium">Please feel free to share any other thoughts or comments you would like to share.</h3>
+            <Textarea
+              placeholder="Your additional thoughts and comments..."
+              value={additionalComments}
+              onChange={(e) => onAdditionalCommentsChange(e.target.value)}
+              className="min-h-[120px] touch-manipulation"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="flex flex-col sm:flex-row gap-4 mt-8">
         <Button variant="outline" onClick={onGoBack} disabled={isSubmitting} className="touch-manipulation min-h-[48px]">
