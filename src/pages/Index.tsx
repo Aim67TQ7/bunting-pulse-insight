@@ -85,10 +85,12 @@ const Index = () => {
               </div>
               <div className="flex gap-2">
                 <Button 
-                  onClick={() => setCurrentView("survey")}
-                  className="flex-1 group-hover:scale-[1.02] transition-transform"
+                  onClick={() => !hasSubmitted && setCurrentView("survey")}
+                  disabled={hasSubmitted}
+                  className={`flex-1 ${hasSubmitted ? 'cursor-not-allowed' : 'group-hover:scale-[1.02] transition-transform'}`}
+                  variant={hasSubmitted ? "outline" : "default"}
                 >
-                  Start Survey
+                  {hasSubmitted ? '✓ Survey Completed' : 'Start Survey'}
                 </Button>
                 <Button 
                   variant="destructive" 
@@ -102,7 +104,7 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          <Card className={`relative overflow-hidden group transition-all duration-300 ${hasSubmitted ? 'hover:shadow-lg' : 'opacity-60'}`}>
+          <Card className={`relative overflow-hidden group transition-all duration-300 ${hasSubmitted ? 'hover:shadow-lg cursor-pointer' : 'opacity-60'}`}>
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
                 <div className={`p-2 ${hasSubmitted ? 'bg-success/10' : 'bg-muted'} rounded-lg`}>
@@ -120,14 +122,14 @@ const Index = () => {
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
                 {hasSubmitted ? (
-                  'Access aggregated survey results and insights. Monitor workplace satisfaction trends and feedback patterns.'
+                  "Discover what your colleagues really think! Explore anonymous insights and see how your workplace measures up across all departments."
                 ) : (
-                  'Complete the survey first to unlock access to the results dashboard and analytics.'
+                  "What do your coworkers think about our workplace? Complete the survey to unlock exclusive access to everyone's anonymous responses and insights."
                 )}
               </p>
               <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary">Anonymous</Badge>
                 <Badge variant="secondary">Real-time</Badge>
-                <Badge variant="secondary">Analytics</Badge>
                 <Badge variant="secondary">Insights</Badge>
               </div>
               <Button 
@@ -136,7 +138,7 @@ const Index = () => {
                 disabled={!hasSubmitted}
                 className={`w-full ${hasSubmitted ? 'group-hover:scale-[1.02] transition-transform' : 'cursor-not-allowed'}`}
               >
-                {hasSubmitted ? 'View Dashboard' : 'Complete Survey First'}
+                {hasSubmitted ? '🔓 View Dashboard' : '🔒 Complete Survey to Unlock'}
               </Button>
             </CardContent>
           </Card>

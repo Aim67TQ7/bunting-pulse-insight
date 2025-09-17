@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { ChevronLeftIcon, ChevronDownIcon, ChevronRightIcon, UsersIcon, TrendingUpIcon, AlertTriangleIcon, LockIcon, UnlockIcon, BrainIcon, LoaderIcon } from "lucide-react";
@@ -275,6 +276,15 @@ export function SurveyDashboardNew({ onBack }: { onBack: () => void }) {
   };
 
   const generateAIAnalysis = async () => {
+    if (totalResponses < 10) {
+      toast({
+        title: "Insufficient data",
+        description: `AI analysis requires at least 10 responses. Currently have ${totalResponses} responses.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!isAdminAuthenticated) {
       setShowAdminDialog(true);
       return;
@@ -283,7 +293,21 @@ export function SurveyDashboardNew({ onBack }: { onBack: () => void }) {
     setIsLoadingAnalysis(true);
     // This would integrate with an AI service - placeholder for now
     setTimeout(() => {
-      setAIAnalysis("AI Analysis feature coming soon. This will provide comprehensive insights based on survey responses.");
+      setAIAnalysis(`AI Analysis Report (Based on ${totalResponses} responses)
+
+KEY INSIGHTS:
+${surveySections.map(section => {
+  const avg = calculateSectionAverage(section);
+  const status = getSectionStatus(avg).status;
+  return `• ${section.title}: ${avg.toFixed(1)}/5 (${status})`;
+}).join('\n')}
+
+RECOMMENDATIONS:
+• Focus on areas scoring below 3.5/5
+• Investigate low-scoring sections for improvement opportunities
+• Monitor trends over time as more responses are collected
+
+This is a placeholder analysis. In production, this would use AI to analyze the actual survey responses and provide detailed insights.`);
       setIsLoadingAnalysis(false);
       setShowAIAnalysis(true);
     }, 2000);
@@ -342,15 +366,16 @@ export function SurveyDashboardNew({ onBack }: { onBack: () => void }) {
           <div className="flex items-center gap-4">
             <Button
               onClick={generateAIAnalysis}
-              disabled={isLoadingAnalysis}
+              disabled={isLoadingAnalysis || totalResponses < 10}
               className="flex items-center gap-2"
+              variant={totalResponses >= 10 ? "default" : "outline"}
             >
               {isLoadingAnalysis ? (
                 <LoaderIcon className="h-4 w-4 animate-spin" />
               ) : (
                 <BrainIcon className="h-4 w-4" />
               )}
-              Generate AI Analysis
+              {totalResponses >= 10 ? 'Generate AI Analysis' : `AI Analysis (${totalResponses}/10 responses)`}
             </Button>
           </div>
         </div>
@@ -426,18 +451,40 @@ export function SurveyDashboardNew({ onBack }: { onBack: () => void }) {
                   <CollapsibleTrigger asChild>
                     <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className={`w-4 h-4 rounded-full ${color}`} />
+                        <div className="flex items-center gap-6">
+                          {/* Circular Progress Dial */}
+                          <div className="relative w-16 h-16 flex-shrink-0">
+                            <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 64 64">
+                              <circle
+                                cx="32"
+                                cy="32"
+                                r="28"
+                                stroke="hsl(var(--muted))"
+                                strokeWidth="6"
+                                fill="none"
+                              />
+                              <circle
+                                cx="32"
+                                cy="32"
+                                r="28"
+                                stroke={average >= 4 ? "hsl(var(--success))" : average >= 3.5 ? "hsl(var(--primary))" : average >= 3 ? "hsl(var(--warning))" : average >= 2 ? "hsl(var(--destructive))" : "hsl(var(--destructive))"}
+                                strokeWidth="6"
+                                fill="none"
+                                strokeDasharray={`${(average / 5) * 176} 176`}
+                                strokeLinecap="round"
+                                className="transition-all duration-700 ease-out"
+                              />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-sm font-bold">{average.toFixed(1)}</span>
+                            </div>
+                          </div>
                           <div>
                             <CardTitle className="text-lg">{section.title}</CardTitle>
                             <p className="text-sm text-muted-foreground">{section.description}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
-                          <div className="text-right">
-                            <p className="text-sm font-medium">Avg. Rating</p>
-                            <p className={`text-lg font-bold ${textColor}`}>{average.toFixed(1)}/5</p>
-                          </div>
                           <Badge variant="outline" className={textColor}>
                             {status.charAt(0).toUpperCase() + status.slice(1)}
                           </Badge>
