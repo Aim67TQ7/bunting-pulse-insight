@@ -181,11 +181,11 @@ const ratingEmojis = {
 
 const ratingLabels = {
   satisfaction: {
-    1: "Poor",
-    2: "Below Average", 
-    3: "Average",
-    4: "Good",
-    5: "Excellent"
+    1: "Very Dissatisfied",
+    2: "Dissatisfied", 
+    3: "Neutral",
+    4: "Satisfied",
+    5: "Very Satisfied"
   },
   agreement: {
     1: "Strongly Disagree",
