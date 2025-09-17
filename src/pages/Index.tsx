@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { EmployeeSurvey } from "@/components/EmployeeSurvey";
-import { SurveyDashboard } from "@/components/SurveyDashboard";
+import { SurveyDashboardNew } from "@/components/SurveyDashboardNew";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +32,7 @@ const Index = () => {
   }
 
   if (currentView === "dashboard") {
-    return <SurveyDashboard onBack={() => setCurrentView("landing")} />;
+    return <SurveyDashboardNew onBack={() => setCurrentView("landing")} />;
   }
 
   return (
@@ -81,7 +81,7 @@ const Index = () => {
               <div className="flex flex-wrap gap-2">
                 <Badge variant="secondary">~5 min</Badge>
                 <Badge variant="secondary">Anonymous</Badge>
-                <Badge variant="secondary">11 questions</Badge>
+                <Badge variant="secondary">13 questions</Badge>
               </div>
               <div className="flex gap-2">
                 <Button 

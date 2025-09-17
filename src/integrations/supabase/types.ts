@@ -915,6 +915,7 @@ export type Database = {
       }
       employee_survey_responses: {
         Row: {
+          additional_comments: string | null
           advancement_opportunities: number | null
           collaboration_feedback: string | null
           comfortable_suggesting_improvements: number | null
@@ -927,6 +928,7 @@ export type Database = {
           failed_experiments_learning: number | null
           follow_up_responses: Json | null
           id: string
+          information_preferences: string[] | null
           job_satisfaction: number | null
           leadership_openness: number | null
           manager_alignment: number | null
@@ -944,6 +946,7 @@ export type Database = {
           workplace_safety: number | null
         }
         Insert: {
+          additional_comments?: string | null
           advancement_opportunities?: number | null
           collaboration_feedback?: string | null
           comfortable_suggesting_improvements?: number | null
@@ -956,6 +959,7 @@ export type Database = {
           failed_experiments_learning?: number | null
           follow_up_responses?: Json | null
           id?: string
+          information_preferences?: string[] | null
           job_satisfaction?: number | null
           leadership_openness?: number | null
           manager_alignment?: number | null
@@ -973,6 +977,7 @@ export type Database = {
           workplace_safety?: number | null
         }
         Update: {
+          additional_comments?: string | null
           advancement_opportunities?: number | null
           collaboration_feedback?: string | null
           comfortable_suggesting_improvements?: number | null
@@ -985,6 +990,7 @@ export type Database = {
           failed_experiments_learning?: number | null
           follow_up_responses?: Json | null
           id?: string
+          information_preferences?: string[] | null
           job_satisfaction?: number | null
           leadership_openness?: number | null
           manager_alignment?: number | null
