@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -9,6 +10,8 @@ import { CheckIcon, AlertTriangleIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { PrivacyNotice } from "./PrivacyNotice";
+import buntingLogo from "@/assets/bunting-logo.png";
+import magnetApplicationsLogo from "@/assets/magnet-applications-logo.png";
 
 interface DemographicQuestion {
   id: string;
@@ -87,6 +90,60 @@ const ratingQuestions: RatingQuestion[] = [
     id: "cross-office-communication",
     text: "How are the overall communication and collaboration between the US and UK offices?",
     followUpPrompt: "What would improve communication and collaboration between offices?"
+  },
+  // Productivity & Value Creation
+  {
+    id: "manual-processes-impact",
+    text: "How often do manual processes prevent you from higher-impact work?",
+    followUpPrompt: "Which manual processes create the biggest barriers to your productivity?"
+  },
+  // Retention Risk Indicators
+  {
+    id: "company-recommendation",
+    text: "How likely are you to recommend this company as a place to work?",
+    followUpPrompt: "What would make you more likely to recommend this company?"
+  },
+  {
+    id: "strategic-direction-confidence",
+    text: "Rate your confidence in the company's 3-year strategic direction",
+    followUpPrompt: "What concerns do you have about the company's strategic direction?"
+  },
+  {
+    id: "advancement-opportunities",
+    text: "Do you see clear advancement opportunities aligned with emerging skill needs?",
+    followUpPrompt: "What advancement opportunities would be most valuable to you?"
+  },
+  // Innovation Culture
+  {
+    id: "process-improvement-comfort",
+    text: "How comfortable do you feel proposing process improvements?",
+    followUpPrompt: "What would make you more comfortable proposing improvements?"
+  },
+  {
+    id: "learning-from-failures",
+    text: "Are failed experiments treated as learning opportunities?",
+    followUpPrompt: "How could the company better support learning from failures?"
+  },
+  {
+    id: "leadership-openness",
+    text: "Rate leadership's openness to challenging traditional approaches",
+    followUpPrompt: "What examples have you seen of leadership resistance to new approaches?"
+  },
+  // Leadership Effectiveness
+  {
+    id: "manager-business-connection",
+    text: "Does your manager help connect your work to business outcomes?",
+    followUpPrompt: "How could your manager better connect your work to business outcomes?"
+  },
+  {
+    id: "strategic-priorities-communication",
+    text: "How effectively does leadership communicate strategic priorities?",
+    followUpPrompt: "How could leadership improve communication of strategic priorities?"
+  },
+  {
+    id: "cross-functional-collaboration",
+    text: "Rate the quality of cross-functional collaboration",
+    followUpPrompt: "What would improve cross-functional collaboration in your experience?"
   }
 ];
 
@@ -117,14 +174,58 @@ const preferenceQuestions: PreferenceQuestion[] = [
   }
 ];
 
-type SurveySection = "demographics" | "ratings" | "preferences" | "complete";
+interface StrategicQuestion {
+  id: string;
+  text: string;
+  category: string;
+  placeholder: string;
+}
+
+const strategicQuestions: StrategicQuestion[] = [
+  // Productivity & Value Creation
+  {
+    id: "time-consuming-activities",
+    text: "Which work activities consume time but add minimal value?",
+    category: "Productivity & Value Creation",
+    placeholder: "Describe activities that take time but don't add much value..."
+  },
+  {
+    id: "strategic-value-contribution",
+    text: "What would help you contribute 20% more strategic value?",
+    category: "Productivity & Value Creation", 
+    placeholder: "Share what would help you add more strategic value..."
+  },
+  // Skills Gap Intelligence
+  {
+    id: "capability-development-needs",
+    text: "What capabilities do you need to develop to remain valuable?",
+    category: "Skills Gap Intelligence",
+    placeholder: "Describe the skills or capabilities you'd like to develop..."
+  },
+  {
+    id: "customer-process-frustrations",
+    text: "Which current company processes frustrate customers most?",
+    category: "Skills Gap Intelligence",
+    placeholder: "Share insights about processes that frustrate customers..."
+  },
+  {
+    id: "competitive-threats",
+    text: "Where do you see competitive threats that require new capabilities?",
+    category: "Skills Gap Intelligence",
+    placeholder: "Describe competitive threats and needed capabilities..."
+  }
+];
+
+type SurveySection = "demographics" | "ratings" | "strategic" | "preferences" | "complete";
 
 export function EmployeeSurvey() {
   const [currentSection, setCurrentSection] = useState<SurveySection>("demographics");
   const [currentDemographicIndex, setCurrentDemographicIndex] = useState(0);
+  const [currentStrategicIndex, setCurrentStrategicIndex] = useState(0);
   const [currentPreferenceIndex, setCurrentPreferenceIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, string | string[]>>({});
   const [ratingResponses, setRatingResponses] = useState<Record<string, number>>({});
+  const [strategicResponses, setStrategicResponses] = useState<Record<string, string>>({});
   const [followUpResponses, setFollowUpResponses] = useState<Record<string, string>>({});
   const [isComplete, setIsComplete] = useState(false);
   const [submissionCount, setSubmissionCount] = useState(0);
@@ -136,7 +237,7 @@ export function EmployeeSurvey() {
   }, []);
 
   const getTotalQuestions = () => {
-    return demographicQuestions.length + 1 + preferenceQuestions.length; // +1 for ratings section
+    return demographicQuestions.length + 1 + strategicQuestions.length + preferenceQuestions.length; // +1 for ratings section
   };
 
   const getCurrentQuestionNumber = () => {
@@ -144,8 +245,10 @@ export function EmployeeSurvey() {
       return currentDemographicIndex + 1;
     } else if (currentSection === "ratings") {
       return demographicQuestions.length + 1;
+    } else if (currentSection === "strategic") {
+      return demographicQuestions.length + 1 + currentStrategicIndex + 1;
     } else if (currentSection === "preferences") {
-      return demographicQuestions.length + 1 + currentPreferenceIndex + 1;
+      return demographicQuestions.length + 1 + strategicQuestions.length + currentPreferenceIndex + 1;
     }
     return getTotalQuestions();
   };
@@ -168,7 +271,18 @@ export function EmployeeSurvey() {
   };
 
   const handleRatingsComplete = () => {
-    setCurrentSection("preferences");
+    setCurrentSection("strategic");
+  };
+
+  const handleStrategicResponse = (value: string) => {
+    const questionId = strategicQuestions[currentStrategicIndex].id;
+    setStrategicResponses(prev => ({ ...prev, [questionId]: value }));
+    
+    if (currentStrategicIndex < strategicQuestions.length - 1) {
+      setCurrentStrategicIndex(prev => prev + 1);
+    } else {
+      setCurrentSection("preferences");
+    }
   };
 
   const handlePreferenceResponse = (value: string[]) => {
@@ -199,6 +313,7 @@ export function EmployeeSurvey() {
     const surveyData = {
       responses,
       ratingResponses,
+      strategicResponses,
       followUpResponses,
       timestamp: new Date().toISOString()
     };
@@ -257,6 +372,12 @@ export function EmployeeSurvey() {
     <div className="min-h-screen bg-background p-4">
       <PrivacyNotice />
       <div className="max-w-4xl mx-auto">
+        {/* Company Logos */}
+        <div className="flex items-center justify-center gap-8 mb-8">
+          <img src={buntingLogo} alt="Bunting" className="h-12" />
+          <img src={magnetApplicationsLogo} alt="Magnet Applications - A Division of Bunting" className="h-12" />
+        </div>
+        
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-center mb-2">Employee Satisfaction Survey</h1>
           <p className="text-center text-muted-foreground mb-6">
@@ -291,6 +412,21 @@ export function EmployeeSurvey() {
             onGoBack={() => {
               setCurrentDemographicIndex(demographicQuestions.length - 1);
               setCurrentSection("demographics");
+            }}
+          />
+        )}
+
+        {currentSection === "strategic" && (
+          <StrategicSection 
+            question={strategicQuestions[currentStrategicIndex]}
+            onResponse={handleStrategicResponse}
+            canGoBack={currentStrategicIndex > 0 || currentSection !== "strategic"}
+            onGoBack={() => {
+              if (currentStrategicIndex > 0) {
+                setCurrentStrategicIndex(prev => prev - 1);
+              } else {
+                setCurrentSection("ratings");
+              }
             }}
           />
         )}
@@ -525,6 +661,65 @@ function PreferenceSection({ question, onResponse, canGoBack, onGoBack }: Prefer
           >
             Continue
           </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Strategic Questions Section
+interface StrategicSectionProps {
+  question: StrategicQuestion;
+  onResponse: (value: string) => void;
+  canGoBack: boolean;
+  onGoBack: () => void;
+}
+
+function StrategicSection({ question, onResponse, canGoBack, onGoBack }: StrategicSectionProps) {
+  const [response, setResponse] = useState("");
+
+  const handleContinue = () => {
+    onResponse(response.trim());
+  };
+
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="space-y-2">
+          <Badge variant="outline" className="text-xs">
+            {question.category}
+          </Badge>
+          <CardTitle className="text-lg font-medium">
+            {question.text}
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Your strategic insights help us make work better for everyone.
+          </p>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <Textarea
+            placeholder={question.placeholder}
+            value={response}
+            onChange={(e) => setResponse(e.target.value)}
+            className="min-h-[120px] text-sm"
+          />
+          
+          <div className="flex gap-2">
+            {canGoBack && (
+              <Button variant="outline" onClick={onGoBack}>
+                Previous
+              </Button>
+            )}
+            <Button 
+              onClick={handleContinue}
+              disabled={!response.trim()}
+              className="flex-1"
+            >
+              Continue
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
