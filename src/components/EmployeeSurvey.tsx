@@ -232,6 +232,22 @@ const ratingLabels = {
       4: "Good",
       5: "Excellent"
     }
+  },
+  growth: {
+    "strategic-direction-confidence": {
+      1: "No Confidence",
+      2: "Low Confidence",
+      3: "Neutral",
+      4: "Confident",
+      5: "Very Confident"
+    },
+    "advancement-opportunities": {
+      1: "Not at All",
+      2: "Rarely",
+      3: "Sometimes", 
+      4: "Often",
+      5: "Always"
+    }
   }
 };
 
@@ -598,15 +614,19 @@ function RatingsSection({
                       const isAgreementScale = question.section === "Process Efficiency & Innovation";
                       const isLeadershipQuestion = question.section === "Leadership & Communication";
                       const isCollaborationQuestion = question.section === "Collaboration & Cross-Functional Work";
+                      const isGrowthQuestion = question.section === "Growth & Strategic Alignment";
                       
                       let emojiSet, labelSet;
                       
                       if (isLeadershipQuestion) {
-                        emojiSet = ratingEmojis.satisfaction; // Use satisfaction emojis for leadership
+                        emojiSet = ratingEmojis.satisfaction;
                         labelSet = ratingLabels.leadership[question.id as keyof typeof ratingLabels.leadership] || ratingLabels.satisfaction;
                       } else if (isCollaborationQuestion) {
-                        emojiSet = ratingEmojis.satisfaction; // Use satisfaction emojis for collaboration
+                        emojiSet = ratingEmojis.satisfaction;
                         labelSet = ratingLabels.collaboration[question.id as keyof typeof ratingLabels.collaboration] || ratingLabels.satisfaction;
+                      } else if (isGrowthQuestion) {
+                        emojiSet = ratingEmojis.satisfaction;
+                        labelSet = ratingLabels.growth[question.id as keyof typeof ratingLabels.growth] || ratingLabels.satisfaction;
                       } else if (isAgreementScale) {
                         emojiSet = ratingEmojis.agreement;
                         labelSet = ratingLabels.agreement;
@@ -632,7 +652,7 @@ function RatingsSection({
                           <span className="text-xl md:text-2xl mb-1 select-none">{emojiSet[rating as keyof typeof emojiSet]}</span>
                           <span className="text-xs font-medium select-none">{rating}</span>
                           <span className="text-xs text-muted-foreground text-center select-none leading-tight">
-                            {(isLeadershipQuestion || isCollaborationQuestion) ? labelSet[rating as keyof typeof labelSet] : labelSet[rating as keyof typeof labelSet]}
+                            {(isLeadershipQuestion || isCollaborationQuestion || isGrowthQuestion) ? labelSet[rating as keyof typeof labelSet] : labelSet[rating as keyof typeof labelSet]}
                           </span>
                         </button>
                       );
