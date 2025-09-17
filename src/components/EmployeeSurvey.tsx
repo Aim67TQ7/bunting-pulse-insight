@@ -286,6 +286,22 @@ const ratingLabels = {
       4: "Often",
       5: "Always"
     }
+  },
+  workplace: {
+    "workplace-safety": {
+      1: "Very unsafe",
+      2: "Unsafe",
+      3: "Neutral",
+      4: "Safe",
+      5: "Very safe"
+    },
+    "company-recommendation": {
+      1: "Very Unlikely",
+      2: "Unlikely",
+      3: "Neutral",
+      4: "Likely",
+      5: "Very Likely"
+    }
   }
 };
 
@@ -699,6 +715,7 @@ function RatingsSection({
                         const isLeadershipQuestion = question.section === "Leadership & Communication";
                         const isCollaborationQuestion = question.section === "Collaboration & Cross-Functional Work";
                         const isGrowthQuestion = question.section === "Growth & Strategic Alignment";
+                        const isWorkplaceQuestion = question.section === "Workplace Experience";
                         
                         let emojiSet, labelSet;
                         
@@ -711,6 +728,9 @@ function RatingsSection({
                         } else if (isGrowthQuestion) {
                           emojiSet = ratingEmojis.satisfaction;
                           labelSet = ratingLabels.growth[question.id as keyof typeof ratingLabels.growth] || ratingLabels.satisfaction;
+                        } else if (isWorkplaceQuestion) {
+                          emojiSet = ratingEmojis.satisfaction;
+                          labelSet = ratingLabels.workplace[question.id as keyof typeof ratingLabels.workplace] || ratingLabels.satisfaction;
                         } else if (isAgreementScale) {
                           emojiSet = ratingEmojis.agreement;
                           labelSet = ratingLabels.agreement;
@@ -736,7 +756,7 @@ function RatingsSection({
                             <span className="text-xl md:text-2xl mb-1 select-none">{emojiSet[rating as keyof typeof emojiSet]}</span>
                             <span className="text-xs font-medium select-none">{rating}</span>
                             <span className="text-xs text-muted-foreground text-center select-none leading-tight">
-                              {(isLeadershipQuestion || isCollaborationQuestion || isGrowthQuestion) ? labelSet[rating as keyof typeof labelSet] : labelSet[rating as keyof typeof labelSet]}
+                              {(isLeadershipQuestion || isCollaborationQuestion || isGrowthQuestion || isWorkplaceQuestion) ? labelSet[rating as keyof typeof labelSet] : labelSet[rating as keyof typeof labelSet]}
                             </span>
                           </button>
                         );
