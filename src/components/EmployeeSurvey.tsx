@@ -534,7 +534,7 @@ export function EmployeeSurvey() {
             <img src={magnetApplicationsLogo} alt="Magnet Applications - A Division of Bunting" className="h-12" />
           </div>
           <Button 
-            variant="outline" 
+            variant="destructive" 
             size="sm" 
             onClick={resetSurveyData}
             className="ml-4"
