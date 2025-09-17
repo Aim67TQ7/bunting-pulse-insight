@@ -554,7 +554,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
               {/* Continent Distribution */}
               <div>
                 <h4 className="font-medium mb-3">By Continent</h4>
-                <div className="h-48">
+                <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -564,11 +564,12 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                           fill: COLORS[index % COLORS.length]
                         }))}
                         cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={70}
+                        cy="45%"
+                        innerRadius={35}
+                        outerRadius={55}
                         dataKey="value"
                         label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        labelLine={false}
                       />
                       <Tooltip />
                     </PieChart>
@@ -579,7 +580,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
               {/* Division Distribution */}
               <div>
                 <h4 className="font-medium mb-3">By Division</h4>
-                <div className="h-48">
+                <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -589,11 +590,12 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                           fill: COLORS[index % COLORS.length]
                         }))}
                         cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={70}
+                        cy="45%"
+                        innerRadius={35}
+                        outerRadius={55}
                         dataKey="value"
                         label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        labelLine={false}
                       />
                       <Tooltip />
                     </PieChart>
@@ -604,7 +606,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
               {/* Role Distribution */}
               <div>
                 <h4 className="font-medium mb-3">By Role</h4>
-                <div className="h-48">
+                <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -614,11 +616,12 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                           fill: COLORS[index % COLORS.length]
                         }))}
                         cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={70}
+                        cy="45%"
+                        innerRadius={35}
+                        outerRadius={55}
                         dataKey="value"
                         label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        labelLine={false}
                       />
                       <Tooltip />
                     </PieChart>
