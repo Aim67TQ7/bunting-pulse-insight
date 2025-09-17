@@ -122,9 +122,9 @@ const Index = () => {
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
                 {hasSubmitted ? (
-                  "Discover what your colleagues really think! Explore anonymous insights and see how your workplace measures up across all departments."
+                  "🎁 Your reward for participating! Discover what your colleagues really think across all departments. Keep coming back as new responses roll in - watch the insights grow and evolve in real-time."
                 ) : (
-                  "What do your coworkers think about our workplace? Complete the survey to unlock exclusive access to everyone's anonymous responses and insights."
+                  "🔮 What secrets do your coworkers hold? Complete the survey to unlock exclusive access to everyone's anonymous thoughts and see how your workplace truly measures up. Your participation earns you this exclusive insider view!"
                 )}
               </p>
               <div className="flex flex-wrap gap-2">
