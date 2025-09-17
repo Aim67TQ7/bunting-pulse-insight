@@ -913,6 +913,96 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_survey_responses: {
+        Row: {
+          advancement_opportunities: number | null
+          collaboration_feedback: string | null
+          comfortable_suggesting_improvements: number | null
+          communication_clarity: number | null
+          communication_preferences: string[] | null
+          continent: string
+          created_at: string
+          cross_functional_collaboration: number | null
+          division: string
+          failed_experiments_learning: number | null
+          follow_up_responses: Json | null
+          id: string
+          job_satisfaction: number | null
+          leadership_openness: number | null
+          manager_alignment: number | null
+          manual_processes_focus: number | null
+          motivation_factors: string[] | null
+          recommend_company: number | null
+          role: string
+          session_id: string
+          strategic_confidence: number | null
+          submitted_at: string
+          training_satisfaction: number | null
+          updated_at: string
+          us_uk_collaboration: number | null
+          work_life_balance: number | null
+          workplace_safety: number | null
+        }
+        Insert: {
+          advancement_opportunities?: number | null
+          collaboration_feedback?: string | null
+          comfortable_suggesting_improvements?: number | null
+          communication_clarity?: number | null
+          communication_preferences?: string[] | null
+          continent: string
+          created_at?: string
+          cross_functional_collaboration?: number | null
+          division: string
+          failed_experiments_learning?: number | null
+          follow_up_responses?: Json | null
+          id?: string
+          job_satisfaction?: number | null
+          leadership_openness?: number | null
+          manager_alignment?: number | null
+          manual_processes_focus?: number | null
+          motivation_factors?: string[] | null
+          recommend_company?: number | null
+          role: string
+          session_id: string
+          strategic_confidence?: number | null
+          submitted_at?: string
+          training_satisfaction?: number | null
+          updated_at?: string
+          us_uk_collaboration?: number | null
+          work_life_balance?: number | null
+          workplace_safety?: number | null
+        }
+        Update: {
+          advancement_opportunities?: number | null
+          collaboration_feedback?: string | null
+          comfortable_suggesting_improvements?: number | null
+          communication_clarity?: number | null
+          communication_preferences?: string[] | null
+          continent?: string
+          created_at?: string
+          cross_functional_collaboration?: number | null
+          division?: string
+          failed_experiments_learning?: number | null
+          follow_up_responses?: Json | null
+          id?: string
+          job_satisfaction?: number | null
+          leadership_openness?: number | null
+          manager_alignment?: number | null
+          manual_processes_focus?: number | null
+          motivation_factors?: string[] | null
+          recommend_company?: number | null
+          role?: string
+          session_id?: string
+          strategic_confidence?: number | null
+          submitted_at?: string
+          training_satisfaction?: number | null
+          updated_at?: string
+          us_uk_collaboration?: number | null
+          work_life_balance?: number | null
+          workplace_safety?: number | null
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           created_at: string

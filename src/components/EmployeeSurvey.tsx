@@ -6,9 +6,10 @@ import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckIcon, AlertTriangleIcon } from "lucide-react";
+import { CheckIcon, AlertTriangleIcon, LoaderIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { PrivacyNotice } from "./PrivacyNotice";
 import buntingLogo from "@/assets/bunting-logo-2.png";
 import magnetApplicationsLogo from "@/assets/magnet-applications-logo-2.png";
@@ -206,6 +207,7 @@ export function EmployeeSurvey() {
   const [collaborationFeedback, setCollaborationFeedback] = useState("");
   const [isComplete, setIsComplete] = useState(false);
   const [submissionCount, setSubmissionCount] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -276,7 +278,7 @@ export function EmployeeSurvey() {
     return Object.keys(ratingResponses).length === ratingQuestions.length;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (submissionCount >= 1) {
       toast({
         title: "Submission limit reached",
@@ -295,27 +297,80 @@ export function EmployeeSurvey() {
       return;
     }
 
-    const surveyData = {
-      responses,
-      ratingResponses,
-      feedbackResponses,
-      collaborationFeedback,
-      timestamp: new Date().toISOString()
-    };
-    
-    const existingData = JSON.parse(localStorage.getItem("survey-data") || "[]");
-    existingData.push(surveyData);
-    localStorage.setItem("survey-data", JSON.stringify(existingData));
-    
-    const newCount = submissionCount + 1;
-    localStorage.setItem("survey-submissions", newCount.toString());
-    
-    setIsComplete(true);
-    
-    toast({
-      title: "Survey submitted successfully",
-      description: "Thank you for your valuable feedback!",
-    });
+    setIsSubmitting(true);
+
+    try {
+      // Generate unique session ID
+      const sessionId = crypto.randomUUID();
+
+      // Map responses to database columns
+      const surveyData = {
+        session_id: sessionId,
+        continent: responses.continent === 'north-america' ? 'North America' : 'Europe',
+        division: responses.division === 'equipment' ? 'Equipment' : 
+                  responses.division === 'magnets' ? 'Magnets' : 'Both',
+        role: responses.role === 'sales-marketing' ? 'Sales/Marketing/Product' :
+              responses.role === 'operations' ? 'Operations/Engineering/Production' : 'Admin/HR/Finance',
+        
+        // Rating responses
+        job_satisfaction: ratingResponses['job-satisfaction'],
+        training_satisfaction: ratingResponses['training-satisfaction'],
+        work_life_balance: ratingResponses['work-life-balance'],
+        communication_clarity: ratingResponses['leadership-communication-clarity'],
+        leadership_openness: ratingResponses['leadership-openness'],
+        manager_alignment: ratingResponses['manager-business-connection'],
+        us_uk_collaboration: ratingResponses['us-uk-collaboration'],
+        cross_functional_collaboration: ratingResponses['cross-functional-collaboration'],
+        strategic_confidence: ratingResponses['strategic-direction-confidence'],
+        advancement_opportunities: ratingResponses['advancement-opportunities'],
+        workplace_safety: ratingResponses['workplace-safety'],
+        recommend_company: ratingResponses['company-recommendation'],
+        
+        // Process efficiency (agreement scale)
+        manual_processes_focus: ratingResponses['manual-processes-impact'],
+        comfortable_suggesting_improvements: ratingResponses['process-improvement-comfort'],
+        failed_experiments_learning: ratingResponses['learning-from-failures'],
+        
+        // Follow-up responses
+        follow_up_responses: feedbackResponses,
+        collaboration_feedback: collaborationFeedback || null
+      };
+
+      const { error } = await supabase
+        .from('employee_survey_responses')
+        .insert(surveyData);
+
+      if (error) {
+        console.error('Error submitting survey:', error);
+        toast({
+          title: "Submission failed",
+          description: "Please try again later.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Update local storage for submission tracking
+      const newCount = submissionCount + 1;
+      localStorage.setItem("survey-submissions", newCount.toString());
+      
+      setIsComplete(true);
+      
+      toast({
+        title: "Survey submitted successfully",
+        description: "Thank you for your valuable feedback!",
+      });
+
+    } catch (error) {
+      console.error('Error submitting survey:', error);
+      toast({
+        title: "Submission failed",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (submissionCount >= 1 && !isComplete) {
@@ -354,9 +409,14 @@ export function EmployeeSurvey() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen bg-background p-4 touch-pan-y">
       <PrivacyNotice />
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto"
+           style={{ 
+             WebkitTouchCallout: 'none',
+             WebkitUserSelect: 'none',
+             userSelect: 'none'
+           }}>
         {/* Company Logos */}
         <div className="flex items-center justify-center gap-8 mb-8">
           <img src={buntingLogo} alt="Bunting" className="h-12" />
@@ -400,6 +460,7 @@ export function EmployeeSurvey() {
             onCollaborationFeedbackChange={setCollaborationFeedback}
             onSubmit={handleSubmit}
             canSubmit={isAllQuestionsAnswered()}
+            isSubmitting={isSubmitting}
             onGoBack={() => {
               setCurrentDemographicIndex(demographicQuestions.length - 1);
               setCurrentSection("demographics");
@@ -428,14 +489,14 @@ function DemographicSection({ question, onResponse, canGoBack, onGoBack }: Demog
       <CardContent className="space-y-4">
         <RadioGroup onValueChange={onResponse}>
           {question.options.map((option) => (
-            <div key={option.value} className="flex items-center space-x-2">
-              <RadioGroupItem value={option.value} id={option.value} />
-              <Label htmlFor={option.value}>{option.label}</Label>
+            <div key={option.value} className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 transition-colors touch-manipulation">
+              <RadioGroupItem value={option.value} id={option.value} className="min-w-[20px] min-h-[20px]" />
+              <Label htmlFor={option.value} className="flex-1 cursor-pointer select-none">{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
         {canGoBack && (
-          <Button variant="outline" onClick={onGoBack}>
+          <Button variant="outline" onClick={onGoBack} className="touch-manipulation min-h-[48px]">
             Previous
           </Button>
         )}
@@ -455,6 +516,7 @@ interface RatingsSectionProps {
   onSubmit: () => void;
   canSubmit: boolean;
   onGoBack: () => void;
+  isSubmitting?: boolean;
 }
 
 function RatingsSection({ 
@@ -467,7 +529,8 @@ function RatingsSection({
   onCollaborationFeedbackChange,
   onSubmit,
   canSubmit,
-  onGoBack 
+  onGoBack,
+  isSubmitting = false
 }: RatingsSectionProps) {
   const groupedQuestions = questions.reduce((acc, question) => {
     if (!acc[question.section]) {
@@ -491,7 +554,7 @@ function RatingsSection({
                   <h3 className="font-medium mb-4">{question.text}</h3>
                   
                   {/* Rating Scale with Emojis */}
-                  <div className="flex justify-center space-x-4 mb-4">
+                  <div className="flex justify-center space-x-2 md:space-x-4 mb-4">
                     {[1, 2, 3, 4, 5].map((rating) => {
                       const isAgreementScale = question.section === "Process Efficiency & Innovation";
                       const emojiSet = isAgreementScale ? ratingEmojis.agreement : ratingEmojis.satisfaction;
@@ -502,73 +565,81 @@ function RatingsSection({
                           key={rating}
                           onClick={() => onRatingChange(question.id, rating)}
                           className={cn(
-                            "flex flex-col items-center p-3 rounded-lg border-2 transition-all",
+                            "flex flex-col items-center p-2 md:p-3 rounded-lg border-2 transition-all touch-manipulation",
+                            "select-none focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px] min-w-[60px]",
+                            "active:scale-95 hover:scale-105",
                             responses[question.id] === rating
-                              ? "border-primary bg-primary/10"
-                              : "border-border hover:border-primary/50"
+                              ? "border-primary bg-primary/10 ring-2 ring-primary"
+                              : "border-border hover:border-primary/50 active:bg-muted/70"
                           )}
+                          onTouchStart={(e) => e.preventDefault()}
                         >
-                          <span className="text-2xl mb-1">{emojiSet[rating as keyof typeof emojiSet]}</span>
-                          <span className="text-xs font-medium">{rating}</span>
-                          <span className="text-xs text-muted-foreground">{labelSet[rating as keyof typeof labelSet]}</span>
+                          <span className="text-xl md:text-2xl mb-1 select-none">{emojiSet[rating as keyof typeof emojiSet]}</span>
+                          <span className="text-xs font-medium select-none">{rating}</span>
+                          <span className="text-xs text-muted-foreground text-center select-none leading-tight">
+                            {labelSet[rating as keyof typeof labelSet]}
+                          </span>
                         </button>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* Feedback box for low scores (1-2) */}
-                {responses[question.id] && responses[question.id] <= 2 && (
+                {/* Feedback box for low scores */}
+                {responses[question.id] && (
+                  (question.section === "Process Efficiency & Innovation" ? responses[question.id] <= 2 : responses[question.id] <= 2)
+                ) && (
                   <div className="space-y-2">
                     <Label htmlFor={`feedback-${question.id}`} className="text-sm font-medium">
                       {question.feedbackPrompt}
                     </Label>
                     <Textarea
                       id={`feedback-${question.id}`}
-                      placeholder="Please provide details..."
+                      placeholder="Your feedback helps us improve..."
                       value={feedbackResponses[question.id] || ""}
                       onChange={(e) => onFeedbackChange(question.id, e.target.value)}
-                      rows={3}
+                      className="min-h-[100px] touch-manipulation"
                     />
                   </div>
                 )}
               </div>
             ))}
+            
+            {/* Collaboration Feedback */}
+            {section === "Collaboration & Cross-Functional Work" && (
+              <div className="space-y-2 pt-4 border-t">
+                <Label className="text-sm font-medium">
+                  What would improve communication and collaboration between offices? (Optional)
+                </Label>
+                <Textarea
+                  placeholder="Share your ideas for better collaboration..."
+                  value={collaborationFeedback}
+                  onChange={(e) => onCollaborationFeedbackChange(e.target.value)}
+                  className="min-h-[100px] touch-manipulation"
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
       ))}
 
-      {/* Optional collaboration feedback */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Additional Feedback</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Label htmlFor="collaboration-feedback">
-              What would improve communication and collaboration between offices? (Optional)
-            </Label>
-            <Textarea
-              id="collaboration-feedback"
-              placeholder="Share your thoughts on improving collaboration..."
-              value={collaborationFeedback}
-              onChange={(e) => onCollaborationFeedbackChange(e.target.value)}
-              rows={4}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onGoBack}>
+      <div className="flex flex-col sm:flex-row gap-4 mt-8">
+        <Button variant="outline" onClick={onGoBack} disabled={isSubmitting} className="touch-manipulation min-h-[48px]">
           Previous
         </Button>
         <Button 
           onClick={onSubmit} 
-          disabled={!canSubmit}
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
+          disabled={!canSubmit || isSubmitting}
+          className="flex-1 min-h-[48px] touch-manipulation"
         >
-          {canSubmit ? "Submit Survey" : `Answer All Questions (${Object.keys(responses).length}/${questions.length})`}
+          {isSubmitting ? (
+            <div className="flex items-center gap-2">
+              <LoaderIcon className="h-4 w-4 animate-spin" />
+              Submitting...
+            </div>
+          ) : (
+            "Submit Survey"
+          )}
         </Button>
       </div>
     </div>
