@@ -28,14 +28,192 @@ const languageContent: LanguageContent = {
     subtitle: "Your feedback helps us improve our workplace culture",
     languageLabel: "Language",
     getStarted: "Get Started",
-    privacyNotice: "Privacy Notice"
+    privacyNotice: "Privacy Notice",
+    // Demographics
+    continentQuestion: "Which Continent is your primary work location?",
+    divisionQuestion: "Which Division of Bunting do you work in?",
+    roleQuestion: "Which best explains your role?",
+    northAmerica: "North America",
+    europe: "Europe",
+    equipment: "Equipment",
+    magnets: "Magnets",
+    both: "Both",
+    salesMarketing: "Sales/Marketing/Product",
+    operations: "Operations/Engineering/Production",
+    admin: "Admin/HR/Finance",
+    // Rating questions
+    jobSatisfaction: "How satisfied are you with your job?",
+    trainingSatisfaction: "How satisfied are you with the training provided for your current role?",
+    workLifeBalance: "How would you rate your current work-life balance?",
+    communicationClarity: "How clear is the communication you receive from leadership regarding company goals and objectives?",
+    managerAlignment: "Does your manager help connect your work to business outcomes?",
+    usUkCollaboration: "How are the overall communication and collaboration between the US and UK offices?",
+    crossFunctionalCollaboration: "Rate the quality of cross-functional collaboration in your work environment.",
+    strategicConfidence: "Rate your confidence in the company's 3-year strategic direction.",
+    advancementOpportunities: "Do you see clear advancement opportunities aligned with emerging skill needs?",
+    workplaceSafety: "How safe do you feel in your work environment?",
+    recommendCompany: "How likely are you to recommend this company as a place to work?",
+    manualProcessesFocus: "I am able to focus on higher-impact work rather than spending time on manual processes.",
+    processImprovementComfort: "I feel comfortable proposing process improvements.",
+    // Multi-select questions
+    communicationPreferences: "Which communication styles do you prefer?",
+    motivationFactors: "What motivates you to stay with the company?",
+    informationPreferences: "What information would you like to receive more from the company?",
+    // Options
+    companywideEmails: "Companywide emails",
+    quarterlyTownHalls: "Quarterly Town halls",
+    companyIntranet: "Company Intranet",
+    digitalSignage: "Digital Signage",
+    printedSignage: "Printed Signage",
+    teamMeetings: "Team meetings",
+    compensation: "Compensation",
+    benefitsPackage: "Benefits package",
+    jobSatisfactionOpt: "Job satisfaction",
+    thePeople: "The people",
+    growthOpportunities: "Growth opportunities",
+    companyFuture: "Company's future",
+    communicationTransparency: "Communication and transparency",
+    strategicDirection: "Strategic direction",
+    financialIncentives: "Financial incentives",
+    operationalUpdates: "Operational updates",
+    interdepartmentalKnowledge: "Interdepartmental knowledge",
+    careerDevelopment: "Career development",
+    itSystems: "IT systems",
+    // Submit
+    submitSurvey: "Submit Survey",
+    next: "Next",
+    // Ratings
+    veryDissatisfied: "Very Dissatisfied",
+    dissatisfied: "Dissatisfied",
+    neutral: "Neutral",
+    satisfied: "Satisfied",
+    verySatisfied: "Very Satisfied",
+    stronglyDisagree: "Strongly Disagree",
+    disagree: "Disagree",
+    agree: "Agree",
+    stronglyAgree: "Strongly Agree",
+    veryUnclear: "Very Unclear",
+    unclear: "Unclear",
+    clear: "Clear",
+    veryClear: "Very Clear",
+    never: "Never",
+    rarely: "Rarely",
+    sometimes: "Sometimes",
+    often: "Often",
+    always: "Always",
+    veryPoor: "Very Poor",
+    poor: "Poor",
+    good: "Good",
+    excellent: "Excellent",
+    noConfidence: "No Confidence",
+    lowConfidence: "Low Confidence",
+    confident: "Confident",
+    veryConfident: "Very Confident",
+    notAtAll: "Not at All",
+    veryUnsafe: "Very unsafe",
+    unsafe: "Unsafe",
+    safe: "Safe",
+    verySafe: "Very safe",
+    veryUnlikely: "Very Unlikely",
+    unlikely: "Unlikely",
+    likely: "Likely",
+    veryLikely: "Very Likely"
   },
   es: {
     title: "Encuesta de Compromiso del Empleado",
     subtitle: "Sus comentarios nos ayudan a mejorar nuestra cultura laboral",
     languageLabel: "Idioma",
     getStarted: "Comenzar",
-    privacyNotice: "Aviso de Privacidad"
+    privacyNotice: "Aviso de Privacidad",
+    // Demographics
+    continentQuestion: "¿En qué continente se encuentra su lugar de trabajo principal?",
+    divisionQuestion: "¿En qué división de Bunting trabajas?",
+    roleQuestion: "¿Cuál describe mejor su papel?",
+    northAmerica: "América del Norte",
+    europe: "Europa",
+    equipment: "Equipo",
+    magnets: "Imanes",
+    both: "Ambos",
+    salesMarketing: "Ventas/Marketing/Producto",
+    operations: "Operaciones/Ingeniería/Producción",
+    admin: "Administración/RRHH/Finanzas",
+    // Rating questions
+    jobSatisfaction: "¿Qué tan satisfecho está con su trabajo?",
+    trainingSatisfaction: "¿Qué tan satisfecho está con la capacitación proporcionada para su rol actual?",
+    workLifeBalance: "¿Cómo calificaría su equilibrio actual entre trabajo y vida personal?",
+    communicationClarity: "¿Qué tan clara es la comunicación que recibe del liderazgo sobre los objetivos y metas de la empresa?",
+    managerAlignment: "¿Su gerente le ayuda a conectar su trabajo con los resultados del negocio?",
+    usUkCollaboration: "¿Cómo es la comunicación y colaboración general entre las oficinas de EE.UU. y Reino Unido?",
+    crossFunctionalCollaboration: "Califique la calidad de la colaboración interfuncional en su ambiente de trabajo.",
+    strategicConfidence: "Califique su confianza en la dirección estratégica de 3 años de la empresa.",
+    advancementOpportunities: "¿Ve oportunidades claras de avance alineadas con las necesidades de habilidades emergentes?",
+    workplaceSafety: "¿Qué tan seguro se siente en su ambiente de trabajo?",
+    recommendCompany: "¿Qué tan probable es que recomiende esta empresa como lugar de trabajo?",
+    manualProcessesFocus: "Puedo enfocarme en trabajo de mayor impacto en lugar de pasar tiempo en procesos manuales.",
+    processImprovementComfort: "Me siento cómodo proponiendo mejoras de procesos.",
+    // Multi-select questions
+    communicationPreferences: "¿Qué estilos de comunicación prefiere?",
+    motivationFactors: "¿Qué lo motiva a permanecer en la empresa?",
+    informationPreferences: "¿Qué información le gustaría recibir más de la empresa?",
+    // Options
+    companywideEmails: "Correos electrónicos para toda la empresa",
+    quarterlyTownHalls: "Reuniones trimestrales generales",
+    companyIntranet: "Intranet de la empresa",
+    digitalSignage: "Señalización digital",
+    printedSignage: "Señalización impresa",
+    teamMeetings: "Reuniones de equipo",
+    compensation: "Compensación",
+    benefitsPackage: "Paquete de beneficios",
+    jobSatisfactionOpt: "Satisfacción laboral",
+    thePeople: "La gente",
+    growthOpportunities: "Oportunidades de crecimiento",
+    companyFuture: "Futuro de la empresa",
+    communicationTransparency: "Comunicación y transparencia",
+    strategicDirection: "Dirección estratégica",
+    financialIncentives: "Incentivos financieros",
+    operationalUpdates: "Actualizaciones operativas",
+    interdepartmentalKnowledge: "Conocimiento interdepartamental",
+    careerDevelopment: "Desarrollo profesional",
+    itSystems: "Sistemas de TI",
+    // Submit
+    submitSurvey: "Enviar Encuesta",
+    next: "Siguiente",
+    // Ratings
+    veryDissatisfied: "Muy Insatisfecho",
+    dissatisfied: "Insatisfecho",
+    neutral: "Neutral",
+    satisfied: "Satisfecho",
+    verySatisfied: "Muy Satisfecho",
+    stronglyDisagree: "Totalmente en Desacuerdo",
+    disagree: "En Desacuerdo",
+    agree: "De Acuerdo",
+    stronglyAgree: "Totalmente de Acuerdo",
+    veryUnclear: "Muy Poco Claro",
+    unclear: "Poco Claro",
+    clear: "Claro",
+    veryClear: "Muy Claro",
+    never: "Nunca",
+    rarely: "Raramente",
+    sometimes: "A veces",
+    often: "A menudo",
+    always: "Siempre",
+    veryPoor: "Muy Malo",
+    poor: "Malo",
+    good: "Bueno",
+    excellent: "Excelente",
+    noConfidence: "Sin Confianza",
+    lowConfidence: "Baja Confianza",
+    confident: "Confiado",
+    veryConfident: "Muy Confiado",
+    notAtAll: "Para Nada",
+    veryUnsafe: "Muy inseguro",
+    unsafe: "Inseguro",
+    safe: "Seguro",
+    verySafe: "Muy seguro",
+    veryUnlikely: "Muy Poco Probable",
+    unlikely: "Poco Probable",
+    likely: "Probable",
+    veryLikely: "Muy Probable"
   }
 };
 
@@ -102,24 +280,67 @@ const multiSelectQuestions: MultiSelectQuestion[] = [
   }
 ];
 
-// New 13 rating questions based on user's requirements
-const ratingQuestions: RatingQuestion[] = [
+const getMultiSelectQuestions = (language: string) => [
+  {
+    id: "communication-preferences",
+    text: languageContent[language].communicationPreferences,
+    section: "Leadership & Communication",
+    options: [
+      { value: "companywide-emails", label: languageContent[language].companywideEmails },
+      { value: "quarterly-town-halls", label: languageContent[language].quarterlyTownHalls },
+      { value: "company-intranet", label: languageContent[language].companyIntranet },
+      { value: "digital-signage", label: languageContent[language].digitalSignage },
+      { value: "printed-signage", label: languageContent[language].printedSignage },
+      { value: "team-meetings", label: languageContent[language].teamMeetings }
+    ]
+  },
+  {
+    id: "motivation-factors",
+    text: languageContent[language].motivationFactors,
+    section: "Collaboration & Cross-Functional Work",
+    options: [
+      { value: "compensation", label: languageContent[language].compensation },
+      { value: "benefits-package", label: languageContent[language].benefitsPackage },
+      { value: "job-satisfaction", label: languageContent[language].jobSatisfactionOpt },
+      { value: "the-people", label: languageContent[language].thePeople },
+      { value: "growth-opportunities", label: languageContent[language].growthOpportunities },
+      { value: "company-future", label: languageContent[language].companyFuture }
+    ]
+  },
+  {
+    id: "information-preferences",
+    text: languageContent[language].informationPreferences,
+    section: "Workplace Experience",
+    options: [
+      { value: "communication-transparency", label: languageContent[language].communicationTransparency },
+      { value: "strategic-direction", label: languageContent[language].strategicDirection },
+      { value: "financial-incentives", label: languageContent[language].financialIncentives },
+      { value: "operational-updates", label: languageContent[language].operationalUpdates },
+      { value: "interdepartmental-knowledge", label: languageContent[language].interdepartmentalKnowledge },
+      { value: "career-development", label: languageContent[language].careerDevelopment },
+      { value: "it-systems", label: languageContent[language].itSystems }
+    ]
+  }
+];
+
+// Remove the old static array and replace with function
+const getRatingQuestions = (language: string): RatingQuestion[] => [
   // 1. Job & Role Satisfaction (3 questions)
   {
     id: "job-satisfaction",
-    text: "How satisfied are you with your job?",
+    text: languageContent[language].jobSatisfaction,
     section: "Job & Role Satisfaction",
     feedbackPrompt: "Please explain why you feel dissatisfied with your job."
   },
   {
     id: "training-satisfaction",
-    text: "How satisfied are you with the training provided for your current role?",
+    text: languageContent[language].trainingSatisfaction,
     section: "Job & Role Satisfaction",
     feedbackPrompt: "Please describe gaps in training or support you've experienced."
   },
   {
     id: "work-life-balance",
-    text: "How would you rate your current work-life balance?",
+    text: languageContent[language].workLifeBalance,
     section: "Job & Role Satisfaction",
     feedbackPrompt: "Please explain what affects your work-life balance."
   },
@@ -127,13 +348,13 @@ const ratingQuestions: RatingQuestion[] = [
   // 2. Leadership & Communication (2 questions)
   {
     id: "leadership-communication-clarity",
-    text: "How clear is the communication you receive from leadership regarding company goals and objectives?",
+    text: languageContent[language].communicationClarity,
     section: "Leadership & Communication",
     feedbackPrompt: "Please describe how communication could be improved."
   },
   {
     id: "manager-business-connection",
-    text: "Does your manager help connect your work to business outcomes?",
+    text: languageContent[language].managerAlignment,
     section: "Leadership & Communication",
     feedbackPrompt: "Please explain how your work could be better aligned with outcomes."
   },
@@ -141,13 +362,13 @@ const ratingQuestions: RatingQuestion[] = [
   // 3. Collaboration & Cross-Functional Work (2 questions)
   {
     id: "us-uk-collaboration",
-    text: "How are the overall communication and collaboration between the US and UK offices?",
+    text: languageContent[language].usUkCollaboration,
     section: "Collaboration & Cross-Functional Work",
     feedbackPrompt: "Please describe the main obstacles to collaboration between offices."
   },
   {
     id: "cross-functional-collaboration",
-    text: "Rate the quality of cross-functional collaboration in your work environment.",
+    text: languageContent[language].crossFunctionalCollaboration,
     section: "Collaboration & Cross-Functional Work",
     feedbackPrompt: "Please provide examples of where cross-functional work could be improved."
   },
@@ -155,13 +376,13 @@ const ratingQuestions: RatingQuestion[] = [
   // 4. Growth & Strategic Alignment (2 questions)
   {
     id: "strategic-direction-confidence",
-    text: "Rate your confidence in the company's 3-year strategic direction.",
+    text: languageContent[language].strategicConfidence,
     section: "Growth & Strategic Alignment",
     feedbackPrompt: "Please explain your concerns about the strategic direction."
   },
   {
     id: "advancement-opportunities",
-    text: "Do you see clear advancement opportunities aligned with emerging skill needs?",
+    text: languageContent[language].advancementOpportunities,
     section: "Growth & Strategic Alignment",
     feedbackPrompt: "Please describe what's missing in career growth or skill development."
   },
@@ -169,13 +390,13 @@ const ratingQuestions: RatingQuestion[] = [
   // 5. Workplace Experience (2 questions)
   {
     id: "workplace-safety",
-    text: "How safe do you feel in your work environment?",
+    text: languageContent[language].workplaceSafety,
     section: "Workplace Experience",
     feedbackPrompt: "Please explain any safety concerns you have."
   },
   {
     id: "company-recommendation",
-    text: "How likely are you to recommend this company as a place to work?",
+    text: languageContent[language].recommendCompany,
     section: "Workplace Experience",
     feedbackPrompt: "Please share reasons you wouldn't recommend the company."
   },
@@ -183,15 +404,44 @@ const ratingQuestions: RatingQuestion[] = [
   // 6. Process Efficiency & Innovation (2 questions) - Moved to bottom with agreement scale
   {
     id: "manual-processes-impact",
-    text: "I am able to focus on higher-impact work rather than spending time on manual processes.",
+    text: languageContent[language].manualProcessesFocus,
     section: "Process Efficiency & Innovation",
     feedbackPrompt: "Please describe the manual processes or tasks that slow your work."
   },
   {
     id: "process-improvement-comfort",
-    text: "I feel comfortable proposing process improvements.",
+    text: languageContent[language].processImprovementComfort,
     section: "Process Efficiency & Innovation",
     feedbackPrompt: "Please explain what prevents you from suggesting improvements."
+  }
+];
+
+const getDemographicQuestions = (language: string): DemographicQuestion[] => [
+  {
+    id: "continent",
+    text: languageContent[language].continentQuestion,
+    options: [
+      { value: "north-america", label: languageContent[language].northAmerica },
+      { value: "europe", label: languageContent[language].europe }
+    ]
+  },
+  {
+    id: "division",
+    text: languageContent[language].divisionQuestion,
+    options: [
+      { value: "equipment", label: languageContent[language].equipment },
+      { value: "magnets", label: languageContent[language].magnets },
+      { value: "both", label: languageContent[language].both }
+    ]
+  },
+  {
+    id: "role",
+    text: languageContent[language].roleQuestion,
+    options: [
+      { value: "sales-marketing", label: languageContent[language].salesMarketing },
+      { value: "operations", label: languageContent[language].operations },
+      { value: "admin", label: languageContent[language].admin }
+    ]
   }
 ];
 
@@ -242,93 +492,86 @@ const ratingEmojis = {
   }
 };
 
-const ratingLabels = {
+const getRatingLabels = (language: string) => ({
   satisfaction: {
-    1: "Very Dissatisfied",
-    2: "Dissatisfied", 
-    3: "Neutral",
-    4: "Satisfied",
-    5: "Very Satisfied"
+    1: languageContent[language].veryDissatisfied,
+    2: languageContent[language].dissatisfied, 
+    3: languageContent[language].neutral,
+    4: languageContent[language].satisfied,
+    5: languageContent[language].verySatisfied
   },
   agreement: {
-    1: "Strongly Disagree",
-    2: "Disagree", 
-    3: "Neutral",
-    4: "Agree",
-    5: "Strongly Agree"
+    1: languageContent[language].stronglyDisagree,
+    2: languageContent[language].disagree, 
+    3: languageContent[language].neutral,
+    4: languageContent[language].agree,
+    5: languageContent[language].stronglyAgree
   },
   leadership: {
     "leadership-communication-clarity": {
-      1: "Very Unclear",
-      2: "Unclear",
-      3: "Neutral", 
-      4: "Clear",
-      5: "Very Clear"
-    },
-    "leadership-openness": {
-      1: "Not Open at All",
-      2: "Somewhat Closed",
-      3: "Neutral",
-      4: "Open", 
-      5: "Very Open"
+      1: languageContent[language].veryUnclear,
+      2: languageContent[language].unclear,
+      3: languageContent[language].neutral, 
+      4: languageContent[language].clear,
+      5: languageContent[language].veryClear
     },
     "manager-business-connection": {
-      1: "Never",
-      2: "Rarely",
-      3: "Sometimes",
-      4: "Often",
-      5: "Always"
+      1: languageContent[language].never,
+      2: languageContent[language].rarely,
+      3: languageContent[language].sometimes,
+      4: languageContent[language].often,
+      5: languageContent[language].always
     }
   },
   collaboration: {
     "us-uk-collaboration": {
-      1: "Very Poor",
-      2: "Poor",
-      3: "Neutral",
-      4: "Good", 
-      5: "Excellent"
+      1: languageContent[language].veryPoor,
+      2: languageContent[language].poor,
+      3: languageContent[language].neutral,
+      4: languageContent[language].good, 
+      5: languageContent[language].excellent
     },
     "cross-functional-collaboration": {
-      1: "Very Poor",
-      2: "Poor", 
-      3: "Neutral",
-      4: "Good",
-      5: "Excellent"
+      1: languageContent[language].veryPoor,
+      2: languageContent[language].poor, 
+      3: languageContent[language].neutral,
+      4: languageContent[language].good,
+      5: languageContent[language].excellent
     }
   },
   growth: {
     "strategic-direction-confidence": {
-      1: "No Confidence",
-      2: "Low Confidence",
-      3: "Neutral",
-      4: "Confident",
-      5: "Very Confident"
+      1: languageContent[language].noConfidence,
+      2: languageContent[language].lowConfidence,
+      3: languageContent[language].neutral,
+      4: languageContent[language].confident,
+      5: languageContent[language].veryConfident
     },
     "advancement-opportunities": {
-      1: "Not at All",
-      2: "Rarely",
-      3: "Sometimes", 
-      4: "Often",
-      5: "Always"
+      1: languageContent[language].notAtAll,
+      2: languageContent[language].rarely,
+      3: languageContent[language].sometimes, 
+      4: languageContent[language].often,
+      5: languageContent[language].always
     }
   },
   workplace: {
     "workplace-safety": {
-      1: "Very unsafe",
-      2: "Unsafe",
-      3: "Neutral",
-      4: "Safe",
-      5: "Very safe"
+      1: languageContent[language].veryUnsafe,
+      2: languageContent[language].unsafe,
+      3: languageContent[language].neutral,
+      4: languageContent[language].safe,
+      5: languageContent[language].verySafe
     },
     "company-recommendation": {
-      1: "Very Unlikely",
-      2: "Unlikely",
-      3: "Neutral",
-      4: "Likely",
-      5: "Very Likely"
+      1: languageContent[language].veryUnlikely,
+      2: languageContent[language].unlikely,
+      3: languageContent[language].neutral,
+      4: languageContent[language].likely,
+      5: languageContent[language].veryLikely
     }
   }
-};
+});
 
 type SurveySection = "demographics" | "ratings" | "complete";
 
@@ -380,7 +623,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   }, []);
 
   const getTotalQuestions = () => {
-    return demographicQuestions.length + ratingQuestions.length + multiSelectQuestions.length;
+    return getDemographicQuestions(language).length + getRatingQuestions(language).length + getMultiSelectQuestions(language).length;
   };
 
   const getCurrentQuestionNumber = () => {
@@ -389,7 +632,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     } else if (currentSection === "ratings") {
       const ratingCount = Object.keys(ratingResponses).length;
       const multiSelectCount = Object.keys(multiSelectResponses).length;
-      return demographicQuestions.length + ratingCount + multiSelectCount + 1;
+      return getDemographicQuestions(language).length + ratingCount + multiSelectCount + 1;
     }
     return getTotalQuestions();
   };
@@ -397,10 +640,10 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   const progress = (getCurrentQuestionNumber() / getTotalQuestions()) * 100;
 
   const handleDemographicResponse = (value: string) => {
-    const questionId = demographicQuestions[currentDemographicIndex].id;
+    const questionId = getDemographicQuestions(language)[currentDemographicIndex].id;
     setResponses(prev => ({ ...prev, [questionId]: value }));
     
-    if (currentDemographicIndex < demographicQuestions.length - 1) {
+    if (currentDemographicIndex < getDemographicQuestions(language).length - 1) {
       setCurrentDemographicIndex(prev => prev + 1);
     } else {
       setCurrentSection("ratings");
@@ -420,8 +663,8 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   };
 
   const isAllQuestionsAnswered = () => {
-    const allRatingsAnswered = Object.keys(ratingResponses).length === ratingQuestions.length;
-    const allMultiSelectAnswered = Object.keys(multiSelectResponses).length === multiSelectQuestions.length;
+    const allRatingsAnswered = Object.keys(ratingResponses).length === getRatingQuestions(language).length;
+    const allMultiSelectAnswered = Object.keys(multiSelectResponses).length === getMultiSelectQuestions(language).length;
     return allRatingsAnswered && allMultiSelectAnswered;
   };
 
@@ -626,7 +869,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
 
         {currentSection === "demographics" && (
           <DemographicSection 
-            question={demographicQuestions[currentDemographicIndex]}
+            question={getDemographicQuestions(language)[currentDemographicIndex]}
             onResponse={handleDemographicResponse}
             canGoBack={currentDemographicIndex > 0}
             onGoBack={() => setCurrentDemographicIndex(prev => prev - 1)}
@@ -635,8 +878,8 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
 
         {currentSection === "ratings" && (
           <RatingsSection 
-            questions={ratingQuestions}
-            multiSelectQuestions={multiSelectQuestions}
+            questions={getRatingQuestions(language)}
+            multiSelectQuestions={getMultiSelectQuestions(language)}
             responses={ratingResponses}
             feedbackResponses={feedbackResponses}
             multiSelectResponses={multiSelectResponses}
@@ -651,7 +894,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
             canSubmit={isAllQuestionsAnswered()}
             isSubmitting={isSubmitting}
             onGoBack={() => {
-              setCurrentDemographicIndex(demographicQuestions.length - 1);
+              setCurrentDemographicIndex(getDemographicQuestions(language).length - 1);
               setCurrentSection("demographics");
             }}
           />
