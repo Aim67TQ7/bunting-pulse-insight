@@ -50,9 +50,19 @@ const Index = () => {
               <h1 className="text-2xl font-bold text-foreground">Bunting Employee Survey</h1>
               <p className="text-muted-foreground">Anonymous feedback platform</p>
             </div>
-            <Badge variant="outline" className="text-sm">
-              Confidential
-            </Badge>
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setCurrentView("dashboard")}
+                className="text-xs"
+              >
+                🔑 Admin Access
+              </Button>
+              <Badge variant="outline" className="text-sm">
+                Confidential
+              </Badge>
+            </div>
           </div>
         </div>
       </header>
