@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BrainCircuitIcon, DownloadIcon, RefreshCwIcon, SparklesIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ReactMarkdown from 'react-markdown';
 import jsPDF from 'jspdf';
 
 interface SurveyResponse {
@@ -112,12 +112,102 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
     try {
       const pdf = new jsPDF('p', 'pt', 'a4');
       const pageWidth = pdf.internal.pageSize.width;
+      const pageHeight = pdf.internal.pageSize.height;
       const margin = 40;
       const lineHeight = 16;
       let yPosition = 60;
 
+      // Helper function to add new page if needed
+      const checkPageBreak = (neededSpace = lineHeight) => {
+        if (yPosition + neededSpace > pageHeight - margin) {
+          pdf.addPage();
+          yPosition = margin;
+          return true;
+        }
+        return false;
+      };
+
+      // Helper function to parse and format markdown text
+      const renderMarkdownToPDF = (text: string) => {
+        const lines = text.split('\n');
+        
+        for (const line of lines) {
+          checkPageBreak();
+          
+          // Handle headers
+          if (line.startsWith('# ')) {
+            pdf.setFontSize(18);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text(line.substring(2), margin, yPosition);
+            yPosition += 25;
+          } else if (line.startsWith('## ')) {
+            pdf.setFontSize(16);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text(line.substring(3), margin, yPosition);
+            yPosition += 22;
+          } else if (line.startsWith('### ')) {
+            pdf.setFontSize(14);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text(line.substring(4), margin, yPosition);
+            yPosition += 20;
+          } else if (line.startsWith('**') && line.endsWith('**')) {
+            // Bold text (section headers)
+            pdf.setFontSize(12);
+            pdf.setFont('helvetica', 'bold');
+            const cleanText = line.replace(/\*\*/g, '');
+            pdf.text(cleanText, margin, yPosition);
+            yPosition += 18;
+          } else if (line.startsWith('*') && line.endsWith('*') && !line.startsWith('**')) {
+            // Italic text
+            pdf.setFontSize(11);
+            pdf.setFont('helvetica', 'italic');
+            const cleanText = line.replace(/\*/g, '');
+            const splitLines = pdf.splitTextToSize(cleanText, pageWidth - 2 * margin);
+            for (const splitLine of splitLines) {
+              checkPageBreak();
+              pdf.text(splitLine, margin, yPosition);
+              yPosition += lineHeight;
+            }
+          } else if (line.startsWith('- ') || line.startsWith('• ')) {
+            // Bullet points
+            pdf.setFontSize(11);
+            pdf.setFont('helvetica', 'normal');
+            const bulletText = line.startsWith('- ') ? line.substring(2) : line.substring(2);
+            const splitLines = pdf.splitTextToSize(`• ${bulletText}`, pageWidth - 2 * margin - 20);
+            for (const splitLine of splitLines) {
+              checkPageBreak();
+              pdf.text(splitLine, margin + 20, yPosition);
+              yPosition += lineHeight;
+            }
+          } else if (line.match(/^\d+\. /)) {
+            // Numbered lists
+            pdf.setFontSize(11);
+            pdf.setFont('helvetica', 'normal');
+            const splitLines = pdf.splitTextToSize(line, pageWidth - 2 * margin - 20);
+            for (const splitLine of splitLines) {
+              checkPageBreak();
+              pdf.text(splitLine, margin + 20, yPosition);
+              yPosition += lineHeight;
+            }
+          } else if (line.trim() === '') {
+            // Empty line - add space
+            yPosition += lineHeight / 2;
+          } else {
+            // Regular paragraph text
+            pdf.setFontSize(11);
+            pdf.setFont('helvetica', 'normal');
+            const splitLines = pdf.splitTextToSize(line, pageWidth - 2 * margin);
+            for (const splitLine of splitLines) {
+              checkPageBreak();
+              pdf.text(splitLine, margin, yPosition);
+              yPosition += lineHeight;
+            }
+          }
+        }
+      };
+
       // Title
-      pdf.setFontSize(18);
+      pdf.setFontSize(20);
       pdf.setFont('helvetica', 'bold');
       pdf.text('Survey Analysis Report', margin, yPosition);
       yPosition += 40;
@@ -129,30 +219,29 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
       yPosition += lineHeight;
       pdf.text(`Total Responses: ${analysisResult.metadata.totalResponses}`, margin, yPosition);
       yPosition += lineHeight;
+      if (analysisResult.metadata.validResponses) {
+        pdf.text(`Valid Responses: ${analysisResult.metadata.validResponses} (${analysisResult.metadata.responseRate?.toFixed(1)}% quality)`, margin, yPosition);
+        yPosition += lineHeight;
+      }
+      if (analysisResult.metadata.commentsCount !== undefined) {
+        pdf.text(`Comments: ${analysisResult.metadata.commentsCount}`, margin, yPosition);
+        yPosition += lineHeight;
+      }
       pdf.text(`AI Model: ${analysisResult.metadata.model}`, margin, yPosition);
       yPosition += 30;
 
-      // Analysis content
-      pdf.setFontSize(11);
-      const analysisLines = pdf.splitTextToSize(analysisResult.analysis, pageWidth - 2 * margin);
-      
-      for (let i = 0; i < analysisLines.length; i++) {
-        if (yPosition > pdf.internal.pageSize.height - margin) {
-          pdf.addPage();
-          yPosition = margin;
-        }
-        pdf.text(analysisLines[i], margin, yPosition);
-        yPosition += lineHeight;
-      }
+      // Analysis content with markdown formatting
+      renderMarkdownToPDF(analysisResult.analysis);
 
       pdf.save('survey-ai-analysis.pdf');
       
       toast({
         title: "Export Successful",
-        description: "AI analysis exported to PDF successfully.",
+        description: "AI analysis exported to PDF with formatting successfully.",
       });
 
     } catch (error: any) {
+      console.error('PDF export error:', error);
       toast({
         title: "Export Failed",
         description: error.message || "Failed to export analysis to PDF.",
@@ -161,20 +250,7 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
     }
   };
 
-  // Parse structured JSON analysis if available
-  const parseAnalysis = (analysisText: string) => {
-    try {
-      // Try to parse as JSON first
-      const parsed = JSON.parse(analysisText);
-      return parsed;
-    } catch {
-      // If not JSON, treat as plain text and try to parse sections
-      const sections = analysisText.split(/(?=\d+\.\s*\*\*[A-Z\s]+\*\*)/);
-      return { rawText: analysisText, sections };
-    }
-  };
-
-  const parsedAnalysis = analysisResult ? parseAnalysis(analysisResult.analysis) : null;
+  
 
   return (
     <>
@@ -304,16 +380,23 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
                 </div>
 
                 {/* Analysis Content */}
-                <div className="prose prose-sm max-w-none">
-                  {parsedAnalysis?.rawText ? (
-                    <pre className="whitespace-pre-wrap text-sm leading-relaxed font-sans">
-                      {parsedAnalysis.rawText}
-                    </pre>
-                  ) : (
-                    <pre className="whitespace-pre-wrap text-sm leading-relaxed font-sans">
-                      {analysisResult.analysis}
-                    </pre>
-                  )}
+                <div className="prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground">
+                  <ReactMarkdown
+                    components={{
+                      h1: ({ children }) => <h1 className="text-2xl font-bold mt-6 mb-4 text-foreground">{children}</h1>,
+                      h2: ({ children }) => <h2 className="text-xl font-semibold mt-5 mb-3 text-foreground">{children}</h2>,
+                      h3: ({ children }) => <h3 className="text-lg font-medium mt-4 mb-2 text-foreground">{children}</h3>,
+                      p: ({ children }) => <p className="mb-3 leading-relaxed text-foreground">{children}</p>,
+                      ul: ({ children }) => <ul className="mb-4 pl-6 space-y-1">{children}</ul>,
+                      ol: ({ children }) => <ol className="mb-4 pl-6 space-y-1 list-decimal">{children}</ol>,
+                      li: ({ children }) => <li className="text-foreground">{children}</li>,
+                      strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                      code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-sm font-mono">{children}</code>,
+                      blockquote: ({ children }) => <blockquote className="border-l-4 border-primary pl-4 italic my-4 text-muted-foreground">{children}</blockquote>,
+                    }}
+                  >
+                    {analysisResult.analysis}
+                  </ReactMarkdown>
                 </div>
               </div>
             </ScrollArea>
