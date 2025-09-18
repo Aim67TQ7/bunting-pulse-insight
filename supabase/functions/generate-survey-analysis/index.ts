@@ -26,110 +26,151 @@ serve(async (req) => {
 
     console.log(`Analyzing ${surveyData.length} survey responses`);
 
-    // Prepare data summary for AI analysis
+    // Enhanced data processing with null handling and comprehensive metrics
+    const validResponses = surveyData.filter(r => r.continent && r.division && r.role);
+    const responseRate = (validResponses.length / surveyData.length) * 100;
+    
+    const calculateAverage = (field: string) => {
+      const validValues = surveyData.filter(r => r[field] !== null && r[field] !== undefined).map(r => r[field]);
+      return validValues.length > 0 ? validValues.reduce((sum, val) => sum + val, 0) / validValues.length : null;
+    };
+
+    const getResponseCount = (field: string) => {
+      return surveyData.filter(r => r[field] !== null && r[field] !== undefined).length;
+    };
+
     const dataSummary = {
       totalResponses: surveyData.length,
-      continents: [...new Set(surveyData.map(r => r.continent))],
-      divisions: [...new Set(surveyData.map(r => r.division))],
-      roles: [...new Set(surveyData.map(r => r.role))],
+      validResponses: validResponses.length,
+      responseRate: responseRate,
+      continents: [...new Set(surveyData.map(r => r.continent).filter(Boolean))],
+      divisions: [...new Set(surveyData.map(r => r.division).filter(Boolean))],
+      roles: [...new Set(surveyData.map(r => r.role).filter(Boolean))],
       averageScores: {
-        job_satisfaction: surveyData.reduce((sum, r) => sum + (r.job_satisfaction || 0), 0) / surveyData.length,
-        work_life_balance: surveyData.reduce((sum, r) => sum + (r.work_life_balance || 0), 0) / surveyData.length,
-        communication_clarity: surveyData.reduce((sum, r) => sum + (r.communication_clarity || 0), 0) / surveyData.length,
-        leadership_openness: surveyData.reduce((sum, r) => sum + (r.leadership_openness || 0), 0) / surveyData.length,
-        us_uk_collaboration: surveyData.reduce((sum, r) => sum + (r.us_uk_collaboration || 0), 0) / surveyData.length,
-        training_satisfaction: surveyData.reduce((sum, r) => sum + (r.training_satisfaction || 0), 0) / surveyData.length,
-        advancement_opportunities: surveyData.reduce((sum, r) => sum + (r.advancement_opportunities || 0), 0) / surveyData.length,
-        recommend_company: surveyData.reduce((sum, r) => sum + (r.recommend_company || 0), 0) / surveyData.length,
+        job_satisfaction: calculateAverage('job_satisfaction'),
+        work_life_balance: calculateAverage('work_life_balance'),
+        communication_clarity: calculateAverage('communication_clarity'),
+        leadership_openness: calculateAverage('leadership_openness'),
+        us_uk_collaboration: calculateAverage('us_uk_collaboration'),
+        training_satisfaction: calculateAverage('training_satisfaction'),
+        advancement_opportunities: calculateAverage('advancement_opportunities'),
+        recommend_company: calculateAverage('recommend_company'),
+      },
+      responseCounts: {
+        job_satisfaction: getResponseCount('job_satisfaction'),
+        work_life_balance: getResponseCount('work_life_balance'),
+        communication_clarity: getResponseCount('communication_clarity'),
+        leadership_openness: getResponseCount('leadership_openness'),
+        us_uk_collaboration: getResponseCount('us_uk_collaboration'),
+        training_satisfaction: getResponseCount('training_satisfaction'),
+        advancement_opportunities: getResponseCount('advancement_opportunities'),
+        recommend_company: getResponseCount('recommend_company'),
       },
       comments: surveyData
-        .filter(r => r.additional_comments || r.collaboration_feedback)
+        .filter(r => (r.additional_comments && r.additional_comments.trim() !== '') || 
+                    (r.collaboration_feedback && r.collaboration_feedback.trim() !== ''))
         .map(r => ({
           continent: r.continent,
           division: r.division,
           role: r.role,
           additional_comments: r.additional_comments,
           collaboration_feedback: r.collaboration_feedback
-        }))
+        })),
+      communicationPreferences: surveyData
+        .filter(r => r.communication_preferences && r.communication_preferences.length > 0)
+        .flatMap(r => r.communication_preferences),
+      informationPreferences: surveyData
+        .filter(r => r.information_preferences && r.information_preferences.length > 0)
+        .flatMap(r => r.information_preferences),
+      motivationFactors: surveyData
+        .filter(r => r.motivation_factors && r.motivation_factors.length > 0)
+        .flatMap(r => r.motivation_factors)
     };
 
-    // Regional breakdown
-    const regionalData = {
-      northAmerica: surveyData.filter(r => r.continent === 'North America'),
-      europe: surveyData.filter(r => r.continent === 'Europe')
-    };
-
-    // Division breakdown 
-    const divisionData = {
-      equipment: surveyData.filter(r => r.division === 'Equipment'),
-      magnets: surveyData.filter(r => r.division === 'Magnets'),
-      both: surveyData.filter(r => r.division === 'Both')
-    };
-
-    const prompt = `You are an expert HR analyst tasked with analyzing comprehensive employee survey results. Please provide a thorough, professional analysis with high creative insight and detailed observations.
+    // Enhanced prompt for comprehensive analysis with statistical awareness
+    const prompt = `You are an expert HR analyst tasked with analyzing employee survey results. Provide a thorough, professional analysis with high creative insight and detailed observations. Be transparent about data limitations while still providing valuable insights.
 
 SURVEY DATA SUMMARY:
 - Total Responses: ${dataSummary.totalResponses}
-- Continents: ${dataSummary.continents.join(', ')}
-- Divisions: ${dataSummary.divisions.join(', ')} 
-- Roles: ${dataSummary.roles.join(', ')}
+- Valid Complete Responses: ${dataSummary.validResponses} (${dataSummary.responseRate.toFixed(1)}% response quality)
+- Continents Represented: ${dataSummary.continents.join(', ')}
+- Divisions Represented: ${dataSummary.divisions.join(', ')} 
+- Role Types: ${dataSummary.roles.join(', ')}
 
-AVERAGE SCORES (1-5 scale):
-- Job Satisfaction: ${dataSummary.averageScores.job_satisfaction.toFixed(2)}
-- Work-Life Balance: ${dataSummary.averageScores.work_life_balance.toFixed(2)}
-- Communication Clarity: ${dataSummary.averageScores.communication_clarity.toFixed(2)}
-- Leadership Openness: ${dataSummary.averageScores.leadership_openness.toFixed(2)}
-- US-UK Collaboration: ${dataSummary.averageScores.us_uk_collaboration.toFixed(2)}
-- Training Satisfaction: ${dataSummary.averageScores.training_satisfaction.toFixed(2)}
-- Advancement Opportunities: ${dataSummary.averageScores.advancement_opportunities.toFixed(2)}
-- Recommend Company: ${dataSummary.averageScores.recommend_company.toFixed(2)}
+AVERAGE SCORES (1-5 scale) with Response Counts:
+${Object.entries(dataSummary.averageScores).map(([key, value]) => 
+  `- ${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}: ${value ? value.toFixed(2) : 'No responses'} (${dataSummary.responseCounts[key]} responses)`
+).join('\n')}
 
-REGIONAL COMPARISON:
-- North America: ${regionalData.northAmerica.length} responses
-- Europe: ${regionalData.europe.length} responses
+DEMOGRAPHIC BREAKDOWN:
+- Communication Preferences: ${JSON.stringify(dataSummary.communicationPreferences)}
+- Information Preferences: ${JSON.stringify(dataSummary.informationPreferences)}  
+- Motivation Factors: ${JSON.stringify(dataSummary.motivationFactors)}
 
-DIVISION COMPARISON:
-- Equipment: ${divisionData.equipment.length} responses  
-- Magnets: ${divisionData.magnets.length} responses
-- Both: ${divisionData.both.length} responses
+EMPLOYEE COMMENTS (${dataSummary.comments.length} total):
+${JSON.stringify(dataSummary.comments)}
 
-EMPLOYEE COMMENTS: ${JSON.stringify(dataSummary.comments)}
+ANALYSIS REQUIREMENTS:
+Please provide a comprehensive analysis in the following structured format. Address data limitations transparently while extracting maximum insights:
 
-Please provide a comprehensive analysis including:
+**EXECUTIVE SUMMARY** (2-3 paragraphs)
+- Key findings and overall employee sentiment
+- Statistical significance notes given sample size
+- Primary areas of strength and concern
 
-1. **EXECUTIVE SUMMARY** (2-3 paragraphs overview of key findings)
+**DETAILED INSIGHTS**
 
-2. **REGIONAL ANALYSIS** 
-   - Compare North America vs Europe performance across all metrics
-   - Identify regional strengths and challenges
-   - Cultural or operational insights
+*Regional Analysis*
+- Compare performance across represented continents
+- Identify geographic patterns and cultural considerations
+- Note any regional strengths or challenges
 
-3. **DIVISION ANALYSIS**
-   - Compare Equipment vs Magnets vs Both divisions
-   - Identify division-specific trends and issues
-   - Operational effectiveness insights
+*Division Analysis*  
+- Compare performance across business divisions
+- Identify division-specific trends and operational insights
+- Highlight cross-division collaboration effectiveness
 
-4. **ROLE-BASED INSIGHTS**
-   - Analyze patterns across different job functions
-   - Leadership vs operational perspectives
-   - Cross-functional collaboration effectiveness
+*Role-Based Analysis*
+- Analyze patterns across different job functions
+- Compare leadership vs operational perspectives
+- Assess cross-functional collaboration
 
-5. **SCORE PATTERN ANALYSIS**
-   - Identify highest and lowest scoring areas
-   - Correlations between different metrics
-   - Outliers and notable trends
+*Score Pattern Analysis*
+- Identify highest and lowest scoring metrics
+- Analyze correlations between different areas
+- Highlight notable patterns or outliers
+- Address statistical confidence given sample size
 
-6. **SENTIMENT ANALYSIS OF COMMENTS**
-   - Common themes in written feedback
-   - Positive vs concerning sentiment patterns
-   - Specific actionable insights from comments
+*Comment Sentiment Analysis*
+- Extract key themes from written feedback
+- Identify positive vs concerning sentiment patterns
+- Provide specific quotes that illustrate trends
+- Analyze feedback by demographic segments
 
-7. **STRATEGIC RECOMMENDATIONS**
-   - Top 3 priority areas for improvement
-   - Specific, actionable recommendations
-   - Regional/division-specific strategies
+**STRATEGIC RECOMMENDATIONS**
 
-Format as structured JSON with clear sections. Be thorough, insightful, and provide concrete recommendations based on the data patterns you observe.`;
+*Immediate Priority Actions* (Top 3)
+1. [Specific, actionable recommendation with rationale]
+2. [Specific, actionable recommendation with rationale]  
+3. [Specific, actionable recommendation with rationale]
+
+*Long-term Strategic Initiatives*
+- Targeted improvements for each geographic region
+- Division-specific enhancement strategies
+- Role-based development programs
+- Communication and collaboration improvements
+
+*Data Collection Recommendations*
+- Suggest additional metrics to track
+- Recommend survey frequency and timing
+- Identify areas needing deeper investigation
+
+**CONFIDENCE AND LIMITATIONS**
+- Assess statistical confidence of findings given sample size
+- Note areas where additional data would strengthen insights
+- Provide guidance on interpreting results responsibly
+
+Format your response as clear, well-structured text with headers and bullet points. Focus on actionable insights while being honest about what the current data can and cannot tell us.`;
 
     console.log('Calling OpenAI API for survey analysis...');
 
@@ -140,19 +181,19 @@ Format as structured JSON with clear sections. Be thorough, insightful, and prov
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
-            content: 'You are an expert HR analyst specializing in employee survey analysis. Provide thorough, data-driven insights with creative interpretation and actionable recommendations.'
+            content: 'You are an expert HR analyst specializing in employee survey analysis. Provide thorough, data-driven insights with creative interpretation and actionable recommendations. Be transparent about statistical limitations while maximizing insights from available data.'
           },
           {
             role: 'user', 
             content: prompt
           }
         ],
-        max_completion_tokens: 4000,
-        // Note: GPT-5 doesn't support custom temperature, uses default (1)
+        max_tokens: 4000,
+        temperature: 0.8, // High temperature for creative and insightful analysis
       }),
     });
 
@@ -165,7 +206,21 @@ Format as structured JSON with clear sections. Be thorough, insightful, and prov
     const data = await response.json();
     const analysis = data.choices[0].message.content;
 
-    console.log('Analysis generated successfully');
+    // Enhanced validation for analysis quality
+    if (!analysis || analysis.trim().length < 100) {
+      console.error('Analysis too short or empty:', analysis);
+      throw new Error('Generated analysis is too short or empty. Please try again.');
+    }
+
+    // Check for common error patterns
+    if (analysis.toLowerCase().includes('i cannot') || 
+        analysis.toLowerCase().includes('i\'m unable') ||
+        analysis.toLowerCase().includes('error')) {
+      console.error('Analysis contains error indicators:', analysis);
+      throw new Error('Analysis generation encountered issues. Please try again.');
+    }
+
+    console.log('Analysis generated successfully, length:', analysis.length);
 
     return new Response(
       JSON.stringify({
@@ -173,8 +228,12 @@ Format as structured JSON with clear sections. Be thorough, insightful, and prov
         analysis: analysis,
         metadata: {
           totalResponses: dataSummary.totalResponses,
+          validResponses: dataSummary.validResponses,
+          responseRate: dataSummary.responseRate,
+          commentsCount: dataSummary.comments.length,
           generatedAt: new Date().toISOString(),
-          model: 'gpt-5-2025-08-07'
+          model: 'gpt-4o',
+          analysisLength: analysis.length
         }
       }),
       {

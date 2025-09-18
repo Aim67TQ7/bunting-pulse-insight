@@ -43,6 +43,10 @@ interface AnalysisResult {
   analysis: string;
   metadata: {
     totalResponses: number;
+    validResponses?: number;
+    responseRate?: number;
+    commentsCount?: number;
+    analysisLength?: number;
     generatedAt: string;
     model: string;
   };
@@ -87,7 +91,7 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
       
       toast({
         title: "Analysis Complete",
-        description: `Comprehensive analysis generated for ${data.metadata.totalResponses} responses.`,
+        description: `Comprehensive analysis generated for ${data.metadata.totalResponses} responses (${data.metadata.validResponses || data.metadata.totalResponses} complete). Analysis quality: ${data.metadata.analysisLength || 0} characters.`,
       });
 
     } catch (error: any) {
@@ -250,7 +254,13 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
                   <p className="text-sm text-green-800">
                     <strong>Analysis Ready:</strong> Generated on {' '}
                     {new Date(analysisResult.metadata.generatedAt).toLocaleDateString()} for {' '}
-                    {analysisResult.metadata.totalResponses} responses using {analysisResult.metadata.model}.
+                    {analysisResult.metadata.totalResponses} responses 
+                    {analysisResult.metadata.validResponses && 
+                      ` (${analysisResult.metadata.validResponses} complete, ${analysisResult.metadata.responseRate?.toFixed(1)}% quality)`
+                    }
+                    {analysisResult.metadata.commentsCount !== undefined && 
+                      `, ${analysisResult.metadata.commentsCount} comments`
+                    } using {analysisResult.metadata.model}.
                   </p>
                 </div>
               )}
