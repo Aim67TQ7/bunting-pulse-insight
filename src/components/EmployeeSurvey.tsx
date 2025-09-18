@@ -6,13 +6,15 @@ import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckIcon, AlertTriangleIcon, LoaderIcon } from "lucide-react";
+import { CheckIcon, AlertTriangleIcon, LoaderIcon, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PrivacyNotice } from "./PrivacyNotice";
 import buntingLogo from "@/assets/bunting-logo-2.png";
 import magnetApplicationsLogo from "@/assets/magnet-applications-logo-2.png";
+import northAmericaIcon from "@/assets/north-america-icon.png";
+import europeIcon from "@/assets/europe-icon.png";
 
 interface DemographicQuestion {
   id: string;
@@ -550,8 +552,16 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
              WebkitUserSelect: 'none',
              userSelect: 'none'
            }}>
-        {/* Reset Button */}
-        <div className="flex justify-end mb-8">
+        {/* Language Selector and Reset Button */}
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-2">
+            <Globe className="h-4 w-4 text-muted-foreground" />
+            <select className="text-sm bg-background border border-input rounded-md px-2 py-1">
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+            </select>
+          </div>
           <Button 
             variant="destructive" 
             size="sm" 
@@ -625,6 +635,7 @@ interface DemographicSectionProps {
 
 function DemographicSection({ question, onResponse, canGoBack, onGoBack }: DemographicSectionProps) {
   const isDivisionQuestion = question.id === "division";
+  const isContinentQuestion = question.id === "continent";
   
   return (
     <Card>
@@ -642,6 +653,16 @@ function DemographicSection({ question, onResponse, canGoBack, onGoBack }: Demog
                   <img 
                     src={option.value === "equipment" ? buntingLogo : magnetApplicationsLogo} 
                     alt={option.value === "equipment" ? "Bunting" : "Magnet Applications - A Division of Bunting"}
+                    className="h-8 w-auto"
+                  />
+                </div>
+              )}
+
+              {isContinentQuestion && (
+                <div className="flex items-center justify-center">
+                  <img 
+                    src={option.value === "north-america" ? northAmericaIcon : europeIcon} 
+                    alt={option.value === "north-america" ? "North America" : "Europe"}
                     className="h-8 w-auto"
                   />
                 </div>

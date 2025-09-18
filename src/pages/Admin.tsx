@@ -114,9 +114,19 @@ export const Admin = ({ onBack }: AdminProps) => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">
-                Manage survey responses and data
+                View and analyze all employee survey responses with detailed analytics and filtering options.
               </p>
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => {
+                  // TODO: Navigate to detailed response viewer with charts and analytics
+                  toast({
+                    title: "Feature Coming Soon",
+                    description: "Survey response dashboard with analytics will be available here",
+                  });
+                }}
+              >
                 View All Responses
               </Button>
             </CardContent>
@@ -128,9 +138,19 @@ export const Admin = ({ onBack }: AdminProps) => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">
-                Export survey data for analysis
+                Export survey data in CSV, Excel, or PDF formats for external analysis and reporting.
               </p>
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => {
+                  // TODO: Implement data export functionality
+                  toast({
+                    title: "Feature Coming Soon",
+                    description: "Data export functionality will allow CSV, Excel, and PDF downloads",
+                  });
+                }}
+              >
                 Export Data
               </Button>
             </CardContent>
@@ -142,9 +162,19 @@ export const Admin = ({ onBack }: AdminProps) => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">
-                Configure system settings
+                Configure survey settings, manage languages, update questions, and system preferences.
               </p>
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => {
+                  // TODO: Open system settings panel
+                  toast({
+                    title: "Feature Coming Soon", 
+                    description: "System configuration panel will be available here",
+                  });
+                }}
+              >
                 Settings
               </Button>
             </CardContent>
