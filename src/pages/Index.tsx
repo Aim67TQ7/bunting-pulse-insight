@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { EmployeeSurvey } from "@/components/EmployeeSurvey";
 import { SurveyDashboardNew } from "@/components/SurveyDashboardNew";
+import Admin from "./Admin";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,7 @@ import { ClipboardListIcon, BarChart3Icon, ShieldCheckIcon, UsersIcon, LockIcon 
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<"landing" | "survey" | "dashboard">("landing");
+  const [currentView, setCurrentView] = useState<"landing" | "survey" | "dashboard" | "admin">("landing");
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const { toast } = useToast();
 
@@ -32,7 +33,11 @@ const Index = () => {
   }
 
   if (currentView === "dashboard") {
-    return <SurveyDashboardNew onBack={() => setCurrentView("landing")} />;
+    return <SurveyDashboardNew onBack={() => setCurrentView("landing")} setCurrentView={(view) => setCurrentView(view as "admin" | "landing" | "survey" | "dashboard")} />;
+  }
+
+  if (currentView === "admin") {
+    return <Admin onBack={() => setCurrentView("dashboard")} />;
   }
 
   return (

@@ -109,7 +109,7 @@ const surveySections = [
   }
 ];
 
-export function SurveyDashboardNew({ onBack }: { onBack: () => void }) {
+export function SurveyDashboardNew({ onBack, setCurrentView }: { onBack: () => void; setCurrentView: (view: string) => void }) {
   const [surveyData, setSurveyData] = useState<SurveyResponse[]>([]);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
@@ -376,6 +376,14 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                 <BrainIcon className="h-4 w-4" />
               )}
               {totalResponses >= 10 ? 'Generate AI Analysis' : `AI Analysis (${totalResponses}/10 responses)`}
+            </Button>
+            <Button
+              onClick={() => setCurrentView("admin")}
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Admin
             </Button>
           </div>
         </div>
