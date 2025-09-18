@@ -146,6 +146,7 @@ export function SurveyDashboardNew({ onBack, setCurrentView }: { onBack: () => v
   }, []);
 
   const loadSurveyData = async () => {
+    console.log('SurveyDashboardNew: Loading survey data...');
     try {
       const { data, error } = await supabase
         .from('employee_survey_responses')
@@ -162,6 +163,8 @@ export function SurveyDashboardNew({ onBack, setCurrentView }: { onBack: () => v
         return;
       }
 
+      console.log('SurveyDashboardNew: Survey data loaded:', data);
+      console.log('SurveyDashboardNew: Number of responses:', data?.length || 0);
       setSurveyData(data || []);
     } catch (error) {
       console.error('Error loading survey data:', error);

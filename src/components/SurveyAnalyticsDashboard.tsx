@@ -89,6 +89,7 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
   }, [responses, filters]);
 
   const loadResponses = async () => {
+    console.log('Loading survey responses...');
     try {
       const { data, error } = await supabase
         .from('employee_survey_responses')
@@ -96,6 +97,9 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
         .order('submitted_at', { ascending: false });
 
       if (error) throw error;
+      
+      console.log('Survey responses loaded:', data);
+      console.log('Number of responses:', data?.length || 0);
       setResponses(data || []);
     } catch (error: any) {
       toast({
@@ -110,6 +114,8 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
 
   const applyFilters = () => {
     let filtered = [...responses];
+    console.log('Applying filters to', responses.length, 'responses');
+    console.log('Current filters:', filters);
 
     if (filters.continent) {
       filtered = filtered.filter(r => r.continent === filters.continent);
@@ -127,6 +133,7 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
       filtered = filtered.filter(r => new Date(r.submitted_at) <= new Date(filters.dateTo));
     }
 
+    console.log('Filtered responses:', filtered.length);
     setFilteredResponses(filtered);
   };
 
