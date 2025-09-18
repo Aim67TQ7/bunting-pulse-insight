@@ -5,11 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeftIcon, DownloadIcon, FilterIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeftIcon, DownloadIcon, FilterIcon, MessageSquareIcon, BrainCircuitIcon } from "lucide-react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { CommentsSection } from "./CommentsSection";
+import { AIAnalysisSection } from "./AIAnalysisSection";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -277,8 +280,23 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8" id="analytics-dashboard">
-        {/* Filters Section */}
-        <Card className="mb-8">
+        {/* Main Navigation Tabs */}
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Overview & Charts</TabsTrigger>
+            <TabsTrigger value="comments" className="flex items-center gap-2">
+              <MessageSquareIcon className="h-4 w-4" />
+              Comments ({filteredResponses.filter(r => r.additional_comments || r.collaboration_feedback).length})
+            </TabsTrigger>
+            <TabsTrigger value="ai-analysis" className="flex items-center gap-2">
+              <BrainCircuitIcon className="h-4 w-4" />
+              AI Analysis
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-8">
+            {/* Filters Section */}
+            <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FilterIcon className="h-5 w-5" />
@@ -572,6 +590,16 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
             </CardContent>
           </Card>
         </div>
+          </TabsContent>
+
+          <TabsContent value="comments">
+            <CommentsSection responses={filteredResponses} />
+          </TabsContent>
+
+          <TabsContent value="ai-analysis">
+            <AIAnalysisSection responses={filteredResponses} />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
