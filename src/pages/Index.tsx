@@ -94,11 +94,11 @@ const Index = () => {
                 </Button>
                 <Button 
                   variant="destructive" 
-                  size="sm"
+                  size="default"
                   onClick={resetSurveyData}
-                  className="px-3"
+                  className="px-4 font-medium border-2"
                 >
-                  Reset
+                  🔄 Admin Reset
                 </Button>
               </div>
             </CardContent>
