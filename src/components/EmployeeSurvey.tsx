@@ -550,17 +550,12 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
              WebkitUserSelect: 'none',
              userSelect: 'none'
            }}>
-        {/* Company Logos and Reset Button */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center justify-center gap-8 flex-1">
-            <img src={buntingLogo} alt="Bunting" className="h-12" />
-            <img src={magnetApplicationsLogo} alt="Magnet Applications - A Division of Bunting" className="h-12" />
-          </div>
+        {/* Reset Button */}
+        <div className="flex justify-end mb-8">
           <Button 
             variant="destructive" 
             size="sm" 
             onClick={resetSurveyData}
-            className="ml-4"
           >
             Reset Survey
           </Button>
@@ -629,6 +624,8 @@ interface DemographicSectionProps {
 }
 
 function DemographicSection({ question, onResponse, canGoBack, onGoBack }: DemographicSectionProps) {
+  const isDivisionQuestion = question.id === "division";
+  
   return (
     <Card>
       <CardHeader>
@@ -637,9 +634,22 @@ function DemographicSection({ question, onResponse, canGoBack, onGoBack }: Demog
       <CardContent className="space-y-4">
         <RadioGroup onValueChange={onResponse}>
           {question.options.map((option) => (
-            <div key={option.value} className="flex items-center space-x-2 p-2 rounded-lg hover:bg-muted/50 transition-colors touch-manipulation">
+            <div key={option.value} className="flex items-center space-x-4 p-4 rounded-lg hover:bg-muted/50 transition-colors touch-manipulation border">
               <RadioGroupItem value={option.value} id={option.value} className="min-w-[20px] min-h-[20px]" />
-              <Label htmlFor={option.value} className="flex-1 cursor-pointer select-none">{option.label}</Label>
+              
+              {isDivisionQuestion && (option.value === "equipment" || option.value === "magnets") && (
+                <div className="flex items-center justify-center">
+                  <img 
+                    src={option.value === "equipment" ? buntingLogo : magnetApplicationsLogo} 
+                    alt={option.value === "equipment" ? "Bunting" : "Magnet Applications - A Division of Bunting"}
+                    className="h-8 w-auto"
+                  />
+                </div>
+              )}
+              
+              <Label htmlFor={option.value} className="flex-1 cursor-pointer select-none text-lg font-medium">
+                {option.label}
+              </Label>
             </div>
           ))}
         </RadioGroup>
