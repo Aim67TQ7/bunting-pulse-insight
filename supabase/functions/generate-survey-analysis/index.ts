@@ -152,7 +152,7 @@ Format as structured JSON with clear sections. Be thorough, insightful, and prov
           }
         ],
         max_completion_tokens: 4000,
-        temperature: 0.8, // High temperature for creative insights as requested
+        // Note: GPT-5 doesn't support custom temperature, uses default (1)
       }),
     });
 

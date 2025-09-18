@@ -533,17 +533,51 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                         {section.multiSelect?.map((multiQ) => (
                           <div key={multiQ.key} className="space-y-3">
                             <h4 className="font-medium">{multiQ.label}</h4>
-                            <div className="h-48">
-                              <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={generateMultiSelectData(multiQ.key)} layout="horizontal">
-                                  <CartesianGrid strokeDasharray="3 3" />
-                                  <XAxis type="number" />
-                                  <YAxis dataKey="option" type="category" width={120} />
-                                  <Tooltip formatter={(value: any) => [value, 'Responses']} />
-                                  <Bar dataKey="count" fill="hsl(var(--accent))" />
-                                </BarChart>
-                              </ResponsiveContainer>
-                            </div>
+                            {multiQ.key === 'communication_preferences' ? (
+                              // Pie chart for Communication Preferences
+                              <div className="h-64">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <PieChart>
+                                    <Pie
+                                      data={generateMultiSelectData(multiQ.key)}
+                                      cx="50%"
+                                      cy="50%"
+                                      innerRadius={40}
+                                      outerRadius={80}
+                                      dataKey="count"
+                                      label={({ option, percentage }) => `${option}: ${percentage}%`}
+                                      labelLine={false}
+                                    >
+                                      {generateMultiSelectData(multiQ.key).map((entry, index) => (
+                                        <Cell 
+                                          key={`cell-${index}`} 
+                                          fill={COLORS[index % COLORS.length]} 
+                                        />
+                                      ))}
+                                    </Pie>
+                                    <Tooltip 
+                                      formatter={(value: any, name: any, props: any) => [
+                                        `${value} responses (${props.payload.percentage}%)`, 
+                                        props.payload.option
+                                      ]}
+                                    />
+                                  </PieChart>
+                                </ResponsiveContainer>
+                              </div>
+                            ) : (
+                              // Bar chart for other multi-select questions
+                              <div className="h-48">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <BarChart data={generateMultiSelectData(multiQ.key)} layout="horizontal">
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis type="number" />
+                                    <YAxis dataKey="option" type="category" width={120} />
+                                    <Tooltip formatter={(value: any) => [value, 'Responses']} />
+                                    <Bar dataKey="count" fill="hsl(var(--accent))" />
+                                  </BarChart>
+                                </ResponsiveContainer>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
