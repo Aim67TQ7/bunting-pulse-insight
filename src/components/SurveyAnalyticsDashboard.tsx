@@ -415,19 +415,25 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
         </div>
 
         {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Average Ratings Chart */}
+        <div className="space-y-8 mb-8">
+          {/* Average Ratings Chart - Full Width */}
           <Card>
             <CardHeader>
               <CardTitle>Average Ratings by Question</CardTitle>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={{}} className="h-[400px]">
+              <ChartContainer config={{}} className="h-[600px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={averageRatings} layout="horizontal" margin={{ left: 120 }}>
+                  <BarChart data={averageRatings} layout="horizontal" margin={{ left: 200, right: 20, top: 20, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" domain={[0, 5]} />
-                    <YAxis dataKey="question" type="category" width={120} />
+                    <YAxis 
+                      dataKey="question" 
+                      type="category" 
+                      width={190}
+                      tick={{ fontSize: 12 }}
+                      interval={0}
+                    />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Bar dataKey="average" fill="#8884d8" />
                   </BarChart>
@@ -436,25 +442,48 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
             </CardContent>
           </Card>
 
-          {/* Satisfaction Trend */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Job Satisfaction Trend</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={{}} className="h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={satisfactionTrend}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis domain={[0, 5]} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Line type="monotone" dataKey="average" stroke="#8884d8" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
+          {/* Second Row - Two Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Satisfaction Trend */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Job Satisfaction Trend</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={{}} className="h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={satisfactionTrend} margin={{ left: 20, right: 20, top: 20, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis domain={[0, 5]} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Line type="monotone" dataKey="average" stroke="#8884d8" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+
+            {/* Response Distribution */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Response Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={{}} className="h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={averageRatings.slice(0, 5)} margin={{ left: 20, right: 20, top: 20, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="question" angle={-45} textAnchor="end" height={100} />
+                      <YAxis domain={[0, 5]} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="average" fill="#00C49F" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Demographics Charts */}
