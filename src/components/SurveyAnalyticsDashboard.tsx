@@ -70,9 +70,9 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
   const [filteredResponses, setFilteredResponses] = useState<SurveyResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    continent: "",
-    division: "",
-    role: "",
+    continent: "all",
+    division: "all", 
+    role: "all",
     dateFrom: "",
     dateTo: "",
     minRating: "",
@@ -117,13 +117,13 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
     console.log('Applying filters to', responses.length, 'responses');
     console.log('Current filters:', filters);
 
-    if (filters.continent) {
+    if (filters.continent && filters.continent !== "all") {
       filtered = filtered.filter(r => r.continent === filters.continent);
     }
-    if (filters.division) {
+    if (filters.division && filters.division !== "all") {
       filtered = filtered.filter(r => r.division === filters.division);
     }
-    if (filters.role) {
+    if (filters.role && filters.role !== "all") {
       filtered = filtered.filter(r => r.role === filters.role);
     }
     if (filters.dateFrom) {
@@ -139,9 +139,9 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
 
   const clearFilters = () => {
     setFilters({
-      continent: "",
-      division: "",
-      role: "",
+      continent: "all",
+      division: "all",
+      role: "all", 
       dateFrom: "",
       dateTo: "",
       minRating: "",
@@ -294,7 +294,7 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
                     <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
                     <SelectItem value="North America">North America</SelectItem>
                     <SelectItem value="Europe">Europe</SelectItem>
                   </SelectContent>
@@ -308,9 +308,10 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
                     <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
                     <SelectItem value="Equipment">Equipment</SelectItem>
                     <SelectItem value="Magnets">Magnets</SelectItem>
+                    <SelectItem value="Both">Both</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -322,11 +323,11 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
                     <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
                     <SelectItem value="Management">Management</SelectItem>
-                    <SelectItem value="Engineering">Engineering</SelectItem>
+                    <SelectItem value="Operations/Engineering/Production">Operations/Engineering/Production</SelectItem>
+                    <SelectItem value="Admin/HR/Finance">Admin/HR/Finance</SelectItem>
                     <SelectItem value="Sales">Sales</SelectItem>
-                    <SelectItem value="Operations">Operations</SelectItem>
                     <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
