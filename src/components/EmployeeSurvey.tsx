@@ -893,6 +893,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
             onSubmit={handleSubmit}
             canSubmit={isAllQuestionsAnswered()}
             isSubmitting={isSubmitting}
+            language={language}
             onGoBack={() => {
               setCurrentDemographicIndex(getDemographicQuestions(language).length - 1);
               setCurrentSection("demographics");
@@ -980,6 +981,7 @@ interface RatingsSectionProps {
   canSubmit: boolean;
   onGoBack: () => void;
   isSubmitting?: boolean;
+  language: 'en' | 'es';
 }
 
 function RatingsSection({ 
@@ -998,7 +1000,8 @@ function RatingsSection({
   onSubmit,
   canSubmit,
   onGoBack,
-  isSubmitting = false
+  isSubmitting = false,
+  language
 }: RatingsSectionProps) {
   // Combine rating questions and multi-select questions by section
   const allQuestions = [...questions, ...multiSelectQuestions];
@@ -1034,26 +1037,28 @@ function RatingsSection({
                         const isGrowthQuestion = question.section === "Growth & Strategic Alignment";
                         const isWorkplaceQuestion = question.section === "Workplace Experience";
                         
+                        const currentRatingLabels = getRatingLabels(language);
+                        
                         let emojiSet, labelSet;
                         
                         if (isLeadershipQuestion) {
                           emojiSet = ratingEmojis.satisfaction;
-                          labelSet = ratingLabels.leadership[question.id as keyof typeof ratingLabels.leadership] || ratingLabels.satisfaction;
+                          labelSet = currentRatingLabels.leadership[question.id as 'leadership1'] || currentRatingLabels.satisfaction;
                         } else if (isCollaborationQuestion) {
                           emojiSet = ratingEmojis.satisfaction;
-                          labelSet = ratingLabels.collaboration[question.id as keyof typeof ratingLabels.collaboration] || ratingLabels.satisfaction;
+                          labelSet = currentRatingLabels.collaboration[question.id as 'collaboration1'] || currentRatingLabels.satisfaction;
                         } else if (isGrowthQuestion) {
                           emojiSet = ratingEmojis.satisfaction;
-                          labelSet = ratingLabels.growth[question.id as keyof typeof ratingLabels.growth] || ratingLabels.satisfaction;
+                          labelSet = currentRatingLabels.growth[question.id as 'growth1'] || currentRatingLabels.satisfaction;
                         } else if (isWorkplaceQuestion) {
                           emojiSet = ratingEmojis.satisfaction;
-                          labelSet = ratingLabels.workplace[question.id as keyof typeof ratingLabels.workplace] || ratingLabels.satisfaction;
+                          labelSet = currentRatingLabels.workplace[question.id as 'workplace1'] || currentRatingLabels.satisfaction;
                         } else if (isAgreementScale) {
                           emojiSet = ratingEmojis.agreement;
-                          labelSet = ratingLabels.agreement;
+                          labelSet = currentRatingLabels.agreement;
                         } else {
                           emojiSet = ratingEmojis.satisfaction;
-                          labelSet = ratingLabels.satisfaction;
+                          labelSet = currentRatingLabels.satisfaction;
                         }
                         
                         return (
