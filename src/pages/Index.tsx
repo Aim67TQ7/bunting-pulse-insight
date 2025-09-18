@@ -167,7 +167,7 @@ const Index = () => {
             </div>
             <h3 className="font-semibold mb-2">Anonymous & Secure</h3>
             <p className="text-sm text-muted-foreground">
-              Your responses are completely anonymous and stored securely. We cannot identify individual responses.
+              Your responses are completely anonymous and no information is collected. We cannot trace or identify individual responses.
             </p>
           </div>
           

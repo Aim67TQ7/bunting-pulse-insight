@@ -44,7 +44,7 @@ export function PrivacyNotice() {
             </p>
             <ul className="text-xs text-muted-foreground mt-1 space-y-1">
               <li>• No personal information is collected</li>
-              <li>• No IP addresses are stored</li>
+              <li>• No IP addresses are collected</li>
               <li>• All responses are completely anonymous</li>
               <li>• Cookies are used only for submission tracking</li>
             </ul>
