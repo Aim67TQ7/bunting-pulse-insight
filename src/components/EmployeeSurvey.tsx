@@ -16,6 +16,29 @@ import magnetApplicationsLogo from "@/assets/magnet-applications-logo-2.png";
 import northAmericaIcon from "@/assets/north-america-icon.png";
 import europeIcon from "@/assets/europe-icon.png";
 
+interface LanguageContent {
+  [key: string]: {
+    [key: string]: string;
+  };
+}
+
+const languageContent: LanguageContent = {
+  en: {
+    title: "Employee Engagement Survey",
+    subtitle: "Your feedback helps us improve our workplace culture",
+    languageLabel: "Language",
+    getStarted: "Get Started",
+    privacyNotice: "Privacy Notice"
+  },
+  es: {
+    title: "Encuesta de Compromiso del Empleado",
+    subtitle: "Sus comentarios nos ayudan a mejorar nuestra cultura laboral",
+    languageLabel: "Idioma",
+    getStarted: "Comenzar",
+    privacyNotice: "Aviso de Privacidad"
+  }
+};
+
 interface DemographicQuestion {
   id: string;
   text: string;
@@ -319,8 +342,10 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   const [collaborationFeedback, setCollaborationFeedback] = useState("");
   const [additionalComments, setAdditionalComments] = useState("");
   const [isComplete, setIsComplete] = useState(false);
+  const [showPrivacyNotice, setShowPrivacyNotice] = useState(false);
   const [submissionCount, setSubmissionCount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [language, setLanguage] = useState<'en' | 'es'>('en');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -556,11 +581,22 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-2">
             <Globe className="h-4 w-4 text-muted-foreground" />
-            <select className="text-sm bg-background border border-input rounded-md px-2 py-1">
-              <option value="en">English</option>
-              <option value="es">Español</option>
-              <option value="fr">Français</option>
-            </select>
+            <div className="flex gap-1">
+              <Button
+                variant={language === 'en' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setLanguage('en')}
+              >
+                English
+              </Button>
+              <Button
+                variant={language === 'es' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setLanguage('es')}
+              >
+                Español
+              </Button>
+            </div>
           </div>
           <Button 
             variant="destructive" 

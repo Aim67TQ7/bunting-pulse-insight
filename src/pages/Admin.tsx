@@ -5,14 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeftIcon, ShieldCheckIcon } from "lucide-react";
+import { SurveyAnalyticsDashboard } from "@/components/SurveyAnalyticsDashboard";
 
 interface AdminProps {
   onBack: () => void;
 }
 
+type AdminView = 'main' | 'analytics';
+
 export const Admin = ({ onBack }: AdminProps) => {
   const [passcode, setPasscode] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentView, setCurrentView] = useState<AdminView>('main');
   const { toast } = useToast();
 
   const handleAuth = () => {
@@ -88,6 +92,10 @@ export const Admin = ({ onBack }: AdminProps) => {
     );
   }
 
+  if (currentView === 'analytics') {
+    return <SurveyAnalyticsDashboard onBack={() => setCurrentView('main')} />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
@@ -119,13 +127,7 @@ export const Admin = ({ onBack }: AdminProps) => {
               <Button 
                 variant="outline" 
                 className="w-full"
-                onClick={() => {
-                  // TODO: Navigate to detailed response viewer with charts and analytics
-                  toast({
-                    title: "Feature Coming Soon",
-                    description: "Survey response dashboard with analytics will be available here",
-                  });
-                }}
+                onClick={() => setCurrentView('analytics')}
               >
                 View All Responses
               </Button>
