@@ -65,6 +65,16 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        chart: {
+          primary: "hsl(var(--chart-primary))",
+          secondary: "hsl(var(--chart-secondary))",
+          tertiary: "hsl(var(--chart-tertiary))",
+          quaternary: "hsl(var(--chart-quaternary))",
+          quinary: "hsl(var(--chart-quinary))",
+          senary: "hsl(var(--chart-senary))",
+          septenary: "hsl(var(--chart-septenary))",
+          octonary: "hsl(var(--chart-octonary))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

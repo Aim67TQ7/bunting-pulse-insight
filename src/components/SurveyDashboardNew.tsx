@@ -6,6 +6,18 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+
+// Enhanced color palette using design system tokens
+const CHART_COLORS = [
+  'hsl(var(--chart-primary))',
+  'hsl(var(--chart-secondary))',  
+  'hsl(var(--chart-tertiary))',
+  'hsl(var(--chart-quaternary))',
+  'hsl(var(--chart-quinary))',
+  'hsl(var(--chart-senary))',
+  'hsl(var(--chart-septenary))',
+  'hsl(var(--chart-octonary))',
+];
 import { ChevronLeftIcon, ChevronDownIcon, ChevronRightIcon, UsersIcon, TrendingUpIcon, AlertTriangleIcon, LockIcon, UnlockIcon, BrainIcon, LoaderIcon } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
@@ -522,7 +534,13 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                                     formatter={(value: any) => [value, 'Responses']}
                                     labelFormatter={(label) => `Rating: ${label}`}
                                   />
-                                  <Bar dataKey="count" fill="hsl(var(--primary))" />
+                                  <Bar dataKey="count" fill="hsl(var(--chart-primary))" radius={4} />
+                                  <defs>
+                                    <linearGradient id="colorBarChart" x1="0" y1="0" x2="0" y2="1">
+                                      <stop offset="5%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.8}/>
+                                      <stop offset="95%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.6}/>
+                                    </linearGradient>
+                                  </defs>
                                 </BarChart>
                               </ResponsiveContainer>
                             </div>
@@ -573,7 +591,13 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                                     <XAxis type="number" />
                                     <YAxis dataKey="option" type="category" width={120} />
                                     <Tooltip formatter={(value: any) => [value, 'Responses']} />
-                                    <Bar dataKey="count" fill="hsl(var(--accent))" />
+                                    <Bar dataKey="count" fill="hsl(var(--chart-tertiary))" radius={4} />
+                                    <defs>
+                                      <linearGradient id="colorMultiSelectChart" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="hsl(var(--chart-tertiary))" stopOpacity={0.8}/>
+                                        <stop offset="95%" stopColor="hsl(var(--chart-tertiary))" stopOpacity={0.6}/>
+                                      </linearGradient>
+                                    </defs>
                                   </BarChart>
                                 </ResponsiveContainer>
                               </div>

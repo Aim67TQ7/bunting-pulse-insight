@@ -9,6 +9,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeftIcon, DownloadIcon, FilterIcon, MessageSquareIcon, BrainCircuitIcon } from "lucide-react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+
+// Enhanced color palette using design system tokens
+const CHART_COLORS = [
+  'hsl(var(--chart-primary))',
+  'hsl(var(--chart-secondary))',  
+  'hsl(var(--chart-tertiary))',
+  'hsl(var(--chart-quaternary))',
+  'hsl(var(--chart-quinary))',
+  'hsl(var(--chart-senary))',
+  'hsl(var(--chart-septenary))',
+  'hsl(var(--chart-octonary))',
+];
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CommentsSection } from "./CommentsSection";
@@ -453,7 +465,13 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
                       interval={0}
                     />
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="average" fill="#8884d8" />
+                    <Bar dataKey="average" fill="hsl(var(--chart-primary))" radius={4} />
+                    <defs>
+                      <linearGradient id="colorAverage" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.6}/>
+                      </linearGradient>
+                    </defs>
                   </BarChart>
                 </ResponsiveContainer>
               </ChartContainer>
@@ -495,7 +513,13 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
                       <XAxis dataKey="question" angle={-45} textAnchor="end" height={100} />
                       <YAxis domain={[0, 5]} />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="average" fill="#00C49F" />
+                      <Bar dataKey="average" fill="hsl(var(--chart-secondary))" radius={4} />
+                      <defs>
+                        <linearGradient id="colorSecondaryAverage" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="hsl(var(--chart-secondary))" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="hsl(var(--chart-secondary))" stopOpacity={0.6}/>
+                        </linearGradient>
+                      </defs>
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartContainer>

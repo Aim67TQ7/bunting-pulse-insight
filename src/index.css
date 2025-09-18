@@ -51,6 +51,16 @@
     /* Animation variables */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
+    /* Chart color palette - professional and accessible */
+    --chart-primary: 217 91% 60%;
+    --chart-secondary: 142 71% 45%;
+    --chart-tertiary: 38 92% 50%;
+    --chart-quaternary: 280 60% 65%;
+    --chart-quinary: 14 100% 57%;
+    --chart-senary: 195 100% 50%;
+    --chart-septenary: 120 60% 45%;
+    --chart-octonary: 340 82% 52%;
+
     --sidebar-background: 210 20% 98%;
     --sidebar-foreground: 215 25% 27%;
     --sidebar-primary: 217 91% 60%;
