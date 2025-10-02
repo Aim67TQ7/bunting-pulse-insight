@@ -30,94 +30,55 @@ const languageContent: LanguageContent = {
     getStarted: "Get Started",
     privacyNotice: "Privacy Notice",
     // Demographics
-    continentQuestion: "Which Continent is your primary work location?",
-    divisionQuestion: "Which Division of Bunting do you work in?",
-    roleQuestion: "Which best explains your role?",
-    northAmerica: "North America",
-    europe: "Europe",
+    locationQuestion: "Which division do you work in?",
+    roleQuestion: "What is your role level?",
+    magnetics: "Magnetics",
     equipment: "Equipment",
-    magnets: "Magnets",
-    both: "Both",
-    salesMarketing: "Sales/Marketing/Product",
-    operations: "Operations/Engineering/Production",
-    admin: "Admin/HR/Finance",
-    // Rating questions
-    jobSatisfaction: "How satisfied are you with your job?",
-    trainingSatisfaction: "How satisfied are you with the training provided for your current role?",
-    workLifeBalance: "How would you rate your current work-life balance?",
-    communicationClarity: "How clear is the communication you receive from leadership regarding company goals and objectives?",
-    managerAlignment: "Does your manager help connect your work to business outcomes?",
-    usUkCollaboration: "How are the overall communication and collaboration between the US and UK offices?",
-    crossFunctionalCollaboration: "Rate the quality of cross-functional collaboration in your work environment.",
-    strategicConfidence: "Rate your confidence in the company's 3-year strategic direction.",
-    advancementOpportunities: "Do you see clear advancement opportunities aligned with emerging skill needs?",
-    workplaceSafety: "How safe do you feel in your work environment?",
-    recommendCompany: "How likely are you to recommend this company as a place to work?",
-    manualProcessesFocus: "I am able to focus on higher-impact work rather than spending time on manual processes.",
-    processImprovementComfort: "I feel comfortable proposing process improvements.",
-    // Multi-select questions
+    other: "Other",
+    operationsDistribution: "Operations & Distribution",
+    engineeringServices: "Engineering & Services",
+    salesFinance: "Sales & Finance",
+    adminManagement: "Admin & Management",
+    // Rating questions - Categories
+    jobSatisfaction: "I am satisfied with my current role and responsibilities.",
+    companySatisfaction: "I would recommend this company as a good place to work.",
+    futureView: "I see myself working here in 2 years.",
+    expectations: "Supervisors/managers communicate expectations clearly.",
+    performanceAwareness: "Leadership is effective at keeping me informed about company performance.",
+    relayingInformation: "When I don't have access to email, my supervisor effectively relays important information.",
+    managementFeedback: "I feel comfortable raising concerns or giving feedback to management.",
+    training: "I received enough training to do my job safely and effectively.",
+    opportunities: "There are opportunities to develop new skills or advance in my career here.",
+    safetyFocus: "The company prioritizes safety in the workplace.",
+    safetyReporting: "I feel comfortable reporting unsafe conditions or practices.",
+    cooperation: "Team members cooperate and support each other to get the job done.",
+    morale: "How would you describe the morale on your shift or in your department?",
+    pride: "I feel pride in the company's products and services.",
+    workload: "The workload is reasonable for my position.",
+    workLifeBalance: "I have a good work-life balance.",
+    tools: "I have the right tools and equipment to do my job well.",
+    processes: "Processes are designed to maximize efficiency and quality.",
+    companyValue: "The company values the quality of its products and services.",
+    change: "One change that could improve my daily work experience.",
+    // Multi-select - not used but kept for compatibility
     communicationPreferences: "Which communication styles do you prefer?",
     motivationFactors: "What motivates you to stay with the company?",
     informationPreferences: "What information would you like to receive more from the company?",
-    // Options
-    companywideEmails: "Companywide emails",
-    quarterlyTownHalls: "Quarterly Town halls",
-    companyIntranet: "Company Intranet",
-    digitalSignage: "Digital Signage",
-    printedSignage: "Printed Signage",
-    teamMeetings: "Team meetings",
-    compensation: "Compensation",
-    benefitsPackage: "Benefits package",
-    jobSatisfactionOpt: "Job satisfaction",
-    thePeople: "The people",
-    growthOpportunities: "Growth opportunities",
-    companyFuture: "Company's future",
-    communicationTransparency: "Communication and transparency",
-    strategicDirection: "Strategic direction",
-    financialIncentives: "Financial incentives",
-    operationalUpdates: "Operational updates",
-    interdepartmentalKnowledge: "Interdepartmental knowledge",
-    careerDevelopment: "Career development",
-    itSystems: "IT systems",
+    // Additional feedback
+    additionalComments: "Any additional comments or suggestions?",
+    // Follow-up prompts
+    jobSatisfactionFollowUp: "Please explain why you feel dissatisfied with your job.",
+    trainingFollowUp: "Please describe gaps in training or support you've experienced.",
+    workLifeBalanceFollowUp: "Please explain what affects your work-life balance.",
     // Submit
     submitSurvey: "Submit Survey",
     next: "Next",
     // Ratings
-    veryDissatisfied: "Very Dissatisfied",
-    dissatisfied: "Dissatisfied",
-    neutral: "Neutral",
-    satisfied: "Satisfied",
-    verySatisfied: "Very Satisfied",
     stronglyDisagree: "Strongly Disagree",
     disagree: "Disagree",
+    neutral: "Neutral",
     agree: "Agree",
-    stronglyAgree: "Strongly Agree",
-    veryUnclear: "Very Unclear",
-    unclear: "Unclear",
-    clear: "Clear",
-    veryClear: "Very Clear",
-    never: "Never",
-    rarely: "Rarely",
-    sometimes: "Sometimes",
-    often: "Often",
-    always: "Always",
-    veryPoor: "Very Poor",
-    poor: "Poor",
-    good: "Good",
-    excellent: "Excellent",
-    noConfidence: "No Confidence",
-    lowConfidence: "Low Confidence",
-    confident: "Confident",
-    veryConfident: "Very Confident",
-    notAtAll: "Not at All",
-    veryUnsafe: "Very unsafe",
-    unsafe: "Unsafe",
-    safe: "Safe",
-    verySafe: "Very safe",
-    veryUnlikely: "Very Unlikely",
-    unlikely: "Unlikely",
-    likely: "Likely",
-    veryLikely: "Very Likely"
+    stronglyAgree: "Strongly Agree"
   },
   es: {
     title: "Encuesta de Compromiso del Empleado",
@@ -126,94 +87,145 @@ const languageContent: LanguageContent = {
     getStarted: "Comenzar",
     privacyNotice: "Aviso de Privacidad",
     // Demographics
-    continentQuestion: "¿En qué continente se encuentra su lugar de trabajo principal?",
-    divisionQuestion: "¿En qué división de Bunting trabajas?",
-    roleQuestion: "¿Cuál describe mejor su papel?",
-    northAmerica: "América del Norte",
-    europe: "Europa",
-    equipment: "Equipo",
-    magnets: "Imanes",
-    both: "Ambos",
-    salesMarketing: "Ventas/Marketing/Producto",
-    operations: "Operaciones/Ingeniería/Producción",
-    admin: "Administración/RRHH/Finanzas",
+    locationQuestion: "¿En qué división trabajas?",
+    roleQuestion: "¿Cuál es tu nivel de puesto?",
+    magnetics: "Magnéticos",
+    equipment: "Equipos",
+    other: "Otro",
+    operationsDistribution: "Operaciones y Distribución",
+    engineeringServices: "Ingeniería y Servicios",
+    salesFinance: "Ventas y Finanzas",
+    adminManagement: "Administración y Gestión",
     // Rating questions
-    jobSatisfaction: "¿Qué tan satisfecho está con su trabajo?",
-    trainingSatisfaction: "¿Qué tan satisfecho está con la capacitación proporcionada para su rol actual?",
-    workLifeBalance: "¿Cómo calificaría su equilibrio actual entre trabajo y vida personal?",
-    communicationClarity: "¿Qué tan clara es la comunicación que recibe del liderazgo sobre los objetivos y metas de la empresa?",
-    managerAlignment: "¿Su gerente le ayuda a conectar su trabajo con los resultados del negocio?",
-    usUkCollaboration: "¿Cómo es la comunicación y colaboración general entre las oficinas de EE.UU. y Reino Unido?",
-    crossFunctionalCollaboration: "Califique la calidad de la colaboración interfuncional en su ambiente de trabajo.",
-    strategicConfidence: "Califique su confianza en la dirección estratégica de 3 años de la empresa.",
-    advancementOpportunities: "¿Ve oportunidades claras de avance alineadas con las necesidades de habilidades emergentes?",
-    workplaceSafety: "¿Qué tan seguro se siente en su ambiente de trabajo?",
-    recommendCompany: "¿Qué tan probable es que recomiende esta empresa como lugar de trabajo?",
-    manualProcessesFocus: "Puedo enfocarme en trabajo de mayor impacto en lugar de pasar tiempo en procesos manuales.",
-    processImprovementComfort: "Me siento cómodo proponiendo mejoras de procesos.",
-    // Multi-select questions
-    communicationPreferences: "¿Qué estilos de comunicación prefiere?",
-    motivationFactors: "¿Qué lo motiva a permanecer en la empresa?",
-    informationPreferences: "¿Qué información le gustaría recibir más de la empresa?",
-    // Options
-    companywideEmails: "Correos electrónicos para toda la empresa",
-    quarterlyTownHalls: "Reuniones trimestrales generales",
-    companyIntranet: "Intranet de la empresa",
-    digitalSignage: "Señalización digital",
-    printedSignage: "Señalización impresa",
-    teamMeetings: "Reuniones de equipo",
-    compensation: "Compensación",
-    benefitsPackage: "Paquete de beneficios",
-    jobSatisfactionOpt: "Satisfacción laboral",
-    thePeople: "La gente",
-    growthOpportunities: "Oportunidades de crecimiento",
-    companyFuture: "Futuro de la empresa",
-    communicationTransparency: "Comunicación y transparencia",
-    strategicDirection: "Dirección estratégica",
-    financialIncentives: "Incentivos financieros",
-    operationalUpdates: "Actualizaciones operativas",
-    interdepartmentalKnowledge: "Conocimiento interdepartamental",
-    careerDevelopment: "Desarrollo profesional",
-    itSystems: "Sistemas de TI",
-    // Submit
+    jobSatisfaction: "Estoy satisfecho con mi puesto y responsabilidades actuales.",
+    companySatisfaction: "Recomendaría esta empresa como un buen lugar para trabajar.",
+    futureView: "Me veo trabajando aquí en los próximos 2 años.",
+    expectations: "Los supervisores/gerentes comunican las expectativas con claridad.",
+    performanceAwareness: "El liderazgo es eficaz en mantenerme informado sobre el desempeño de la empresa.",
+    relayingInformation: "Cuando no tengo acceso al correo electrónico, mi supervisor transmite la información importante de manera eficaz.",
+    managementFeedback: "Me siento cómodo planteando inquietudes o dando comentarios a la gerencia.",
+    training: "Recibí suficiente capacitación para realizar mi trabajo de manera segura y eficaz.",
+    opportunities: "Hay oportunidades para desarrollar nuevas habilidades o avanzar en mi carrera aquí.",
+    safetyFocus: "La empresa prioriza la seguridad en el lugar de trabajo.",
+    safetyReporting: "Me siento cómodo informando sobre condiciones o prácticas inseguras.",
+    cooperation: "Los miembros del equipo cooperan y se apoyan entre sí para realizar el trabajo.",
+    morale: "¿Cómo describirías la moral en tu turno o en tu departamento?",
+    pride: "Siento orgullo por los productos y servicios de la empresa.",
+    workload: "La carga de trabajo es razonable para mi puesto.",
+    workLifeBalance: "Tengo un buen equilibrio entre trabajo y vida personal.",
+    tools: "Tengo las herramientas y el equipo adecuados para hacer bien mi trabajo.",
+    processes: "Los procesos están diseñados para maximizar la eficiencia y la calidad.",
+    companyValue: "La empresa valora la calidad de sus productos y servicios.",
+    change: "Un cambio que podría mejorar mi experiencia laboral diaria.",
+    additionalComments: "¿Algún comentario o sugerencia adicional?",
+    jobSatisfactionFollowUp: "Por favor, explique por qué se siente insatisfecho con su trabajo.",
+    trainingFollowUp: "Describa las deficiencias en la capacitación o el apoyo que ha experimentado.",
+    workLifeBalanceFollowUp: "Por favor, explique qué afecta su equilibrio entre trabajo y vida personal.",
     submitSurvey: "Enviar Encuesta",
     next: "Siguiente",
-    // Ratings
-    veryDissatisfied: "Muy Insatisfecho",
-    dissatisfied: "Insatisfecho",
+    stronglyDisagree: "Totalmente en desacuerdo",
+    disagree: "En desacuerdo",
     neutral: "Neutral",
-    satisfied: "Satisfecho",
-    verySatisfied: "Muy Satisfecho",
-    stronglyDisagree: "Totalmente en Desacuerdo",
-    disagree: "En Desacuerdo",
-    agree: "De Acuerdo",
-    stronglyAgree: "Totalmente de Acuerdo",
-    veryUnclear: "Muy Poco Claro",
-    unclear: "Poco Claro",
-    clear: "Claro",
-    veryClear: "Muy Claro",
-    never: "Nunca",
-    rarely: "Raramente",
-    sometimes: "A veces",
-    often: "A menudo",
-    always: "Siempre",
-    veryPoor: "Muy Malo",
-    poor: "Malo",
-    good: "Bueno",
-    excellent: "Excelente",
-    noConfidence: "Sin Confianza",
-    lowConfidence: "Baja Confianza",
-    confident: "Confiado",
-    veryConfident: "Muy Confiado",
-    notAtAll: "Para Nada",
-    veryUnsafe: "Muy inseguro",
-    unsafe: "Inseguro",
-    safe: "Seguro",
-    verySafe: "Muy seguro",
-    veryUnlikely: "Muy Poco Probable",
-    unlikely: "Poco Probable",
-    likely: "Probable",
-    veryLikely: "Muy Probable"
+    agree: "De acuerdo",
+    stronglyAgree: "Totalmente de acuerdo"
+  },
+  fr: {
+    title: "Enquête d'engagement des employés",
+    subtitle: "Vos commentaires nous aident à améliorer notre culture d'entreprise",
+    languageLabel: "Langue",
+    getStarted: "Commencer",
+    privacyNotice: "Avis de confidentialité",
+    // Demographics
+    locationQuestion: "Dans quelle division travaillez-vous ?",
+    roleQuestion: "Quel est votre niveau de poste ?",
+    magnetics: "Magnétiques",
+    equipment: "Équipements",
+    other: "Autre",
+    operationsDistribution: "Opérations et Distribution",
+    engineeringServices: "Ingénierie et Services",
+    salesFinance: "Ventes et Finances",
+    adminManagement: "Administration et Gestion",
+    // Rating questions
+    jobSatisfaction: "Je suis satisfait de mon rôle et de mes responsabilités actuelles.",
+    companySatisfaction: "Je recommanderais cette entreprise comme un bon endroit où travailler.",
+    futureView: "Je me vois travailler ici dans 2 ans.",
+    expectations: "Les superviseurs/gestionnaires communiquent clairement les attentes.",
+    performanceAwareness: "La direction est efficace pour me tenir informé de la performance de l'entreprise.",
+    relayingInformation: "Quand je n'ai pas accès aux e-mails, mon superviseur transmet efficacement les informations importantes.",
+    managementFeedback: "Je me sens à l'aise de soulever des préoccupations ou de donner des retours à la direction.",
+    training: "J'ai reçu une formation suffisante pour effectuer mon travail en toute sécurité et efficacement.",
+    opportunities: "Il y a des opportunités pour développer de nouvelles compétences ou progresser dans ma carrière ici.",
+    safetyFocus: "L'entreprise donne la priorité à la sécurité au travail.",
+    safetyReporting: "Je me sens à l'aise de signaler des conditions ou pratiques dangereuses.",
+    cooperation: "Les membres de l'équipe coopèrent et se soutiennent mutuellement pour accomplir le travail.",
+    morale: "Comment décririez-vous le moral dans votre équipe ou département ?",
+    pride: "Je ressens de la fierté pour les produits et services de l'entreprise.",
+    workload: "La charge de travail est raisonnable pour mon poste.",
+    workLifeBalance: "J'ai un bon équilibre entre vie professionnelle et vie personnelle.",
+    tools: "J'ai les bons outils et équipements pour bien faire mon travail.",
+    processes: "Les processus sont conçus pour maximiser l'efficacité et la qualité.",
+    companyValue: "L'entreprise valorise la qualité de ses produits et services.",
+    change: "Un changement qui pourrait améliorer mon expérience de travail quotidienne.",
+    additionalComments: "Des commentaires ou suggestions supplémentaires ?",
+    jobSatisfactionFollowUp: "Veuillez expliquer pourquoi vous êtes insatisfait de votre travail.",
+    trainingFollowUp: "Veuillez décrire les lacunes de formation ou de soutien que vous avez rencontrées.",
+    workLifeBalanceFollowUp: "Veuillez expliquer ce qui affecte votre équilibre travail-vie personnelle.",
+    submitSurvey: "Soumettre l'enquête",
+    next: "Suivant",
+    stronglyDisagree: "Tout à fait en désaccord",
+    disagree: "En désaccord",
+    neutral: "Neutre",
+    agree: "D'accord",
+    stronglyAgree: "Tout à fait d'accord"
+  },
+  it: {
+    title: "Sondaggio sul coinvolgimento dei dipendenti",
+    subtitle: "Il tuo feedback ci aiuta a migliorare la nostra cultura aziendale",
+    languageLabel: "Lingua",
+    getStarted: "Inizia",
+    privacyNotice: "Informativa sulla privacy",
+    // Demographics
+    locationQuestion: "In quale divisione lavori?",
+    roleQuestion: "Qual è il tuo livello di ruolo?",
+    magnetics: "Magnetici",
+    equipment: "Attrezzature",
+    other: "Altro",
+    operationsDistribution: "Operazioni e Distribuzione",
+    engineeringServices: "Ingegneria e Servizi",
+    salesFinance: "Vendite e Finanza",
+    adminManagement: "Amministrazione e Gestione",
+    // Rating questions
+    jobSatisfaction: "Sono soddisfatto del mio ruolo e delle mie responsabilità attuali.",
+    companySatisfaction: "Raccomanderei questa azienda come un buon posto di lavoro.",
+    futureView: "Mi vedo a lavorare qui nei prossimi 2 anni.",
+    expectations: "I supervisori/manager comunicano chiaramente le aspettative.",
+    performanceAwareness: "La leadership è efficace nel tenermi informato sulle prestazioni dell'azienda.",
+    relayingInformation: "Quando non ho accesso alle email, il mio supervisore trasmette le informazioni importanti in modo efficace.",
+    managementFeedback: "Mi sento a mio agio nell'esprimere preoccupazioni o fornire feedback alla direzione.",
+    training: "Ho ricevuto una formazione sufficiente per svolgere il mio lavoro in modo sicuro ed efficace.",
+    opportunities: "Ci sono opportunità per sviluppare nuove competenze o avanzare nella mia carriera qui.",
+    safetyFocus: "L'azienda dà priorità alla sicurezza sul posto di lavoro.",
+    safetyReporting: "Mi sento a mio agio nel segnalare condizioni o pratiche non sicure.",
+    cooperation: "I membri del team collaborano e si supportano a vicenda per portare a termine il lavoro.",
+    morale: "Come descriveresti il morale nel tuo turno o nel tuo reparto?",
+    pride: "Provo orgoglio per i prodotti e servizi dell'azienda.",
+    workload: "Il carico di lavoro è ragionevole per la mia posizione.",
+    workLifeBalance: "Ho un buon equilibrio tra lavoro e vita privata.",
+    tools: "Ho gli strumenti e le attrezzature giuste per svolgere bene il mio lavoro.",
+    processes: "I processi sono progettati per massimizzare l'efficienza e la qualità.",
+    companyValue: "L'azienda valorizza la qualità dei suoi prodotti e servizi.",
+    change: "Un cambiamento che potrebbe migliorare la mia esperienza lavorativa quotidiana.",
+    additionalComments: "Ulteriori commenti o suggerimenti?",
+    jobSatisfactionFollowUp: "Per favore, spiega perché ti senti insoddisfatto del tuo lavoro.",
+    trainingFollowUp: "Descrivi le lacune nella formazione o nel supporto che hai sperimentato.",
+    workLifeBalanceFollowUp: "Per favore, spiega cosa influisce sul tuo equilibrio tra lavoro e vita privata.",
+    submitSurvey: "Invia sondaggio",
+    next: "Avanti",
+    stronglyDisagree: "Completamente in disaccordo",
+    disagree: "In disaccordo",
+    neutral: "Neutro",
+    agree: "D'accordo",
+    stronglyAgree: "Completamente d'accordo"
   }
 };
 
@@ -323,124 +335,161 @@ const getMultiSelectQuestions = (language: string) => [
   }
 ];
 
-// Remove the old static array and replace with function
+// Updated rating questions based on new document
 const getRatingQuestions = (language: string): RatingQuestion[] => [
-  // 1. Job & Role Satisfaction (3 questions)
+  // Engagement & Job Satisfaction
   {
     id: "job-satisfaction",
     text: languageContent[language].jobSatisfaction,
-    section: "Job & Role Satisfaction",
-    feedbackPrompt: "Please explain why you feel dissatisfied with your job."
+    section: "Engagement & Job Satisfaction",
+    feedbackPrompt: languageContent[language].jobSatisfactionFollowUp
   },
   {
-    id: "training-satisfaction",
-    text: languageContent[language].trainingSatisfaction,
-    section: "Job & Role Satisfaction",
-    feedbackPrompt: "Please describe gaps in training or support you've experienced."
+    id: "company-satisfaction",
+    text: languageContent[language].companySatisfaction,
+    section: "Engagement & Job Satisfaction",
+    feedbackPrompt: ""
+  },
+  {
+    id: "future-view",
+    text: languageContent[language].futureView,
+    section: "Engagement & Job Satisfaction",
+    feedbackPrompt: ""
+  },
+  
+  // Leadership & Communication
+  {
+    id: "expectations",
+    text: languageContent[language].expectations,
+    section: "Leadership & Communication",
+    feedbackPrompt: ""
+  },
+  {
+    id: "performance-awareness",
+    text: languageContent[language].performanceAwareness,
+    section: "Leadership & Communication",
+    feedbackPrompt: ""
+  },
+  {
+    id: "relaying-information",
+    text: languageContent[language].relayingInformation,
+    section: "Leadership & Communication",
+    feedbackPrompt: ""
+  },
+  {
+    id: "management-feedback",
+    text: languageContent[language].managementFeedback,
+    section: "Leadership & Communication",
+    feedbackPrompt: ""
+  },
+  
+  // Training & Development
+  {
+    id: "training",
+    text: languageContent[language].training,
+    section: "Training & Development",
+    feedbackPrompt: languageContent[language].trainingFollowUp
+  },
+  {
+    id: "opportunities",
+    text: languageContent[language].opportunities,
+    section: "Training & Development",
+    feedbackPrompt: ""
+  },
+  
+  // Safety & Work Environment
+  {
+    id: "safety-focus",
+    text: languageContent[language].safetyFocus,
+    section: "Safety & Work Environment",
+    feedbackPrompt: ""
+  },
+  {
+    id: "safety-reporting",
+    text: languageContent[language].safetyReporting,
+    section: "Safety & Work Environment",
+    feedbackPrompt: ""
+  },
+  
+  // Teamwork & Culture
+  {
+    id: "cooperation",
+    text: languageContent[language].cooperation,
+    section: "Teamwork & Culture",
+    feedbackPrompt: ""
+  },
+  {
+    id: "morale",
+    text: languageContent[language].morale,
+    section: "Teamwork & Culture",
+    feedbackPrompt: ""
+  },
+  {
+    id: "pride",
+    text: languageContent[language].pride,
+    section: "Teamwork & Culture",
+    feedbackPrompt: ""
+  },
+  
+  // Scheduling & Workload
+  {
+    id: "workload",
+    text: languageContent[language].workload,
+    section: "Scheduling & Workload",
+    feedbackPrompt: ""
   },
   {
     id: "work-life-balance",
     text: languageContent[language].workLifeBalance,
-    section: "Job & Role Satisfaction",
-    feedbackPrompt: "Please explain what affects your work-life balance."
+    section: "Scheduling & Workload",
+    feedbackPrompt: languageContent[language].workLifeBalanceFollowUp
   },
   
-  // 2. Leadership & Communication (2 questions)
+  // Tools, Equipment & Processes
   {
-    id: "leadership-communication-clarity",
-    text: languageContent[language].communicationClarity,
-    section: "Leadership & Communication",
-    feedbackPrompt: "Please describe how communication could be improved."
+    id: "tools",
+    text: languageContent[language].tools,
+    section: "Tools, Equipment & Processes",
+    feedbackPrompt: ""
   },
   {
-    id: "manager-business-connection",
-    text: languageContent[language].managerAlignment,
-    section: "Leadership & Communication",
-    feedbackPrompt: "Please explain how your work could be better aligned with outcomes."
-  },
-  
-  // 3. Collaboration & Cross-Functional Work (2 questions)
-  {
-    id: "us-uk-collaboration",
-    text: languageContent[language].usUkCollaboration,
-    section: "Collaboration & Cross-Functional Work",
-    feedbackPrompt: "Please describe the main obstacles to collaboration between offices."
+    id: "processes",
+    text: languageContent[language].processes,
+    section: "Tools, Equipment & Processes",
+    feedbackPrompt: ""
   },
   {
-    id: "cross-functional-collaboration",
-    text: languageContent[language].crossFunctionalCollaboration,
-    section: "Collaboration & Cross-Functional Work",
-    feedbackPrompt: "Please provide examples of where cross-functional work could be improved."
-  },
-  
-  // 4. Growth & Strategic Alignment (2 questions)
-  {
-    id: "strategic-direction-confidence",
-    text: languageContent[language].strategicConfidence,
-    section: "Growth & Strategic Alignment",
-    feedbackPrompt: "Please explain your concerns about the strategic direction."
+    id: "company-value",
+    text: languageContent[language].companyValue,
+    section: "Tools, Equipment & Processes",
+    feedbackPrompt: ""
   },
   {
-    id: "advancement-opportunities",
-    text: languageContent[language].advancementOpportunities,
-    section: "Growth & Strategic Alignment",
-    feedbackPrompt: "Please describe what's missing in career growth or skill development."
-  },
-  
-  // 5. Workplace Experience (2 questions)
-  {
-    id: "workplace-safety",
-    text: languageContent[language].workplaceSafety,
-    section: "Workplace Experience",
-    feedbackPrompt: "Please explain any safety concerns you have."
-  },
-  {
-    id: "company-recommendation",
-    text: languageContent[language].recommendCompany,
-    section: "Workplace Experience",
-    feedbackPrompt: "Please share reasons you wouldn't recommend the company."
-  },
-  
-  // 6. Process Efficiency & Innovation (2 questions) - Moved to bottom with agreement scale
-  {
-    id: "manual-processes-impact",
-    text: languageContent[language].manualProcessesFocus,
-    section: "Process Efficiency & Innovation",
-    feedbackPrompt: "Please describe the manual processes or tasks that slow your work."
-  },
-  {
-    id: "process-improvement-comfort",
-    text: languageContent[language].processImprovementComfort,
-    section: "Process Efficiency & Innovation",
-    feedbackPrompt: "Please explain what prevents you from suggesting improvements."
+    id: "change",
+    text: languageContent[language].change,
+    section: "Tools, Equipment & Processes",
+    feedbackPrompt: ""
   }
 ];
 
 const getDemographicQuestions = (language: string): DemographicQuestion[] => [
   {
-    id: "continent",
-    text: languageContent[language].continentQuestion,
-    options: [
-      { value: "north-america", label: languageContent[language].northAmerica },
-      { value: "europe", label: languageContent[language].europe }
-    ]
-  },
-  {
     id: "division",
-    text: languageContent[language].divisionQuestion,
+    text: languageContent[language].locationQuestion,
     options: [
+      { value: "magnetics", label: languageContent[language].magnetics },
       { value: "equipment", label: languageContent[language].equipment },
-      { value: "magnets", label: languageContent[language].magnets },
-      { value: "both", label: languageContent[language].both }
+      { value: "other", label: languageContent[language].other }
     ]
   },
   {
     id: "role",
     text: languageContent[language].roleQuestion,
     options: [
-      { value: "sales-marketing", label: languageContent[language].salesMarketing },
-      { value: "operations", label: languageContent[language].operations },
-      { value: "admin", label: languageContent[language].admin }
+      { value: "operations-distribution", label: languageContent[language].operationsDistribution },
+      { value: "engineering-services", label: languageContent[language].engineeringServices },
+      { value: "sales-finance", label: languageContent[language].salesFinance },
+      { value: "admin-management", label: languageContent[language].adminManagement }
     ]
   }
 ];
@@ -474,103 +523,21 @@ const demographicQuestions: DemographicQuestion[] = [
   }
 ];
 
-// Emojis for 1-5 scale
+// Emojis for 1-5 scale (matching document requirements)
 const ratingEmojis = {
-  satisfaction: {
-    1: "😢",
-    2: "😕", 
-    3: "😐",
-    4: "😊",
-    5: "😃"
-  },
-  agreement: {
-    1: "😤",
-    2: "😑", 
-    3: "😐",
-    4: "😊",
-    5: "😃"
-  }
+  1: "😞",
+  2: "😕", 
+  3: "😐",
+  4: "😊",
+  5: "😍"
 };
 
 const getRatingLabels = (language: string) => ({
-  satisfaction: {
-    1: languageContent[language].veryDissatisfied,
-    2: languageContent[language].dissatisfied, 
-    3: languageContent[language].neutral,
-    4: languageContent[language].satisfied,
-    5: languageContent[language].verySatisfied
-  },
-  agreement: {
-    1: languageContent[language].stronglyDisagree,
-    2: languageContent[language].disagree, 
-    3: languageContent[language].neutral,
-    4: languageContent[language].agree,
-    5: languageContent[language].stronglyAgree
-  },
-  leadership: {
-    "leadership-communication-clarity": {
-      1: languageContent[language].veryUnclear,
-      2: languageContent[language].unclear,
-      3: languageContent[language].neutral, 
-      4: languageContent[language].clear,
-      5: languageContent[language].veryClear
-    },
-    "manager-business-connection": {
-      1: languageContent[language].never,
-      2: languageContent[language].rarely,
-      3: languageContent[language].sometimes,
-      4: languageContent[language].often,
-      5: languageContent[language].always
-    }
-  },
-  collaboration: {
-    "us-uk-collaboration": {
-      1: languageContent[language].veryPoor,
-      2: languageContent[language].poor,
-      3: languageContent[language].neutral,
-      4: languageContent[language].good, 
-      5: languageContent[language].excellent
-    },
-    "cross-functional-collaboration": {
-      1: languageContent[language].veryPoor,
-      2: languageContent[language].poor, 
-      3: languageContent[language].neutral,
-      4: languageContent[language].good,
-      5: languageContent[language].excellent
-    }
-  },
-  growth: {
-    "strategic-direction-confidence": {
-      1: languageContent[language].noConfidence,
-      2: languageContent[language].lowConfidence,
-      3: languageContent[language].neutral,
-      4: languageContent[language].confident,
-      5: languageContent[language].veryConfident
-    },
-    "advancement-opportunities": {
-      1: languageContent[language].notAtAll,
-      2: languageContent[language].rarely,
-      3: languageContent[language].sometimes, 
-      4: languageContent[language].often,
-      5: languageContent[language].always
-    }
-  },
-  workplace: {
-    "workplace-safety": {
-      1: languageContent[language].veryUnsafe,
-      2: languageContent[language].unsafe,
-      3: languageContent[language].neutral,
-      4: languageContent[language].safe,
-      5: languageContent[language].verySafe
-    },
-    "company-recommendation": {
-      1: languageContent[language].veryUnlikely,
-      2: languageContent[language].unlikely,
-      3: languageContent[language].neutral,
-      4: languageContent[language].likely,
-      5: languageContent[language].veryLikely
-    }
-  }
+  1: languageContent[language].stronglyDisagree,
+  2: languageContent[language].disagree, 
+  3: languageContent[language].neutral,
+  4: languageContent[language].agree,
+  5: languageContent[language].stronglyAgree
 });
 
 type SurveySection = "demographics" | "ratings" | "complete";
@@ -588,7 +555,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   const [showPrivacyNotice, setShowPrivacyNotice] = useState(false);
   const [submissionCount, setSubmissionCount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [language, setLanguage] = useState<'en' | 'es'>('en');
+  const [language, setLanguage] = useState<'en' | 'es' | 'fr' | 'it'>('en');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -693,38 +660,39 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
       // Generate unique session ID
       const sessionId = crypto.randomUUID();
 
-      // Map responses to database columns
+      // Map responses to database columns with updated question IDs
       const surveyData = {
         session_id: sessionId,
-        continent: responses.continent === 'north-america' ? 'North America' : 'Europe',
-        division: responses.division === 'equipment' ? 'Equipment' : 
-                  responses.division === 'magnets' ? 'Magnets' : 'Both',
-        role: responses.role === 'sales-marketing' ? 'Sales/Marketing/Product' :
-              responses.role === 'operations' ? 'Operations/Engineering/Production' : 'Admin/HR/Finance',
+        continent: 'N/A', // No longer collecting continent
+        division: responses.division === 'magnetics' ? 'Magnetics' : 
+                  responses.division === 'equipment' ? 'Equipment' : 'Other',
+        role: responses.role === 'operations-distribution' ? 'Operations & Distribution' :
+              responses.role === 'engineering-services' ? 'Engineering & Services' :
+              responses.role === 'sales-finance' ? 'Sales & Finance' : 'Admin & Management',
         
-        // Rating responses - updated to remove leadership-openness
+        // Rating responses - map new question IDs to database columns
         job_satisfaction: ratingResponses['job-satisfaction'],
-        training_satisfaction: ratingResponses['training-satisfaction'],
+        training_satisfaction: ratingResponses['training'],
         work_life_balance: ratingResponses['work-life-balance'],
-        communication_clarity: ratingResponses['leadership-communication-clarity'],
-        leadership_openness: null, // Removed question
-        manager_alignment: ratingResponses['manager-business-connection'],
-        us_uk_collaboration: ratingResponses['us-uk-collaboration'],
-        cross_functional_collaboration: ratingResponses['cross-functional-collaboration'],
-        strategic_confidence: ratingResponses['strategic-direction-confidence'],
-        advancement_opportunities: ratingResponses['advancement-opportunities'],
-        workplace_safety: ratingResponses['workplace-safety'],
-        recommend_company: ratingResponses['company-recommendation'],
+        communication_clarity: ratingResponses['expectations'],
+        leadership_openness: ratingResponses['management-feedback'],
+        manager_alignment: ratingResponses['performance-awareness'],
+        us_uk_collaboration: null, // No longer in survey
+        cross_functional_collaboration: ratingResponses['cooperation'],
+        strategic_confidence: ratingResponses['company-satisfaction'],
+        advancement_opportunities: ratingResponses['opportunities'],
+        workplace_safety: ratingResponses['safety-focus'],
+        recommend_company: ratingResponses['company-satisfaction'],
         
-        // Process efficiency (agreement scale) - now only 2 questions
-        manual_processes_focus: ratingResponses['manual-processes-impact'],
-        comfortable_suggesting_improvements: ratingResponses['process-improvement-comfort'],
-        failed_experiments_learning: null, // Removed question
+        // Process efficiency
+        manual_processes_focus: ratingResponses['processes'],
+        comfortable_suggesting_improvements: ratingResponses['safety-reporting'],
+        failed_experiments_learning: null,
         
-        // Multi-select responses
-        communication_preferences: multiSelectResponses['communication-preferences'] || [],
-        motivation_factors: multiSelectResponses['motivation-factors'] || [],
-        information_preferences: multiSelectResponses['information-preferences'] || [],
+        // Multi-select responses (keeping empty for now)
+        communication_preferences: [],
+        motivation_factors: [],
+        information_preferences: [],
         
         // Follow-up responses
         follow_up_responses: feedbackResponses,
@@ -830,14 +798,28 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
                 size="sm"
                 onClick={() => setLanguage('en')}
               >
-                English
+                EN
               </Button>
               <Button
                 variant={language === 'es' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setLanguage('es')}
               >
-                Español
+                ES
+              </Button>
+              <Button
+                variant={language === 'fr' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setLanguage('fr')}
+              >
+                FR
+              </Button>
+              <Button
+                variant={language === 'it' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setLanguage('it')}
+              >
+                IT
               </Button>
             </div>
           </div>
@@ -981,7 +963,7 @@ interface RatingsSectionProps {
   canSubmit: boolean;
   onGoBack: () => void;
   isSubmitting?: boolean;
-  language: 'en' | 'es';
+  language: 'en' | 'es' | 'fr' | 'it';
 }
 
 function RatingsSection({ 
@@ -1031,35 +1013,7 @@ function RatingsSection({
                     {/* Rating Scale with Emojis */}
                     <div className="flex justify-center space-x-2 md:space-x-4 mb-4">
                       {[1, 2, 3, 4, 5].map((rating) => {
-                        const isAgreementScale = question.section === "Process Efficiency & Innovation";
-                        const isLeadershipQuestion = question.section === "Leadership & Communication";
-                        const isCollaborationQuestion = question.section === "Collaboration & Cross-Functional Work";
-                        const isGrowthQuestion = question.section === "Growth & Strategic Alignment";
-                        const isWorkplaceQuestion = question.section === "Workplace Experience";
-                        
                         const currentRatingLabels = getRatingLabels(language);
-                        
-                        let emojiSet, labelSet;
-                        
-                        if (isLeadershipQuestion) {
-                          emojiSet = ratingEmojis.satisfaction;
-                          labelSet = currentRatingLabels.leadership[question.id as 'leadership1'] || currentRatingLabels.satisfaction;
-                        } else if (isCollaborationQuestion) {
-                          emojiSet = ratingEmojis.satisfaction;
-                          labelSet = currentRatingLabels.collaboration[question.id as 'collaboration1'] || currentRatingLabels.satisfaction;
-                        } else if (isGrowthQuestion) {
-                          emojiSet = ratingEmojis.satisfaction;
-                          labelSet = currentRatingLabels.growth[question.id as 'growth1'] || currentRatingLabels.satisfaction;
-                        } else if (isWorkplaceQuestion) {
-                          emojiSet = ratingEmojis.satisfaction;
-                          labelSet = currentRatingLabels.workplace[question.id as 'workplace1'] || currentRatingLabels.satisfaction;
-                        } else if (isAgreementScale) {
-                          emojiSet = ratingEmojis.agreement;
-                          labelSet = currentRatingLabels.agreement;
-                        } else {
-                          emojiSet = ratingEmojis.satisfaction;
-                          labelSet = currentRatingLabels.satisfaction;
-                        }
                         
                         return (
                           <button
@@ -1075,10 +1029,10 @@ function RatingsSection({
                             )}
                             onTouchStart={(e) => e.preventDefault()}
                           >
-                            <span className="text-xl md:text-2xl mb-1 select-none">{emojiSet[rating as keyof typeof emojiSet]}</span>
+                            <span className="text-xl md:text-2xl mb-1 select-none">{ratingEmojis[rating as keyof typeof ratingEmojis]}</span>
                             <span className="text-xs font-medium select-none">{rating}</span>
                             <span className="text-xs text-muted-foreground text-center select-none leading-tight">
-                              {(isLeadershipQuestion || isCollaborationQuestion || isGrowthQuestion || isWorkplaceQuestion) ? labelSet[rating as keyof typeof labelSet] : labelSet[rating as keyof typeof labelSet]}
+                              {currentRatingLabels[rating as keyof typeof currentRatingLabels]}
                             </span>
                           </button>
                         );
@@ -1086,9 +1040,7 @@ function RatingsSection({
                     </div>
 
                     {/* Feedback box for low scores */}
-                    {responses[question.id] && (
-                      (question.section === "Process Efficiency & Innovation" ? responses[question.id] <= 2 : responses[question.id] <= 2)
-                    ) && (
+                    {responses[question.id] && responses[question.id] <= 2 && question.feedbackPrompt && (
                       <div className="space-y-2">
                         <Label htmlFor={`feedback-${question.id}`} className="text-sm font-medium">
                           {question.feedbackPrompt}
