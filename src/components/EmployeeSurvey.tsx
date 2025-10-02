@@ -397,20 +397,6 @@ const getRatingQuestions = (language: string): RatingQuestion[] => [
     feedbackPrompt: ""
   },
   
-  // Safety & Work Environment
-  {
-    id: "safety-focus",
-    text: languageContent[language].safetyFocus,
-    section: "Safety & Work Environment",
-    feedbackPrompt: ""
-  },
-  {
-    id: "safety-reporting",
-    text: languageContent[language].safetyReporting,
-    section: "Safety & Work Environment",
-    feedbackPrompt: ""
-  },
-  
   // Teamwork & Culture
   {
     id: "cooperation",
@@ -428,6 +414,20 @@ const getRatingQuestions = (language: string): RatingQuestion[] => [
     id: "pride",
     text: languageContent[language].pride,
     section: "Teamwork & Culture",
+    feedbackPrompt: ""
+  },
+  
+  // Safety & Work Environment
+  {
+    id: "safety-focus",
+    text: languageContent[language].safetyFocus,
+    section: "Safety & Work Environment",
+    feedbackPrompt: ""
+  },
+  {
+    id: "safety-reporting",
+    text: languageContent[language].safetyReporting,
+    section: "Safety & Work Environment",
     feedbackPrompt: ""
   },
   
