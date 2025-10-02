@@ -60,10 +60,21 @@ const languageContent: LanguageContent = {
     processes: "Processes are designed to maximize efficiency and quality.",
     companyValue: "The company values the quality of its products and services.",
     change: "One change that could improve my daily work experience.",
-    // Multi-select - not used but kept for compatibility
+    // Multi-select questions
     communicationPreferences: "Which communication styles do you prefer?",
-    motivationFactors: "What motivates you to stay with the company?",
+    motivationFactorsQuestion: "Check any of the following that motivates you to stay with the company.",
     informationPreferences: "What information would you like to receive more from the company?",
+    // Multi-select options
+    compensation: "Compensation",
+    benefitsPackage: "Benefit Package",
+    jobSatisfactionOpt: "Job Satisfaction",
+    thePeople: "The People",
+    growthOpportunities: "Growth Opportunities",
+    companyFuture: "Company's Future",
+    recognition: "Recognition",
+    otherOption: "Other",
+    // Generic low rating feedback prompt
+    lowRatingFeedback: "Please explain why you gave this rating and what could be improved.",
     // Additional feedback
     additionalComments: "Any additional comments or suggestions?",
     // Follow-up prompts
@@ -117,6 +128,19 @@ const languageContent: LanguageContent = {
     processes: "Los procesos están diseñados para maximizar la eficiencia y la calidad.",
     companyValue: "La empresa valora la calidad de sus productos y servicios.",
     change: "Un cambio que podría mejorar mi experiencia laboral diaria.",
+    // Multi-select questions
+    motivationFactorsQuestion: "Marque cualquiera de los siguientes que lo motive a permanecer en la empresa.",
+    // Multi-select options
+    compensation: "Compensación",
+    benefitsPackage: "Paquete de beneficios",
+    jobSatisfactionOpt: "Satisfacción laboral",
+    thePeople: "La gente",
+    growthOpportunities: "Oportunidades de crecimiento",
+    companyFuture: "Futuro de la empresa",
+    recognition: "Reconocimiento",
+    otherOption: "Otro",
+    // Generic low rating feedback prompt
+    lowRatingFeedback: "Por favor, explique por qué dio esta calificación y qué se podría mejorar.",
     additionalComments: "¿Algún comentario o sugerencia adicional?",
     jobSatisfactionFollowUp: "Por favor, explique por qué se siente insatisfecho con su trabajo.",
     trainingFollowUp: "Describa las deficiencias en la capacitación o el apoyo que ha experimentado.",
@@ -166,6 +190,19 @@ const languageContent: LanguageContent = {
     processes: "Les processus sont conçus pour maximiser l'efficacité et la qualité.",
     companyValue: "L'entreprise valorise la qualité de ses produits et services.",
     change: "Un changement qui pourrait améliorer mon expérience de travail quotidienne.",
+    // Multi-select questions
+    motivationFactorsQuestion: "Cochez tout ce qui suit qui vous motive à rester dans l'entreprise.",
+    // Multi-select options
+    compensation: "Rémunération",
+    benefitsPackage: "Ensemble des avantages",
+    jobSatisfactionOpt: "Satisfaction au travail",
+    thePeople: "Les collègues",
+    growthOpportunities: "Opportunités de croissance",
+    companyFuture: "Avenir de l'entreprise",
+    recognition: "Reconnaissance",
+    otherOption: "Autre",
+    // Generic low rating feedback prompt
+    lowRatingFeedback: "Veuillez expliquer pourquoi vous avez donné cette note et ce qui pourrait être amélioré.",
     additionalComments: "Des commentaires ou suggestions supplémentaires ?",
     jobSatisfactionFollowUp: "Veuillez expliquer pourquoi vous êtes insatisfait de votre travail.",
     trainingFollowUp: "Veuillez décrire les lacunes de formation ou de soutien que vous avez rencontrées.",
@@ -215,6 +252,19 @@ const languageContent: LanguageContent = {
     processes: "I processi sono progettati per massimizzare l'efficienza e la qualità.",
     companyValue: "L'azienda valorizza la qualità dei suoi prodotti e servizi.",
     change: "Un cambiamento che potrebbe migliorare la mia esperienza lavorativa quotidiana.",
+    // Multi-select questions
+    motivationFactorsQuestion: "Seleziona uno o più dei seguenti motivi che ti incoraggiano a rimanere in azienda.",
+    // Multi-select options
+    compensation: "Retribuzione",
+    benefitsPackage: "Pacchetto di benefici",
+    jobSatisfactionOpt: "Soddisfazione lavorativa",
+    thePeople: "Le persone",
+    growthOpportunities: "Opportunità di crescita",
+    companyFuture: "Futuro dell'azienda",
+    recognition: "Riconoscimento",
+    otherOption: "Altro",
+    // Generic low rating feedback prompt
+    lowRatingFeedback: "Per favore, spiega perché hai dato questo punteggio e cosa potrebbe essere migliorato.",
     additionalComments: "Ulteriori commenti o suggerimenti?",
     jobSatisfactionFollowUp: "Per favore, spiega perché ti senti insoddisfatto del tuo lavoro.",
     trainingFollowUp: "Descrivi le lacune nella formazione o nel supporto che hai sperimentato.",
@@ -294,21 +344,8 @@ const multiSelectQuestions: MultiSelectQuestion[] = [
 
 const getMultiSelectQuestions = (language: string) => [
   {
-    id: "communication-preferences",
-    text: languageContent[language].communicationPreferences,
-    section: "Leadership & Communication",
-    options: [
-      { value: "companywide-emails", label: languageContent[language].companywideEmails },
-      { value: "quarterly-town-halls", label: languageContent[language].quarterlyTownHalls },
-      { value: "company-intranet", label: languageContent[language].companyIntranet },
-      { value: "digital-signage", label: languageContent[language].digitalSignage },
-      { value: "printed-signage", label: languageContent[language].printedSignage },
-      { value: "team-meetings", label: languageContent[language].teamMeetings }
-    ]
-  },
-  {
     id: "motivation-factors",
-    text: languageContent[language].motivationFactors,
+    text: languageContent[language].motivationFactorsQuestion,
     section: "Collaboration & Cross-Functional Work",
     options: [
       { value: "compensation", label: languageContent[language].compensation },
@@ -316,21 +353,9 @@ const getMultiSelectQuestions = (language: string) => [
       { value: "job-satisfaction", label: languageContent[language].jobSatisfactionOpt },
       { value: "the-people", label: languageContent[language].thePeople },
       { value: "growth-opportunities", label: languageContent[language].growthOpportunities },
-      { value: "company-future", label: languageContent[language].companyFuture }
-    ]
-  },
-  {
-    id: "information-preferences",
-    text: languageContent[language].informationPreferences,
-    section: "Workplace Experience",
-    options: [
-      { value: "communication-transparency", label: languageContent[language].communicationTransparency },
-      { value: "strategic-direction", label: languageContent[language].strategicDirection },
-      { value: "financial-incentives", label: languageContent[language].financialIncentives },
-      { value: "operational-updates", label: languageContent[language].operationalUpdates },
-      { value: "interdepartmental-knowledge", label: languageContent[language].interdepartmentalKnowledge },
-      { value: "career-development", label: languageContent[language].careerDevelopment },
-      { value: "it-systems", label: languageContent[language].itSystems }
+      { value: "company-future", label: languageContent[language].companyFuture },
+      { value: "recognition", label: languageContent[language].recognition },
+      { value: "other", label: languageContent[language].otherOption }
     ]
   }
 ];
@@ -632,7 +657,15 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   const isAllQuestionsAnswered = () => {
     const allRatingsAnswered = Object.keys(ratingResponses).length === getRatingQuestions(language).length;
     const allMultiSelectAnswered = Object.keys(multiSelectResponses).length === getMultiSelectQuestions(language).length;
-    return allRatingsAnswered && allMultiSelectAnswered;
+    
+    // Check that all low ratings (1 or 2) have feedback
+    const lowRatingQuestions = Object.entries(ratingResponses).filter(([_, rating]) => rating <= 2);
+    const allLowRatingsHaveFeedback = lowRatingQuestions.every(([questionId, _]) => {
+      const feedback = feedbackResponses[questionId];
+      return feedback && feedback.trim().length > 0;
+    });
+    
+    return allRatingsAnswered && allMultiSelectAnswered && allLowRatingsHaveFeedback;
   };
 
   const handleSubmit = async () => {
@@ -689,9 +722,9 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
         comfortable_suggesting_improvements: ratingResponses['safety-reporting'],
         failed_experiments_learning: null,
         
-        // Multi-select responses (keeping empty for now)
+        // Multi-select responses
         communication_preferences: [],
-        motivation_factors: [],
+        motivation_factors: multiSelectResponses['motivation-factors'] || [],
         information_preferences: [],
         
         // Follow-up responses
@@ -985,6 +1018,18 @@ function RatingsSection({
   isSubmitting = false,
   language
 }: RatingsSectionProps) {
+  // Define the desired section order
+  const sectionOrder = [
+    "Engagement & Job Satisfaction",
+    "Leadership & Communication",
+    "Training & Development",
+    "Teamwork & Culture",
+    "Safety & Work Environment",
+    "Collaboration & Cross-Functional Work",
+    "Scheduling & Workload",
+    "Tools, Equipment & Processes"
+  ];
+
   // Combine rating questions and multi-select questions by section
   const allQuestions = [...questions, ...multiSelectQuestions];
   const groupedQuestions = allQuestions.reduce((acc, question) => {
@@ -995,15 +1040,20 @@ function RatingsSection({
     return acc;
   }, {} as Record<string, (RatingQuestion | MultiSelectQuestion)[]>);
 
+  // Sort sections based on the defined order
+  const sortedSections = sectionOrder.filter(section => groupedQuestions[section]);
+
   return (
     <div className="space-y-8">
-      {Object.entries(groupedQuestions).map(([section, sectionQuestions]) => (
-        <Card key={section}>
-          <CardHeader>
-            <CardTitle className="text-xl">{section}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {sectionQuestions.map((question) => (
+      {sortedSections.map((section) => {
+        const sectionQuestions = groupedQuestions[section];
+        return (
+          <Card key={section}>
+            <CardHeader>
+              <CardTitle className="text-xl">{section}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {sectionQuestions.map((question) => (
               <div key={question.id} className="space-y-4">
                 {'feedbackPrompt' in question ? (
                   // Rating Question
@@ -1039,18 +1089,19 @@ function RatingsSection({
                       })}
                     </div>
 
-                    {/* Feedback box for low scores */}
-                    {responses[question.id] && responses[question.id] <= 2 && question.feedbackPrompt && (
+                    {/* Feedback box for low scores - REQUIRED for all 1-2 ratings */}
+                    {responses[question.id] && responses[question.id] <= 2 && (
                       <div className="space-y-2">
-                        <Label htmlFor={`feedback-${question.id}`} className="text-sm font-medium">
-                          {question.feedbackPrompt}
+                        <Label htmlFor={`feedback-${question.id}`} className="text-sm font-medium text-destructive">
+                          {languageContent[language].lowRatingFeedback} *
                         </Label>
                         <Textarea
                           id={`feedback-${question.id}`}
-                          placeholder="Your feedback helps us improve..."
+                          placeholder={languageContent[language].lowRatingFeedback}
                           value={feedbackResponses[question.id] || ""}
                           onChange={(e) => onFeedbackChange(question.id, e.target.value)}
-                          className="min-h-[100px] touch-manipulation"
+                          className="min-h-[100px] touch-manipulation border-destructive/50"
+                          required
                         />
                       </div>
                     )}
@@ -1088,7 +1139,7 @@ function RatingsSection({
             ))}
           </CardContent>
         </Card>
-      ))}
+      )}))}
 
       {/* Additional Comments Section */}
       <Card>
