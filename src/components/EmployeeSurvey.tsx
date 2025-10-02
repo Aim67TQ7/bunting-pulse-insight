@@ -1139,7 +1139,8 @@ function RatingsSection({
             ))}
           </CardContent>
         </Card>
-      )}))}
+        );
+      })}
 
       {/* Additional Comments Section */}
       <Card>
