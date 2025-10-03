@@ -316,7 +316,7 @@ const multiSelectQuestions: MultiSelectQuestion[] = [
   {
     id: "motivation-factors",
     text: "What motivates you to stay with the company?",
-    section: "Collaboration & Cross-Functional Work",
+    section: "Engagement & Job Satisfaction",
     options: [
       { value: "compensation", label: "Compensation" },
       { value: "benefits-package", label: "Benefits package" },
@@ -943,7 +943,7 @@ function DemographicSection({ question, onResponse, canGoBack, onGoBack }: Demog
             <div key={option.value} className="flex items-center space-x-4 p-4 rounded-lg hover:bg-muted/50 transition-colors touch-manipulation border">
               <RadioGroupItem value={option.value} id={option.value} className="min-w-[20px] min-h-[20px]" />
               
-              {isDivisionQuestion && (option.value === "equipment" || option.value === "magnets") && (
+              {isDivisionQuestion && (option.value === "equipment" || option.value === "magnetics") && (
                 <div className="flex items-center justify-center">
                   <img 
                     src={option.value === "equipment" ? buntingLogo : magnetApplicationsLogo} 
@@ -1025,7 +1025,6 @@ function RatingsSection({
     "Training & Development",
     "Teamwork & Culture",
     "Safety & Work Environment",
-    "Collaboration & Cross-Functional Work",
     "Scheduling & Workload",
     "Tools, Equipment & Processes"
   ];
