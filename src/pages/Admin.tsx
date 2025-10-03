@@ -126,53 +126,7 @@ export const Admin = ({ onBack }: AdminProps) => {
           </TabsContent>
 
           <TabsContent value="admin" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Data Export</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">
-                    Export survey data in CSV, Excel, or PDF formats for external analysis and reporting.
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => {
-                      toast({
-                        title: "Feature Coming Soon",
-                        description: "Data export functionality will allow CSV, Excel, and PDF downloads",
-                      });
-                    }}
-                  >
-                    Export Data
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>System Settings</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">
-                    Configure survey settings, manage languages, update questions, and system preferences.
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => {
-                      toast({
-                        title: "Feature Coming Soon", 
-                        description: "System configuration panel will be available here",
-                      });
-                    }}
-                  >
-                    Settings
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+            <p className="text-muted-foreground">Admin features coming soon.</p>
           </TabsContent>
         </Tabs>
       </main>
