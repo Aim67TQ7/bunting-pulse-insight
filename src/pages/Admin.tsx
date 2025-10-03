@@ -111,7 +111,7 @@ export const Admin = ({ onBack }: AdminProps) => {
                   const QRCode = (await import('qrcode')).default;
                   
                   const doc = new jsPDF();
-                  const adminUrl = window.location.origin;
+                  const surveyUrl = 'https://survey.buntinggpt.com';
                   
                   // Add title
                   doc.setFontSize(20);
@@ -120,7 +120,7 @@ export const Admin = ({ onBack }: AdminProps) => {
                   doc.text('Employee Survey', 105, 40, { align: 'center' });
                   
                   // Generate QR code
-                  const qrDataUrl = await QRCode.toDataURL(adminUrl, {
+                  const qrDataUrl = await QRCode.toDataURL(surveyUrl, {
                     width: 200,
                     margin: 2,
                   });
@@ -131,7 +131,7 @@ export const Admin = ({ onBack }: AdminProps) => {
                   // Add instruction text
                   doc.setFontSize(12);
                   doc.setFont('helvetica', 'normal');
-                  doc.text('Scan to access the admin dashboard', 105, 175, { align: 'center' });
+                  doc.text('Scan to access the employee survey', 105, 175, { align: 'center' });
                   
                   // Save PDF
                   doc.save('bunting-survey-qr.pdf');
