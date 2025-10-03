@@ -93,6 +93,10 @@ const translations = {
     poor: "Poor",
     critical: "Critical",
     // Demographics
+    demographics: "Demographics Breakdown",
+    byContinent: "By Continent",
+    byDivision: "By Division",
+    byRole: "By Role",
     northAmerica: "North America",
     europe: "Europe",
     magnetics: "Magnetics",
@@ -142,7 +146,12 @@ const translations = {
     comfortSuggesting: "Comfort Suggesting Changes",
     communicationPrefs: "Communication Preferences",
     motivationFactors: "Motivation Factors",
-    informationPrefs: "Information Preferences"
+    informationPrefs: "Information Preferences",
+    commentsAndFeedback: "Comments & Feedback (Admin Only)",
+    response: "Response",
+    collaborationFeedback: "Collaboration Feedback:",
+    additionalCommentsLabel: "Additional Comments:",
+    aiAnalysisReport: "AI Analysis Report"
   },
   es: {
     backToSurvey: "Volver a la Encuesta",
@@ -172,6 +181,10 @@ const translations = {
     poor: "Pobre",
     critical: "Crítico",
     // Demographics
+    demographics: "Desglose Demográfico",
+    byContinent: "Por Continente",
+    byDivision: "Por División",
+    byRole: "Por Rol",
     northAmerica: "América del Norte",
     europe: "Europa",
     magnetics: "Magnéticos",
@@ -221,7 +234,12 @@ const translations = {
     comfortSuggesting: "Comodidad Sugiriendo Cambios",
     communicationPrefs: "Preferencias de Comunicación",
     motivationFactors: "Factores de Motivación",
-    informationPrefs: "Preferencias de Información"
+    informationPrefs: "Preferencias de Información",
+    commentsAndFeedback: "Comentarios y Retroalimentación (Solo Admin)",
+    response: "Respuesta",
+    collaborationFeedback: "Retroalimentación sobre Colaboración:",
+    additionalCommentsLabel: "Comentarios Adicionales:",
+    aiAnalysisReport: "Informe de Análisis AI"
   },
   fr: {
     backToSurvey: "Retour à l'Enquête",
@@ -251,6 +269,10 @@ const translations = {
     poor: "Pauvre",
     critical: "Critique",
     // Demographics
+    demographics: "Répartition Démographique",
+    byContinent: "Par Continent",
+    byDivision: "Par Division",
+    byRole: "Par Rôle",
     northAmerica: "Amérique du Nord",
     europe: "Europe",
     magnetics: "Magnétiques",
@@ -300,7 +322,12 @@ const translations = {
     comfortSuggesting: "Confort pour Suggérer des Changements",
     communicationPrefs: "Préférences de Communication",
     motivationFactors: "Facteurs de Motivation",
-    informationPrefs: "Préférences d'Information"
+    informationPrefs: "Préférences d'Information",
+    commentsAndFeedback: "Commentaires et Retours (Admin Uniquement)",
+    response: "Réponse",
+    collaborationFeedback: "Retour sur la Collaboration:",
+    additionalCommentsLabel: "Commentaires Supplémentaires:",
+    aiAnalysisReport: "Rapport d'Analyse AI"
   },
   it: {
     backToSurvey: "Torna al Sondaggio",
@@ -330,6 +357,10 @@ const translations = {
     poor: "Scarso",
     critical: "Critico",
     // Demographics
+    demographics: "Ripartizione Demografica",
+    byContinent: "Per Continente",
+    byDivision: "Per Divisione",
+    byRole: "Per Ruolo",
     northAmerica: "Nord America",
     europe: "Europa",
     magnetics: "Magnetici",
@@ -379,7 +410,12 @@ const translations = {
     comfortSuggesting: "Comfort nel Suggerire Cambiamenti",
     communicationPrefs: "Preferenze di Comunicazione",
     motivationFactors: "Fattori di Motivazione",
-    informationPrefs: "Preferenze di Informazione"
+    informationPrefs: "Preferenze di Informazione",
+    commentsAndFeedback: "Commenti e Feedback (Solo Admin)",
+    response: "Risposta",
+    collaborationFeedback: "Feedback sulla Collaborazione:",
+    additionalCommentsLabel: "Commenti Aggiuntivi:",
+    aiAnalysisReport: "Rapporto di Analisi AI"
   }
 };
 
@@ -990,13 +1026,13 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
         {/* Demographics Section */}
         <Card className="mt-8">
           <CardHeader>
-            <CardTitle>Demographics Breakdown</CardTitle>
+            <CardTitle>{t.demographics}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Continent Distribution */}
               <div>
-                <h4 className="font-medium mb-3">By Continent</h4>
+                <h4 className="font-medium mb-3">{t.byContinent}</h4>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -1022,7 +1058,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
 
               {/* Division Distribution */}
               <div>
-                <h4 className="font-medium mb-3">By Division</h4>
+                <h4 className="font-medium mb-3">{t.byDivision}</h4>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -1048,7 +1084,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
 
               {/* Role Distribution */}
               <div>
-                <h4 className="font-medium mb-3">By Role</h4>
+                <h4 className="font-medium mb-3">{t.byRole}</h4>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -1081,7 +1117,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <UnlockIcon className="h-5 w-5" />
-                Comments & Feedback (Admin Only)
+                {t.commentsAndFeedback}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -1092,7 +1128,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                     <div key={response.id} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <Badge variant="outline">
-                          Response #{index + 1}
+                          {t.response} #{index + 1}
                         </Badge>
                         <span className="text-sm text-muted-foreground">
                           {new Date(response.submitted_at).toLocaleDateString()}
@@ -1100,13 +1136,13 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                       </div>
                       {response.collaboration_feedback && (
                         <div className="mb-2">
-                          <p className="font-medium text-sm">Collaboration Feedback:</p>
+                          <p className="font-medium text-sm">{t.collaborationFeedback}</p>
                           <p className="text-sm">{response.collaboration_feedback}</p>
                         </div>
                       )}
                       {response.additional_comments && (
                         <div>
-                          <p className="font-medium text-sm">Additional Comments:</p>
+                          <p className="font-medium text-sm">{t.additionalCommentsLabel}</p>
                           <p className="text-sm">{response.additional_comments}</p>
                         </div>
                       )}
@@ -1150,7 +1186,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
         <Dialog open={showAIAnalysis} onOpenChange={setShowAIAnalysis}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>AI Analysis Report</DialogTitle>
+              <DialogTitle>{t.aiAnalysisReport}</DialogTitle>
             </DialogHeader>
             <div className="whitespace-pre-wrap text-sm">
               {aiAnalysis}
