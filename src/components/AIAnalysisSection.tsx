@@ -15,21 +15,34 @@ interface SurveyResponse {
   continent: string;
   division: string;
   role: string;
+  // Engagement & Job Satisfaction
   job_satisfaction: number;
-  work_life_balance: number;
+  recommend_company: number;
+  strategic_confidence: number;
+  // Leadership & Communication
+  leadership_openness: number;
+  performance_awareness: number;
+  communication_clarity: number;
+  manager_alignment: number;
+  // Training & Development
   training_satisfaction: number;
   advancement_opportunities: number;
-  workplace_safety: number;
-  leadership_openness: number;
-  communication_clarity: number;
-  strategic_confidence: number;
-  manager_alignment: number;
+  // Teamwork & Culture
   cross_functional_collaboration: number;
-  us_uk_collaboration: number;
-  comfortable_suggesting_improvements: number;
+  team_morale: number;
+  pride_in_work: number;
+  // Safety & Work Environment
+  workplace_safety: number;
+  safety_reporting_comfort: number;
+  // Scheduling & Workload
+  workload_manageability: number;
+  work_life_balance: number;
+  // Tools, Equipment & Processes
+  tools_equipment_quality: number;
   manual_processes_focus: number;
-  failed_experiments_learning: number;
-  recommend_company: number;
+  company_value_alignment: number;
+  comfortable_suggesting_improvements: number;
+  // Other fields
   additional_comments: string;
   collaboration_feedback: string;
   submitted_at: string;

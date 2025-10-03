@@ -33,21 +33,34 @@ interface SurveyResponse {
   continent: string;
   division: string;
   role: string;
+  // Engagement & Job Satisfaction
   job_satisfaction: number;
-  work_life_balance: number;
+  recommend_company: number;
+  strategic_confidence: number;
+  // Leadership & Communication
+  leadership_openness: number;
+  performance_awareness: number;
+  communication_clarity: number;
+  manager_alignment: number;
+  // Training & Development
   training_satisfaction: number;
   advancement_opportunities: number;
-  workplace_safety: number;
-  leadership_openness: number;
-  communication_clarity: number;
-  strategic_confidence: number;
-  manager_alignment: number;
+  // Teamwork & Culture
   cross_functional_collaboration: number;
-  us_uk_collaboration: number;
-  comfortable_suggesting_improvements: number;
+  team_morale: number;
+  pride_in_work: number;
+  // Safety & Work Environment
+  workplace_safety: number;
+  safety_reporting_comfort: number;
+  // Scheduling & Workload
+  workload_manageability: number;
+  work_life_balance: number;
+  // Tools, Equipment & Processes
+  tools_equipment_quality: number;
   manual_processes_focus: number;
-  failed_experiments_learning: number;
-  recommend_company: number;
+  company_value_alignment: number;
+  comfortable_suggesting_improvements: number;
+  // Other fields
   additional_comments: string;
   collaboration_feedback: string;
   submitted_at: string;
@@ -62,21 +75,39 @@ interface AnalyticsDashboardProps {
 }
 
 const questionLabels = {
+  // Engagement & Job Satisfaction
   job_satisfaction: "Job Satisfaction",
+  recommend_company: "Would Recommend Company",
+  strategic_confidence: "Confidence in Future Direction",
+  
+  // Leadership & Communication
+  leadership_openness: "Clear Expectations from Leadership",
+  performance_awareness: "Awareness of Performance",
+  communication_clarity: "Information Communication Quality",
+  manager_alignment: "Manager Feedback & Alignment",
+  
+  // Training & Development
+  training_satisfaction: "Training & Development Quality",
+  advancement_opportunities: "Growth Opportunities",
+  
+  // Teamwork & Culture
+  cross_functional_collaboration: "Cross-Functional Cooperation",
+  team_morale: "Team Morale",
+  pride_in_work: "Pride in Work",
+  
+  // Safety & Work Environment
+  workplace_safety: "Workplace Safety Focus",
+  safety_reporting_comfort: "Safety Concern Reporting Comfort",
+  
+  // Scheduling & Workload
+  workload_manageability: "Workload Manageability",
   work_life_balance: "Work-Life Balance",
-  training_satisfaction: "Training Satisfaction",
-  advancement_opportunities: "Advancement Opportunities",
-  workplace_safety: "Workplace Safety",
-  leadership_openness: "Leadership Openness",
-  communication_clarity: "Communication Clarity",
-  strategic_confidence: "Strategic Confidence",
-  manager_alignment: "Manager Alignment",
-  cross_functional_collaboration: "Cross-Functional Collaboration",
-  us_uk_collaboration: "US-UK Collaboration",
-  comfortable_suggesting_improvements: "Comfortable Suggesting Improvements",
-  manual_processes_focus: "Manual Processes Focus",
-  failed_experiments_learning: "Failed Experiments Learning",
-  recommend_company: "Recommend Company"
+  
+  // Tools, Equipment & Processes
+  tools_equipment_quality: "Tools & Equipment Quality",
+  manual_processes_focus: "Process Improvement Focus",
+  company_value_alignment: "Feeling Valued by Company",
+  comfortable_suggesting_improvements: "Comfort Suggesting Changes"
 };
 
 // Utility functions for scoring and color-coding
@@ -360,7 +391,7 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
   const overallEngagement = calculateAverage('job_satisfaction');
   const overallSafety = calculateAverage('workplace_safety');
   const overallTraining = calculateAverage('training_satisfaction');
-  const overallCollaboration = (calculateAverage('cross_functional_collaboration') + calculateAverage('us_uk_collaboration')) / 2;
+  const overallCollaboration = (calculateAverage('cross_functional_collaboration') + calculateAverage('team_morale')) / 2;
 
   return (
     <div className="space-y-6" id="analytics-dashboard">

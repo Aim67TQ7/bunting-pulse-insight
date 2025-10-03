@@ -58,68 +58,83 @@ const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accen
 
 const surveySections = [
   {
-    id: "job-satisfaction",
-    title: "Job & Role Satisfaction",
-    description: "Overall satisfaction with job, training, and work-life balance",
+    id: "engagement-satisfaction",
+    title: "Engagement & Job Satisfaction",
+    description: "Overall satisfaction and engagement with the company",
     questions: [
       { key: "job_satisfaction", label: "Job Satisfaction" },
-      { key: "training_satisfaction", label: "Training Satisfaction" },
-      { key: "work_life_balance", label: "Work-Life Balance" }
+      { key: "recommend_company", label: "Would Recommend Company" },
+      { key: "strategic_confidence", label: "Confidence in Future Direction" }
     ]
   },
   {
     id: "leadership-communication",
     title: "Leadership & Communication",
-    description: "Communication clarity and leadership effectiveness",
+    description: "Management effectiveness and communication quality",
     questions: [
-      { key: "communication_clarity", label: "Communication Clarity" },
-      { key: "manager_alignment", label: "Manager Business Alignment" },
-      { key: "leadership_openness", label: "Leadership Openness" }
+      { key: "leadership_openness", label: "Clear Expectations from Leadership" },
+      { key: "performance_awareness", label: "Awareness of Performance" },
+      { key: "communication_clarity", label: "Information Communication Quality" },
+      { key: "manager_alignment", label: "Manager Feedback & Alignment" }
     ],
     multiSelect: [
       { key: "communication_preferences", label: "Communication Preferences" }
     ]
   },
   {
-    id: "collaboration",
-    title: "Collaboration & Cross-Functional Work",
-    description: "Team collaboration and cross-functional effectiveness",
+    id: "training-development",
+    title: "Training & Development",
+    description: "Professional growth and learning opportunities",
     questions: [
-      { key: "us_uk_collaboration", label: "US-UK Collaboration" },
-      { key: "cross_functional_collaboration", label: "Cross-Functional Collaboration" }
-    ],
+      { key: "training_satisfaction", label: "Training & Development Quality" },
+      { key: "advancement_opportunities", label: "Growth Opportunities" }
+    ]
+  },
+  {
+    id: "teamwork-culture",
+    title: "Teamwork & Culture",
+    description: "Collaboration and workplace culture",
+    questions: [
+      { key: "cross_functional_collaboration", label: "Cross-Functional Cooperation" },
+      { key: "team_morale", label: "Team Morale" },
+      { key: "pride_in_work", label: "Pride in Work" }
+    ]
+  },
+  {
+    id: "safety-environment",
+    title: "Safety & Work Environment",
+    description: "Workplace safety and environmental conditions",
+    questions: [
+      { key: "workplace_safety", label: "Workplace Safety Focus" },
+      { key: "safety_reporting_comfort", label: "Safety Concern Reporting Comfort" }
+    ]
+  },
+  {
+    id: "scheduling-workload",
+    title: "Scheduling & Workload",
+    description: "Work-life balance and workload management",
+    questions: [
+      { key: "workload_manageability", label: "Workload Manageability" },
+      { key: "work_life_balance", label: "Work-Life Balance" }
+    ]
+  },
+  {
+    id: "tools-processes",
+    title: "Tools, Equipment & Processes",
+    description: "Resources and continuous improvement",
+    questions: [
+      { key: "tools_equipment_quality", label: "Tools & Equipment Quality" },
+      { key: "manual_processes_focus", label: "Process Improvement Focus" },
+      { key: "company_value_alignment", label: "Feeling Valued by Company" },
+      { key: "comfortable_suggesting_improvements", label: "Comfort Suggesting Changes" }
+    ]
+  },
+  {
+    id: "preferences-motivation",
+    title: "Preferences & Motivation",
+    description: "Communication styles and motivational factors",
     multiSelect: [
-      { key: "motivation_factors", label: "Motivation Factors" }
-    ]
-  },
-  {
-    id: "growth-alignment",
-    title: "Growth & Strategic Alignment",
-    description: "Strategic confidence and career development opportunities",
-    questions: [
-      { key: "strategic_confidence", label: "Strategic Direction Confidence" },
-      { key: "advancement_opportunities", label: "Advancement Opportunities" }
-    ]
-  },
-  {
-    id: "process-innovation",
-    title: "Process Efficiency & Innovation",
-    description: "Process improvement, innovation comfort, and learning from experiments",
-    questions: [
-      { key: "manual_processes_focus", label: "Focus on High-Impact Work" },
-      { key: "comfortable_suggesting_improvements", label: "Comfortable Suggesting Improvements" },
-      { key: "failed_experiments_learning", label: "Learning from Failed Experiments" }
-    ]
-  },
-  {
-    id: "workplace-experience",
-    title: "Workplace Experience",
-    description: "Safety, company recommendation, and information needs",
-    questions: [
-      { key: "workplace_safety", label: "Workplace Safety" },
-      { key: "recommend_company", label: "Company Recommendation" }
-    ],
-    multiSelect: [
+      { key: "motivation_factors", label: "Motivation Factors" },
       { key: "information_preferences", label: "Information Preferences" }
     ]
   }

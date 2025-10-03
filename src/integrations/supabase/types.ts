@@ -921,12 +921,12 @@ export type Database = {
           comfortable_suggesting_improvements: number | null
           communication_clarity: number | null
           communication_preferences: string[] | null
+          company_value_alignment: number | null
           completion_time_seconds: number | null
           continent: string
           created_at: string
           cross_functional_collaboration: number | null
           division: string
-          failed_experiments_learning: number | null
           follow_up_responses: Json | null
           id: string
           information_preferences: string[] | null
@@ -935,15 +935,20 @@ export type Database = {
           manager_alignment: number | null
           manual_processes_focus: number | null
           motivation_factors: string[] | null
+          performance_awareness: number | null
+          pride_in_work: number | null
           recommend_company: number | null
           role: string
+          safety_reporting_comfort: number | null
           session_id: string
           strategic_confidence: number | null
           submitted_at: string
+          team_morale: number | null
+          tools_equipment_quality: number | null
           training_satisfaction: number | null
           updated_at: string
-          us_uk_collaboration: number | null
           work_life_balance: number | null
+          workload_manageability: number | null
           workplace_safety: number | null
         }
         Insert: {
@@ -953,12 +958,12 @@ export type Database = {
           comfortable_suggesting_improvements?: number | null
           communication_clarity?: number | null
           communication_preferences?: string[] | null
+          company_value_alignment?: number | null
           completion_time_seconds?: number | null
           continent: string
           created_at?: string
           cross_functional_collaboration?: number | null
           division: string
-          failed_experiments_learning?: number | null
           follow_up_responses?: Json | null
           id?: string
           information_preferences?: string[] | null
@@ -967,15 +972,20 @@ export type Database = {
           manager_alignment?: number | null
           manual_processes_focus?: number | null
           motivation_factors?: string[] | null
+          performance_awareness?: number | null
+          pride_in_work?: number | null
           recommend_company?: number | null
           role: string
+          safety_reporting_comfort?: number | null
           session_id: string
           strategic_confidence?: number | null
           submitted_at?: string
+          team_morale?: number | null
+          tools_equipment_quality?: number | null
           training_satisfaction?: number | null
           updated_at?: string
-          us_uk_collaboration?: number | null
           work_life_balance?: number | null
+          workload_manageability?: number | null
           workplace_safety?: number | null
         }
         Update: {
@@ -985,12 +995,12 @@ export type Database = {
           comfortable_suggesting_improvements?: number | null
           communication_clarity?: number | null
           communication_preferences?: string[] | null
+          company_value_alignment?: number | null
           completion_time_seconds?: number | null
           continent?: string
           created_at?: string
           cross_functional_collaboration?: number | null
           division?: string
-          failed_experiments_learning?: number | null
           follow_up_responses?: Json | null
           id?: string
           information_preferences?: string[] | null
@@ -999,15 +1009,20 @@ export type Database = {
           manager_alignment?: number | null
           manual_processes_focus?: number | null
           motivation_factors?: string[] | null
+          performance_awareness?: number | null
+          pride_in_work?: number | null
           recommend_company?: number | null
           role?: string
+          safety_reporting_comfort?: number | null
           session_id?: string
           strategic_confidence?: number | null
           submitted_at?: string
+          team_morale?: number | null
+          tools_equipment_quality?: number | null
           training_satisfaction?: number | null
           updated_at?: string
-          us_uk_collaboration?: number | null
           work_life_balance?: number | null
+          workload_manageability?: number | null
           workplace_safety?: number | null
         }
         Relationships: []

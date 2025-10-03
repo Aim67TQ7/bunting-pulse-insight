@@ -719,39 +719,52 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
         role: mapDemographicValues(responses.role, 'role'),
         session_id: sessionId,
         completion_time_seconds: elapsedTime,
-        // Core satisfaction metrics
+        
+        // Engagement & Job Satisfaction
         job_satisfaction: ratingResponses["job-satisfaction"],
-        work_life_balance: ratingResponses["work-life-balance"],
+        recommend_company: ratingResponses["company-satisfaction"],
+        strategic_confidence: ratingResponses["future-view"],
+        
+        // Leadership & Communication
+        leadership_openness: ratingResponses["expectations"],
+        performance_awareness: ratingResponses["performance-awareness"],
+        communication_clarity: ratingResponses["relaying-information"],
+        manager_alignment: ratingResponses["management-feedback"],
+        
+        // Training & Development
         training_satisfaction: ratingResponses["training"],
         advancement_opportunities: ratingResponses["opportunities"],
-        workplace_safety: ratingResponses["safety-focus"],
-        // Leadership & communication
-        manager_alignment: ratingResponses["management-feedback"],
-        leadership_openness: ratingResponses["expectations"],
-        communication_clarity: ratingResponses["relaying-information"],
-        // Collaboration
+        
+        // Teamwork & Culture
         cross_functional_collaboration: ratingResponses["cooperation"],
-        us_uk_collaboration: ratingResponses["morale"], // Using morale as proxy
-        strategic_confidence: ratingResponses["future-view"],
-        // Engagement metrics
-        recommend_company: ratingResponses["company-satisfaction"],
-        comfortable_suggesting_improvements: ratingResponses["change"],
-        failed_experiments_learning: ratingResponses["pride"],
+        team_morale: ratingResponses["morale"],
+        pride_in_work: ratingResponses["pride"],
+        
+        // Safety & Work Environment
+        workplace_safety: ratingResponses["safety-focus"],
+        safety_reporting_comfort: ratingResponses["safety-reporting"],
+        
+        // Scheduling & Workload
+        workload_manageability: ratingResponses["workload"],
+        work_life_balance: ratingResponses["work-life-balance"],
+        
+        // Tools, Equipment & Processes
+        tools_equipment_quality: ratingResponses["tools"],
         manual_processes_focus: ratingResponses["processes"],
+        company_value_alignment: ratingResponses["company-value"],
+        comfortable_suggesting_improvements: ratingResponses["change"],
+        
         // Multi-select arrays
         communication_preferences: multiSelectResponses["communication-preferences"] || [],
         information_preferences: multiSelectResponses["information-preferences"] || [],
         motivation_factors: multiSelectResponses["motivation-factors"] || [],
+        
         // Text feedback
         collaboration_feedback: collaborationFeedback || "",
         additional_comments: additionalComments || "",
-        // Store all other responses and feedback in jsonb field
+        
+        // Store only non-rating feedback in JSONB
         follow_up_responses: {
-          performance_awareness: ratingResponses["performance-awareness"],
-          safety_reporting: ratingResponses["safety-reporting"],
-          workload: ratingResponses["workload"],
-          tools: ratingResponses["tools"],
-          company_value: ratingResponses["company-value"],
           job_satisfaction_feedback: feedbackResponses["job-satisfaction"] || "",
           training_feedback: feedbackResponses["training"] || "",
           work_life_balance_feedback: feedbackResponses["work-life-balance"] || "",
