@@ -29,15 +29,11 @@ const Index = () => {
   };
 
   if (currentView === "survey") {
-    return <EmployeeSurvey onViewResults={() => setCurrentView("dashboard")} />;
-  }
-
-  if (currentView === "dashboard") {
-    return <SurveyDashboardNew onBack={() => setCurrentView("landing")} setCurrentView={(view) => setCurrentView(view as "admin" | "landing" | "survey" | "dashboard")} />;
+    return <EmployeeSurvey onViewResults={() => setCurrentView("landing")} />;
   }
 
   if (currentView === "admin") {
-    return <Admin onBack={() => setCurrentView("dashboard")} />;
+    return <Admin onBack={() => setCurrentView("landing")} />;
   }
 
   return (
@@ -54,7 +50,7 @@ const Index = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => setCurrentView("dashboard")}
+                onClick={() => setCurrentView("admin")}
                 className="text-xs"
               >
                 🔑 Admin Access
@@ -119,41 +115,30 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          <Card className={`relative overflow-hidden group transition-all duration-300 ${hasSubmitted ? 'hover:shadow-lg cursor-pointer' : 'opacity-60'}`}>
+          <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
-                <div className={`p-2 ${hasSubmitted ? 'bg-success/10' : 'bg-muted'} rounded-lg`}>
-                  {hasSubmitted ? (
-                    <BarChart3Icon className="h-6 w-6 text-success" />
-                  ) : (
-                    <LockIcon className="h-6 w-6 text-muted-foreground" />
-                  )}
+                <div className="p-2 bg-warning/10 rounded-lg">
+                  <ShieldCheckIcon className="h-6 w-6 text-warning" />
                 </div>
-                <CardTitle className={hasSubmitted ? '' : 'text-muted-foreground'}>
-                  View Results
-                </CardTitle>
+                <CardTitle>Admin Dashboard</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                {hasSubmitted ? (
-                  "🎁 Your reward for participating! Discover what your colleagues really think across all departments. Keep coming back as new responses roll in - watch the insights grow and evolve in real-time."
-                ) : (
-                  "🔮 What secrets do your coworkers hold? Complete the survey to unlock exclusive access to everyone's anonymous thoughts and see how your workplace truly measures up. Your participation earns you this exclusive insider view!"
-                )}
+                Access the comprehensive survey results dashboard with detailed analytics, comments, and AI-powered insights. Admin authentication required.
               </p>
               <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">Anonymous</Badge>
-                <Badge variant="secondary">Real-time</Badge>
-                <Badge variant="secondary">Insights</Badge>
+                <Badge variant="secondary">Secure</Badge>
+                <Badge variant="secondary">Analytics</Badge>
+                <Badge variant="secondary">AI Insights</Badge>
               </div>
               <Button 
-                onClick={() => hasSubmitted && setCurrentView("dashboard")}
+                onClick={() => setCurrentView("admin")}
                 variant="outline"
-                disabled={!hasSubmitted}
-                className={`w-full ${hasSubmitted ? 'group-hover:scale-[1.02] transition-transform' : 'cursor-not-allowed'}`}
+                className="w-full group-hover:scale-[1.02] transition-transform"
               >
-                {hasSubmitted ? '🔓 View Dashboard' : '🔒 Complete Survey to Unlock'}
+                🔐 Admin Access Required
               </Button>
             </CardContent>
           </Card>
@@ -199,7 +184,7 @@ const Index = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
               <div>✓ One submission per employee</div>
               <div>✓ Follow-up questions for concerning responses</div>
-              <div>✓ Results available after submission</div>
+              <div>✓ Results available to admin only</div>
             </div>
           </CardContent>
         </Card>
