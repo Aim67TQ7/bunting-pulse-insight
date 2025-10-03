@@ -125,8 +125,13 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
         .order('submitted_at', { ascending: false });
 
       if (error) throw error;
+      console.log('✅ Survey data loaded successfully:', {
+        totalResponses: data?.length || 0,
+        sampleResponse: data?.[0]
+      });
       setResponses(data || []);
     } catch (error: any) {
+      console.error('❌ Error loading survey data:', error);
       toast({
         title: "Error Loading Data",
         description: error.message,
@@ -139,6 +144,10 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
 
   const applyFilters = () => {
     let filtered = [...responses];
+    console.log('🔍 Applying filters:', { 
+      totalResponses: responses.length, 
+      filters 
+    });
 
     if (filters.continent && filters.continent !== "all") {
       filtered = filtered.filter(r => r.continent === filters.continent);
@@ -156,6 +165,7 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
       filtered = filtered.filter(r => new Date(r.submitted_at) <= new Date(filters.dateTo));
     }
 
+    console.log('✅ Filtered results:', filtered.length);
     setFilteredResponses(filtered);
   };
 
@@ -172,18 +182,46 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
   // Calculation utilities
   const calculateAverage = (field: keyof SurveyResponse) => {
     if (filteredResponses.length === 0) return 0;
-    const sum = filteredResponses.reduce((acc, r) => acc + (Number(r[field]) || 0), 0);
-    return sum / filteredResponses.length;
+    
+    // Filter out null/undefined values
+    const validResponses = filteredResponses.filter(r => {
+      const value = r[field];
+      return value !== null && value !== undefined && typeof value === 'number';
+    });
+    
+    if (validResponses.length === 0) return 0;
+    
+    const sum = validResponses.reduce((acc, r) => acc + (Number(r[field]) || 0), 0);
+    return sum / validResponses.length;
   };
 
   const getAveragesByQuestion = () => {
     const questions = Object.keys(questionLabels) as (keyof typeof questionLabels)[];
-    return questions.map(q => ({
-      question: questionLabels[q],
-      questionKey: q,
-      average: calculateAverage(q),
-      color: getScoreColor(calculateAverage(q))
-    })).sort((a, b) => a.average - b.average);
+    const results = questions.map(q => {
+      const avg = calculateAverage(q);
+      
+      // Count valid responses for this question
+      const validCount = filteredResponses.filter(r => {
+        const value = r[q];
+        return value !== null && value !== undefined && typeof value === 'number';
+      }).length;
+      
+      console.log(`Question: ${questionLabels[q]}, Average: ${avg.toFixed(2)}, Valid Responses: ${validCount}/${filteredResponses.length}`);
+      
+      return {
+        question: questionLabels[q],
+        questionKey: q,
+        average: avg,
+        validCount,
+        color: getScoreColor(avg)
+      };
+    })
+    // Only include questions that have at least one response
+    .filter(item => item.validCount > 0)
+    .sort((a, b) => a.average - b.average);
+    
+    console.log('All averages with data:', results);
+    return results;
   };
 
   const getDemographicBreakdown = (field: keyof Pick<SurveyResponse, 'continent' | 'division' | 'role'>) => {
@@ -654,30 +692,47 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
           <Card>
             <CardHeader>
               <CardTitle>All Survey Questions - Ranked by Score</CardTitle>
-              <p className="text-sm text-muted-foreground">Comprehensive view of all 15 rating questions</p>
+              <p className="text-sm text-muted-foreground">
+                Showing {averagesByQuestion.length} questions with response data ({filteredResponses.length} total responses)
+              </p>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={{}} className="h-[700px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={averagesByQuestion} layout="horizontal" margin={{ left: 220, right: 40, top: 20, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" domain={[0, 5]} />
-                    <YAxis 
-                      dataKey="question" 
-                      type="category" 
-                      width={210}
-                      tick={{ fontSize: 11 }}
-                      interval={0}
-                    />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="average" radius={4}>
-                      {averagesByQuestion.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
+              {averagesByQuestion.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  No question data available. Questions without responses are hidden.
+                </div>
+              ) : (
+                <ChartContainer config={{}} className="h-[700px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={averagesByQuestion} layout="horizontal" margin={{ left: 220, right: 40, top: 20, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis 
+                        type="number" 
+                        domain={[0, 5]} 
+                        ticks={[0, 1, 2, 3, 4, 5]}
+                        stroke="hsl(var(--foreground))"
+                      />
+                      <YAxis 
+                        dataKey="question" 
+                        type="category" 
+                        width={210}
+                        tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }}
+                        interval={0}
+                        stroke="hsl(var(--foreground))"
+                      />
+                      <ChartTooltip 
+                        content={<ChartTooltipContent />}
+                        cursor={{ fill: 'hsl(var(--muted))' }}
+                      />
+                      <Bar dataKey="average" radius={[0, 4, 4, 0]} minPointSize={5}>
+                        {averagesByQuestion.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
             </CardContent>
           </Card>
 
