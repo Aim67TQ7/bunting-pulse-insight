@@ -35,6 +35,7 @@ interface SurveyResponse {
   work_life_balance?: number;
   communication_clarity?: number;
   manager_alignment?: number;
+  leadership_openness?: number;
   us_uk_collaboration?: number;
   cross_functional_collaboration?: number;
   strategic_confidence?: number;
@@ -43,6 +44,7 @@ interface SurveyResponse {
   recommend_company?: number;
   manual_processes_focus?: number;
   comfortable_suggesting_improvements?: number;
+  failed_experiments_learning?: number;
   communication_preferences?: string[];
   motivation_factors?: string[];
   information_preferences?: string[];
@@ -71,7 +73,8 @@ const surveySections = [
     description: "Communication clarity and leadership effectiveness",
     questions: [
       { key: "communication_clarity", label: "Communication Clarity" },
-      { key: "manager_alignment", label: "Manager Business Alignment" }
+      { key: "manager_alignment", label: "Manager Business Alignment" },
+      { key: "leadership_openness", label: "Leadership Openness" }
     ],
     multiSelect: [
       { key: "communication_preferences", label: "Communication Preferences" }
@@ -101,10 +104,11 @@ const surveySections = [
   {
     id: "process-innovation",
     title: "Process Efficiency & Innovation",
-    description: "Process improvement and innovation comfort",
+    description: "Process improvement, innovation comfort, and learning from experiments",
     questions: [
       { key: "manual_processes_focus", label: "Focus on High-Impact Work" },
-      { key: "comfortable_suggesting_improvements", label: "Comfortable Suggesting Improvements" }
+      { key: "comfortable_suggesting_improvements", label: "Comfortable Suggesting Improvements" },
+      { key: "failed_experiments_learning", label: "Learning from Failed Experiments" }
     ]
   },
   {
