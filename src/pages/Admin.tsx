@@ -103,14 +103,52 @@ export const Admin = ({ onBack }: AdminProps) => {
               <img src={magnetLogo} alt="Magnet Applications" className="h-10" />
             </div>
             <h1 className="text-2xl font-bold text-foreground">Admin Panel</h1>
-            <Button 
-              variant="ghost" 
-              onClick={onBack}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeftIcon className="h-4 w-4" />
-              Back to Survey
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline"
+                onClick={async () => {
+                  const { jsPDF } = await import('jspdf');
+                  const QRCode = (await import('qrcode')).default;
+                  
+                  const doc = new jsPDF();
+                  const adminUrl = window.location.origin;
+                  
+                  // Add title
+                  doc.setFontSize(20);
+                  doc.setFont('helvetica', 'bold');
+                  doc.text('Bunting Magnetics', 105, 30, { align: 'center' });
+                  doc.text('Employee Survey', 105, 40, { align: 'center' });
+                  
+                  // Generate QR code
+                  const qrDataUrl = await QRCode.toDataURL(adminUrl, {
+                    width: 200,
+                    margin: 2,
+                  });
+                  
+                  // Add QR code to PDF (centered)
+                  doc.addImage(qrDataUrl, 'PNG', 55, 60, 100, 100);
+                  
+                  // Add instruction text
+                  doc.setFontSize(12);
+                  doc.setFont('helvetica', 'normal');
+                  doc.text('Scan to access the admin dashboard', 105, 175, { align: 'center' });
+                  
+                  // Save PDF
+                  doc.save('bunting-survey-qr.pdf');
+                }}
+                className="flex items-center gap-2"
+              >
+                Download QR Code
+              </Button>
+              <Button 
+                variant="ghost" 
+                onClick={onBack}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeftIcon className="h-4 w-4" />
+                Back to Survey
+              </Button>
+            </div>
           </div>
         </div>
       </header>

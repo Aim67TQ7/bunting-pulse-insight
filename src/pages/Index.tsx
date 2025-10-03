@@ -74,7 +74,7 @@ const Index = () => {
         </div>
 
         {/* Action Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        <div className="grid grid-cols-1 gap-8 mb-12 max-w-2xl mx-auto">
           <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
@@ -112,34 +112,6 @@ const Index = () => {
                   🔄 Admin Reset
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-warning/10 rounded-lg">
-                  <ShieldCheckIcon className="h-6 w-6 text-warning" />
-                </div>
-                <CardTitle>Admin Dashboard</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground">
-                Access the comprehensive survey results dashboard with detailed analytics, comments, and AI-powered insights. Admin authentication required.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">Secure</Badge>
-                <Badge variant="secondary">Analytics</Badge>
-                <Badge variant="secondary">AI Insights</Badge>
-              </div>
-              <Button 
-                onClick={() => setCurrentView("admin")}
-                variant="outline"
-                className="w-full group-hover:scale-[1.02] transition-transform"
-              >
-                🔐 Admin Access Required
-              </Button>
             </CardContent>
           </Card>
         </div>
