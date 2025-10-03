@@ -6,11 +6,13 @@ import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckIcon, AlertTriangleIcon, LoaderIcon, Globe } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CheckIcon, AlertTriangleIcon, LoaderIcon, Globe, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PrivacyNotice } from "./PrivacyNotice";
+import { QRCodeSVG } from 'qrcode.react';
 import buntingLogo from "@/assets/bunting-logo-2.png";
 import magnetApplicationsLogo from "@/assets/magnet-applications-logo-2.png";
 import northAmericaIcon from "@/assets/north-america-icon.png";
@@ -48,172 +50,184 @@ const languageContent: LanguageContent = {
     relayingInformation: "When I don't have access to email, my supervisor effectively relays important information.",
     managementFeedback: "I feel comfortable raising concerns or giving feedback to management.",
     training: "I received enough training to do my job safely and effectively.",
-    opportunities: "There are opportunities to develop new skills or advance in my career here.",
-    safetyFocus: "The company prioritizes safety in the workplace.",
-    safetyReporting: "I feel comfortable reporting unsafe conditions or practices.",
-    cooperation: "Team members cooperate and support each other to get the job done.",
-    morale: "How would you describe the morale on your shift or in your department?",
-    pride: "I feel pride in the company's products and services.",
-    workload: "The workload is reasonable for my position.",
-    workLifeBalance: "I have a good work-life balance.",
-    tools: "I have the right tools and equipment to do my job well.",
-    processes: "Processes are designed to maximize efficiency and quality.",
-    companyValue: "The company values the quality of its products and services.",
-    change: "One change that could improve my daily work experience.",
-    // Multi-select questions
-    communicationPreferences: "Which communication styles do you prefer?",
-    motivationFactorsQuestion: "Check any of the following that motivates you to stay with the company.",
-    informationPreferences: "What information would you like to receive more from the company?",
-    // Multi-select options
-    compensation: "Compensation",
-    benefitsPackage: "Benefit Package",
-    jobSatisfactionOpt: "Job Satisfaction",
-    thePeople: "The People",
-    growthOpportunities: "Growth Opportunities",
-    companyFuture: "Company's Future",
-    recognition: "Recognition",
-    otherOption: "Other",
-    // Generic low rating feedback prompt
-    lowRatingFeedback: "Please explain why you gave this rating and what could be improved.",
-    // Additional feedback
-    additionalComments: "Any additional comments or suggestions?",
-    // Follow-up prompts
-    jobSatisfactionFollowUp: "Please explain why you feel dissatisfied with your job.",
-    trainingFollowUp: "Please describe gaps in training or support you've experienced.",
-    workLifeBalanceFollowUp: "Please explain what affects your work-life balance.",
-    // Submit
-    submitSurvey: "Submit Survey",
-    next: "Next",
-    // Ratings
+    opportunities: "I have opportunities for growth and advancement within the company.",
+    cooperation: "There is good cooperation between different teams and departments.",
+    morale: "Employee morale is positive in my workplace.",
+    pride: "I feel a sense of pride working for this company.",
+    safetyFocus: "My workplace prioritizes employee safety.",
+    safetyReporting: "I feel comfortable reporting safety concerns.",
+    workload: "My workload is manageable.",
+    workLifeBalance: "I can maintain a healthy work-life balance.",
+    tools: "I have the tools and equipment I need to do my job effectively.",
+    processes: "Work processes and procedures are efficient and effective.",
+    companyValue: "The company values my contributions.",
+    change: "The company handles change and transitions effectively.",
+    // Feedback prompts
+    jobSatisfactionFollowUp: "Please explain what factors contribute to your job satisfaction or dissatisfaction:",
+    trainingFollowUp: "Please describe what additional training or resources would be helpful:",
+    workLifeBalanceFollowUp: "Please explain what impacts your work-life balance:",
+    lowRatingFeedback: "Please explain why you gave this rating and what could be improved:",
+    // Rating Scale
     stronglyDisagree: "Strongly Disagree",
     disagree: "Disagree",
     neutral: "Neutral",
     agree: "Agree",
-    stronglyAgree: "Strongly Agree"
+    stronglyAgree: "Strongly Agree",
+    // Multi-select questions
+    communicationPreferences: "Which communication styles do you prefer?",
+    informationPreferences: "What information would you like to receive more from the company?",
+    motivationFactors: "Check any of the following that motivates you to stay with the company.",
+    // Multi-select options
+    companywideEmails: "Companywide emails",
+    quarterlyTownHalls: "Quarterly Town halls",
+    companyIntranet: "Company Intranet",
+    digitalSignage: "Digital Signage",
+    printedSignage: "Printed Signage",
+    teamMeetings: "Team meetings",
+    communicationTransparency: "Communication and transparency",
+    strategicDirection: "Strategic direction",
+    financialIncentives: "Financial incentives",
+    performanceMetrics: "Performance metrics",
+    compensation: "Compensation",
+    benefitsPackage: "Benefit Package",
+    jobSatisfactionOption: "Job Satisfaction",
+    thePeople: "The People",
+    growthOpportunities: "Growth Opportunities",
+    companyFuture: "Company's Future",
+    recognition: "Recognition",
+    otherOption: "Other"
   },
   es: {
-    title: "Encuesta de Compromiso del Empleado",
+    title: "Encuesta de compromiso de los empleados",
     subtitle: "Sus comentarios nos ayudan a mejorar nuestra cultura laboral",
     languageLabel: "Idioma",
-    getStarted: "Comenzar",
-    privacyNotice: "Aviso de Privacidad",
-    // Demographics
-    locationQuestion: "¿En qué división trabajas?",
-    roleQuestion: "¿Cuál es tu nivel de puesto?",
+    getStarted: "Empezar",
+    privacyNotice: "Aviso de privacidad",
+    locationQuestion: "¿En qué división trabaja?",
+    roleQuestion: "¿Cuál es su nivel de función?",
     magnetics: "Magnéticos",
-    equipment: "Equipos",
+    equipment: "Equipo",
     other: "Otro",
     operationsDistribution: "Operaciones y Distribución",
     engineeringServices: "Ingeniería y Servicios",
     salesFinance: "Ventas y Finanzas",
     adminManagement: "Administración y Gestión",
-    // Rating questions
     jobSatisfaction: "Estoy satisfecho con mi puesto y responsabilidades actuales.",
     companySatisfaction: "Recomendaría esta empresa como un buen lugar para trabajar.",
-    futureView: "Me veo trabajando aquí en los próximos 2 años.",
-    expectations: "Los supervisores/gerentes comunican las expectativas con claridad.",
-    performanceAwareness: "El liderazgo es eficaz en mantenerme informado sobre el desempeño de la empresa.",
-    relayingInformation: "Cuando no tengo acceso al correo electrónico, mi supervisor transmite la información importante de manera eficaz.",
+    futureView: "Me veo trabajando aquí en 2 años.",
+    expectations: "Los supervisores/gerentes comunican las expectativas claramente.",
+    performanceAwareness: "El liderazgo es efectivo manteniéndome informado sobre el desempeño de la empresa.",
+    relayingInformation: "Cuando no tengo acceso al correo electrónico, mi supervisor transmite información importante de manera efectiva.",
     managementFeedback: "Me siento cómodo planteando inquietudes o dando comentarios a la gerencia.",
-    training: "Recibí suficiente capacitación para realizar mi trabajo de manera segura y eficaz.",
-    opportunities: "Hay oportunidades para desarrollar nuevas habilidades o avanzar en mi carrera aquí.",
-    safetyFocus: "La empresa prioriza la seguridad en el lugar de trabajo.",
-    safetyReporting: "Me siento cómodo informando sobre condiciones o prácticas inseguras.",
-    cooperation: "Los miembros del equipo cooperan y se apoyan entre sí para realizar el trabajo.",
-    morale: "¿Cómo describirías la moral en tu turno o en tu departamento?",
-    pride: "Siento orgullo por los productos y servicios de la empresa.",
-    workload: "La carga de trabajo es razonable para mi puesto.",
-    workLifeBalance: "Tengo un buen equilibrio entre trabajo y vida personal.",
-    tools: "Tengo las herramientas y el equipo adecuados para hacer bien mi trabajo.",
-    processes: "Los procesos están diseñados para maximizar la eficiencia y la calidad.",
-    companyValue: "La empresa valora la calidad de sus productos y servicios.",
-    change: "Un cambio que podría mejorar mi experiencia laboral diaria.",
-    // Multi-select questions
-    motivationFactorsQuestion: "Marque cualquiera de los siguientes que lo motive a permanecer en la empresa.",
-    // Multi-select options
-    compensation: "Compensación",
-    benefitsPackage: "Paquete de beneficios",
-    jobSatisfactionOpt: "Satisfacción laboral",
-    thePeople: "La gente",
-    growthOpportunities: "Oportunidades de crecimiento",
-    companyFuture: "Futuro de la empresa",
-    recognition: "Reconocimiento",
-    otherOption: "Otro",
-    // Generic low rating feedback prompt
-    lowRatingFeedback: "Por favor, explique por qué dio esta calificación y qué se podría mejorar.",
-    additionalComments: "¿Algún comentario o sugerencia adicional?",
-    jobSatisfactionFollowUp: "Por favor, explique por qué se siente insatisfecho con su trabajo.",
-    trainingFollowUp: "Describa las deficiencias en la capacitación o el apoyo que ha experimentado.",
-    workLifeBalanceFollowUp: "Por favor, explique qué afecta su equilibrio entre trabajo y vida personal.",
-    submitSurvey: "Enviar Encuesta",
-    next: "Siguiente",
+    training: "Recibí suficiente capacitación para hacer mi trabajo de manera segura y efectiva.",
+    opportunities: "Tengo oportunidades de crecimiento y avance dentro de la empresa.",
+    cooperation: "Existe buena cooperación entre diferentes equipos y departamentos.",
+    morale: "La moral de los empleados es positiva en mi lugar de trabajo.",
+    pride: "Siento orgullo de trabajar para esta empresa.",
+    safetyFocus: "Mi lugar de trabajo prioriza la seguridad de los empleados.",
+    safetyReporting: "Me siento cómodo reportando inquietudes de seguridad.",
+    workload: "Mi carga de trabajo es manejable.",
+    workLifeBalance: "Puedo mantener un equilibrio saludable entre el trabajo y la vida personal.",
+    tools: "Tengo las herramientas y el equipo que necesito para hacer mi trabajo efectivamente.",
+    processes: "Los procesos y procedimientos de trabajo son eficientes y efectivos.",
+    companyValue: "La empresa valora mis contribuciones.",
+    change: "La empresa maneja el cambio y las transiciones efectivamente.",
+    jobSatisfactionFollowUp: "Por favor explique qué factores contribuyen a su satisfacción o insatisfacción laboral:",
+    trainingFollowUp: "Por favor describa qué capacitación o recursos adicionales serían útiles:",
+    workLifeBalanceFollowUp: "Por favor explique qué impacta su equilibrio entre el trabajo y la vida personal:",
+    lowRatingFeedback: "Por favor, explique por qué dio esta calificación y qué se podría mejorar:",
     stronglyDisagree: "Totalmente en desacuerdo",
     disagree: "En desacuerdo",
     neutral: "Neutral",
     agree: "De acuerdo",
-    stronglyAgree: "Totalmente de acuerdo"
+    stronglyAgree: "Totalmente de acuerdo",
+    communicationPreferences: "¿Qué estilos de comunicación prefieres?",
+    informationPreferences: "¿Qué información te gustaría recibir más de la empresa?",
+    motivationFactors: "Marque cualquiera de los siguientes que lo motive a permanecer en la empresa.",
+    companywideEmails: "Correos electrónicos para toda la empresa",
+    quarterlyTownHalls: "Reuniones trimestrales",
+    companyIntranet: "Intranet de la empresa",
+    digitalSignage: "Señalización digital",
+    printedSignage: "Señalización impresa",
+    teamMeetings: "Reuniones de equipo",
+    communicationTransparency: "Comunicación y transparencia",
+    strategicDirection: "Dirección estratégica",
+    financialIncentives: "Incentivos financieros",
+    performanceMetrics: "Métricas de rendimiento",
+    compensation: "Compensación",
+    benefitsPackage: "Paquete de beneficios",
+    jobSatisfactionOption: "Satisfacción laboral",
+    thePeople: "La gente",
+    growthOpportunities: "Oportunidades de crecimiento",
+    companyFuture: "Futuro de la empresa",
+    recognition: "Reconocimiento",
+    otherOption: "Otro"
   },
   fr: {
     title: "Enquête d'engagement des employés",
-    subtitle: "Vos commentaires nous aident à améliorer notre culture d'entreprise",
+    subtitle: "Vos commentaires nous aident à améliorer notre culture de travail",
     languageLabel: "Langue",
     getStarted: "Commencer",
     privacyNotice: "Avis de confidentialité",
-    // Demographics
-    locationQuestion: "Dans quelle division travaillez-vous ?",
-    roleQuestion: "Quel est votre niveau de poste ?",
+    locationQuestion: "Dans quelle division travaillez-vous?",
+    roleQuestion: "Quel est votre niveau de rôle?",
     magnetics: "Magnétiques",
-    equipment: "Équipements",
+    equipment: "Équipement",
     other: "Autre",
     operationsDistribution: "Opérations et Distribution",
     engineeringServices: "Ingénierie et Services",
-    salesFinance: "Ventes et Finances",
+    salesFinance: "Ventes et Finance",
     adminManagement: "Administration et Gestion",
-    // Rating questions
-    jobSatisfaction: "Je suis satisfait de mon rôle et de mes responsabilités actuelles.",
-    companySatisfaction: "Je recommanderais cette entreprise comme un bon endroit où travailler.",
+    jobSatisfaction: "Je suis satisfait de mon rôle et de mes responsabilités actuels.",
+    companySatisfaction: "Je recommanderais cette entreprise comme un bon endroit pour travailler.",
     futureView: "Je me vois travailler ici dans 2 ans.",
     expectations: "Les superviseurs/gestionnaires communiquent clairement les attentes.",
-    performanceAwareness: "La direction est efficace pour me tenir informé de la performance de l'entreprise.",
-    relayingInformation: "Quand je n'ai pas accès aux e-mails, mon superviseur transmet efficacement les informations importantes.",
-    managementFeedback: "Je me sens à l'aise de soulever des préoccupations ou de donner des retours à la direction.",
-    training: "J'ai reçu une formation suffisante pour effectuer mon travail en toute sécurité et efficacement.",
-    opportunities: "Il y a des opportunités pour développer de nouvelles compétences ou progresser dans ma carrière ici.",
-    safetyFocus: "L'entreprise donne la priorité à la sécurité au travail.",
-    safetyReporting: "Je me sens à l'aise de signaler des conditions ou pratiques dangereuses.",
-    cooperation: "Les membres de l'équipe coopèrent et se soutiennent mutuellement pour accomplir le travail.",
-    morale: "Comment décririez-vous le moral dans votre équipe ou département ?",
-    pride: "Je ressens de la fierté pour les produits et services de l'entreprise.",
-    workload: "La charge de travail est raisonnable pour mon poste.",
-    workLifeBalance: "J'ai un bon équilibre entre vie professionnelle et vie personnelle.",
-    tools: "J'ai les bons outils et équipements pour bien faire mon travail.",
-    processes: "Les processus sont conçus pour maximiser l'efficacité et la qualité.",
-    companyValue: "L'entreprise valorise la qualité de ses produits et services.",
-    change: "Un changement qui pourrait améliorer mon expérience de travail quotidienne.",
-    // Multi-select questions
-    motivationFactorsQuestion: "Cochez tout ce qui suit qui vous motive à rester dans l'entreprise.",
-    // Multi-select options
-    compensation: "Rémunération",
-    benefitsPackage: "Ensemble des avantages",
-    jobSatisfactionOpt: "Satisfaction au travail",
-    thePeople: "Les collègues",
-    growthOpportunities: "Opportunités de croissance",
-    companyFuture: "Avenir de l'entreprise",
-    recognition: "Reconnaissance",
-    otherOption: "Autre",
-    // Generic low rating feedback prompt
-    lowRatingFeedback: "Veuillez expliquer pourquoi vous avez donné cette note et ce qui pourrait être amélioré.",
-    additionalComments: "Des commentaires ou suggestions supplémentaires ?",
-    jobSatisfactionFollowUp: "Veuillez expliquer pourquoi vous êtes insatisfait de votre travail.",
-    trainingFollowUp: "Veuillez décrire les lacunes de formation ou de soutien que vous avez rencontrées.",
-    workLifeBalanceFollowUp: "Veuillez expliquer ce qui affecte votre équilibre travail-vie personnelle.",
-    submitSurvey: "Soumettre l'enquête",
-    next: "Suivant",
-    stronglyDisagree: "Tout à fait en désaccord",
+    performanceAwareness: "Le leadership est efficace pour me tenir informé de la performance de l'entreprise.",
+    relayingInformation: "Quand je n'ai pas accès au courrier électronique, mon superviseur transmet efficacement les informations importantes.",
+    managementFeedback: "Je me sens à l'aise pour soulever des préoccupations ou donner des commentaires à la direction.",
+    training: "J'ai reçu suffisamment de formation pour faire mon travail de manière sûre et efficace.",
+    opportunities: "J'ai des opportunités de croissance et d'avancement au sein de l'entreprise.",
+    cooperation: "Il y a une bonne coopération entre les différentes équipes et départements.",
+    morale: "Le moral des employés est positif dans mon lieu de travail.",
+    pride: "Je suis fier de travailler pour cette entreprise.",
+    safetyFocus: "Mon lieu de travail priorise la sécurité des employés.",
+    safetyReporting: "Je me sens à l'aise pour signaler des préoccupations de sécurité.",
+    workload: "Ma charge de travail est gérable.",
+    workLifeBalance: "Je peux maintenir un équilibre sain entre travail et vie personnelle.",
+    tools: "J'ai les outils et l'équipement dont j'ai besoin pour faire mon travail efficacement.",
+    processes: "Les processus et procédures de travail sont efficaces et performants.",
+    companyValue: "L'entreprise valorise mes contributions.",
+    change: "L'entreprise gère efficacement le changement et les transitions.",
+    jobSatisfactionFollowUp: "Veuillez expliquer quels facteurs contribuent à votre satisfaction ou insatisfaction au travail:",
+    trainingFollowUp: "Veuillez décrire quelle formation ou ressources supplémentaires seraient utiles:",
+    workLifeBalanceFollowUp: "Veuillez expliquer ce qui impacte votre équilibre travail-vie personnelle:",
+    lowRatingFeedback: "Veuillez expliquer pourquoi vous avez donné cette note et ce qui pourrait être amélioré:",
+    stronglyDisagree: "Fortement en désaccord",
     disagree: "En désaccord",
     neutral: "Neutre",
     agree: "D'accord",
-    stronglyAgree: "Tout à fait d'accord"
+    stronglyAgree: "Fortement d'accord",
+    communicationPreferences: "Quels styles de communication préférez-vous?",
+    informationPreferences: "Quelles informations aimeriez-vous recevoir davantage de l'entreprise?",
+    motivationFactors: "Cochez tout ce qui suit qui vous motive à rester dans l'entreprise.",
+    companywideEmails: "Courriels à l'échelle de l'entreprise",
+    quarterlyTownHalls: "Assemblées publiques trimestrielles",
+    companyIntranet: "Intranet de l'entreprise",
+    digitalSignage: "Signalisation numérique",
+    printedSignage: "Signalisation imprimée",
+    teamMeetings: "Réunions d'équipe",
+    communicationTransparency: "Communication et transparence",
+    strategicDirection: "Direction stratégique",
+    financialIncentives: "Incitatifs financiers",
+    performanceMetrics: "Métriques de performance",
+    compensation: "Rémunération",
+    benefitsPackage: "Ensemble des avantages",
+    jobSatisfactionOption: "Satisfaction au travail",
+    thePeople: "Les collègues / Les gens",
+    growthOpportunities: "Opportunités de croissance",
+    companyFuture: "Avenir de l'entreprise",
+    recognition: "Reconnaissance",
+    otherOption: "Autre"
   },
   it: {
     title: "Sondaggio sul coinvolgimento dei dipendenti",
@@ -221,69 +235,67 @@ const languageContent: LanguageContent = {
     languageLabel: "Lingua",
     getStarted: "Inizia",
     privacyNotice: "Informativa sulla privacy",
-    // Demographics
     locationQuestion: "In quale divisione lavori?",
     roleQuestion: "Qual è il tuo livello di ruolo?",
     magnetics: "Magnetici",
-    equipment: "Attrezzature",
+    equipment: "Attrezzatura",
     other: "Altro",
     operationsDistribution: "Operazioni e Distribuzione",
     engineeringServices: "Ingegneria e Servizi",
     salesFinance: "Vendite e Finanza",
     adminManagement: "Amministrazione e Gestione",
-    // Rating questions
     jobSatisfaction: "Sono soddisfatto del mio ruolo e delle mie responsabilità attuali.",
-    companySatisfaction: "Raccomanderei questa azienda come un buon posto di lavoro.",
-    futureView: "Mi vedo a lavorare qui nei prossimi 2 anni.",
+    companySatisfaction: "Consiglierei questa azienda come un buon posto di lavoro.",
+    futureView: "Mi vedo lavorare qui tra 2 anni.",
     expectations: "I supervisori/manager comunicano chiaramente le aspettative.",
-    performanceAwareness: "La leadership è efficace nel tenermi informato sulle prestazioni dell'azienda.",
-    relayingInformation: "Quando non ho accesso alle email, il mio supervisore trasmette le informazioni importanti in modo efficace.",
-    managementFeedback: "Mi sento a mio agio nell'esprimere preoccupazioni o fornire feedback alla direzione.",
+    performanceAwareness: "La leadership è efficace nel tenermi informato sulle prestazioni aziendali.",
+    relayingInformation: "Quando non ho accesso alla posta elettronica, il mio supervisore trasmette efficacemente le informazioni importanti.",
+    managementFeedback: "Mi sento a mio agio nel sollevare preoccupazioni o dare feedback alla direzione.",
     training: "Ho ricevuto una formazione sufficiente per svolgere il mio lavoro in modo sicuro ed efficace.",
-    opportunities: "Ci sono opportunità per sviluppare nuove competenze o avanzare nella mia carriera qui.",
-    safetyFocus: "L'azienda dà priorità alla sicurezza sul posto di lavoro.",
-    safetyReporting: "Mi sento a mio agio nel segnalare condizioni o pratiche non sicure.",
-    cooperation: "I membri del team collaborano e si supportano a vicenda per portare a termine il lavoro.",
-    morale: "Come descriveresti il morale nel tuo turno o nel tuo reparto?",
-    pride: "Provo orgoglio per i prodotti e servizi dell'azienda.",
-    workload: "Il carico di lavoro è ragionevole per la mia posizione.",
-    workLifeBalance: "Ho un buon equilibrio tra lavoro e vita privata.",
-    tools: "Ho gli strumenti e le attrezzature giuste per svolgere bene il mio lavoro.",
-    processes: "I processi sono progettati per massimizzare l'efficienza e la qualità.",
-    companyValue: "L'azienda valorizza la qualità dei suoi prodotti e servizi.",
-    change: "Un cambiamento che potrebbe migliorare la mia esperienza lavorativa quotidiana.",
-    // Multi-select questions
-    motivationFactorsQuestion: "Seleziona uno o più dei seguenti motivi che ti incoraggiano a rimanere in azienda.",
-    // Multi-select options
+    opportunities: "Ho opportunità di crescita e avanzamento all'interno dell'azienda.",
+    cooperation: "C'è buona cooperazione tra i diversi team e dipartimenti.",
+    morale: "Il morale dei dipendenti è positivo nel mio posto di lavoro.",
+    pride: "Sono orgoglioso di lavorare per questa azienda.",
+    safetyFocus: "Il mio posto di lavoro dà priorità alla sicurezza dei dipendenti.",
+    safetyReporting: "Mi sento a mio agio nel segnalare problemi di sicurezza.",
+    workload: "Il mio carico di lavoro è gestibile.",
+    workLifeBalance: "Posso mantenere un sano equilibrio tra lavoro e vita privata.",
+    tools: "Ho gli strumenti e le attrezzature di cui ho bisogno per svolgere il mio lavoro in modo efficace.",
+    processes: "I processi e le procedure di lavoro sono efficienti ed efficaci.",
+    companyValue: "L'azienda valorizza i miei contributi.",
+    change: "L'azienda gestisce efficacemente i cambiamenti e le transizioni.",
+    jobSatisfactionFollowUp: "Si prega di spiegare quali fattori contribuiscono alla vostra soddisfazione o insoddisfazione lavorativa:",
+    trainingFollowUp: "Si prega di descrivere quale formazione o risorse aggiuntive sarebbero utili:",
+    workLifeBalanceFollowUp: "Si prega di spiegare cosa influenza il vostro equilibrio tra lavoro e vita privata:",
+    lowRatingFeedback: "Per favore, spiega perché hai dato questo punteggio e cosa potrebbe essere migliorato:",
+    stronglyDisagree: "Fortemente in disaccordo",
+    disagree: "In disaccordo",
+    neutral: "Neutrale",
+    agree: "D'accordo",
+    stronglyAgree: "Fortemente d'accordo",
+    communicationPreferences: "Quali stili di comunicazione preferisci?",
+    informationPreferences: "Quali informazioni vorresti ricevere maggiormente dall'azienda?",
+    motivationFactors: "Seleziona uno o più dei seguenti motivi che ti incoraggiano a rimanere in azienda.",
+    companywideEmails: "Email aziendali",
+    quarterlyTownHalls: "Riunioni aziendali trimestrali",
+    companyIntranet: "Intranet aziendale",
+    digitalSignage: "Segnaletica digitale",
+    printedSignage: "Segnaletica stampata",
+    teamMeetings: "Riunioni di team",
+    communicationTransparency: "Comunicazione e trasparenza",
+    strategicDirection: "Direzione strategica",
+    financialIncentives: "Incentivi finanziari",
+    performanceMetrics: "Metriche di prestazione",
     compensation: "Retribuzione",
     benefitsPackage: "Pacchetto di benefici",
-    jobSatisfactionOpt: "Soddisfazione lavorativa",
+    jobSatisfactionOption: "Soddisfazione lavorativa",
     thePeople: "Le persone",
     growthOpportunities: "Opportunità di crescita",
     companyFuture: "Futuro dell'azienda",
     recognition: "Riconoscimento",
-    otherOption: "Altro",
-    // Generic low rating feedback prompt
-    lowRatingFeedback: "Per favore, spiega perché hai dato questo punteggio e cosa potrebbe essere migliorato.",
-    additionalComments: "Ulteriori commenti o suggerimenti?",
-    jobSatisfactionFollowUp: "Per favore, spiega perché ti senti insoddisfatto del tuo lavoro.",
-    trainingFollowUp: "Descrivi le lacune nella formazione o nel supporto che hai sperimentato.",
-    workLifeBalanceFollowUp: "Per favore, spiega cosa influisce sul tuo equilibrio tra lavoro e vita privata.",
-    submitSurvey: "Invia sondaggio",
-    next: "Avanti",
-    stronglyDisagree: "Completamente in disaccordo",
-    disagree: "In disaccordo",
-    neutral: "Neutro",
-    agree: "D'accordo",
-    stronglyAgree: "Completamente d'accordo"
+    otherOption: "Altro"
   }
 };
-
-interface DemographicQuestion {
-  id: string;
-  text: string;
-  options: { value: string; label: string }[];
-}
 
 interface RatingQuestion {
   id: string;
@@ -292,6 +304,54 @@ interface RatingQuestion {
   feedbackPrompt: string;
 }
 
+interface DemographicQuestion {
+  id: string;
+  text: string;
+  options: { value: string; label: string }[];
+}
+
+const getMultiSelectQuestions = (language: string) => [
+  {
+    id: "communication-preferences",
+    text: languageContent[language].communicationPreferences,
+    section: "Leadership & Communication",
+    options: [
+      { value: "companywide-emails", label: languageContent[language].companywideEmails },
+      { value: "quarterly-town-halls", label: languageContent[language].quarterlyTownHalls },
+      { value: "company-intranet", label: languageContent[language].companyIntranet },
+      { value: "digital-signage", label: languageContent[language].digitalSignage },
+      { value: "printed-signage", label: languageContent[language].printedSignage },
+      { value: "team-meetings", label: languageContent[language].teamMeetings }
+    ]
+  },
+  {
+    id: "motivation-factors",
+    text: languageContent[language].motivationFactors,
+    section: "Engagement & Job Satisfaction",
+    options: [
+      { value: "compensation", label: languageContent[language].compensation },
+      { value: "benefits-package", label: languageContent[language].benefitsPackage },
+      { value: "job-satisfaction", label: languageContent[language].jobSatisfactionOption },
+      { value: "the-people", label: languageContent[language].thePeople },
+      { value: "growth-opportunities", label: languageContent[language].growthOpportunities },
+      { value: "company-future", label: languageContent[language].companyFuture },
+      { value: "recognition", label: languageContent[language].recognition },
+      { value: "other", label: languageContent[language].otherOption }
+    ]
+  },
+  {
+    id: "information-preferences",
+    text: languageContent[language].informationPreferences,
+    section: "Workplace Experience",
+    options: [
+      { value: "communication-transparency", label: languageContent[language].communicationTransparency },
+      { value: "strategic-direction", label: languageContent[language].strategicDirection },
+      { value: "financial-incentives", label: languageContent[language].financialIncentives },
+      { value: "performance-metrics", label: languageContent[language].performanceMetrics }
+    ]
+  }
+];
+
 interface MultiSelectQuestion {
   id: string;
   text: string;
@@ -299,68 +359,6 @@ interface MultiSelectQuestion {
   options: { value: string; label: string }[];
 }
 
-const multiSelectQuestions: MultiSelectQuestion[] = [
-  {
-    id: "communication-preferences",
-    text: "Which communication styles do you prefer?",
-    section: "Leadership & Communication",
-    options: [
-      { value: "companywide-emails", label: "Companywide emails" },
-      { value: "quarterly-town-halls", label: "Quarterly Town halls" },
-      { value: "company-intranet", label: "Company Intranet" },
-      { value: "digital-signage", label: "Digital Signage" },
-      { value: "printed-signage", label: "Printed Signage" },
-      { value: "team-meetings", label: "Team meetings" }
-    ]
-  },
-  {
-    id: "motivation-factors",
-    text: "What motivates you to stay with the company?",
-    section: "Engagement & Job Satisfaction",
-    options: [
-      { value: "compensation", label: "Compensation" },
-      { value: "benefits-package", label: "Benefits package" },
-      { value: "job-satisfaction", label: "Job satisfaction" },
-      { value: "the-people", label: "The people" },
-      { value: "growth-opportunities", label: "Growth opportunities" },
-      { value: "company-future", label: "Company's future" }
-    ]
-  },
-  {
-    id: "information-preferences",
-    text: "What information would you like to receive more from the company?",
-    section: "Workplace Experience",
-    options: [
-      { value: "communication-transparency", label: "Communication and transparency" },
-      { value: "strategic-direction", label: "Strategic direction" },
-      { value: "financial-incentives", label: "Financial incentives" },
-      { value: "operational-updates", label: "Operational updates" },
-      { value: "interdepartmental-knowledge", label: "Interdepartmental knowledge" },
-      { value: "career-development", label: "Career development" },
-      { value: "it-systems", label: "IT systems" }
-    ]
-  }
-];
-
-const getMultiSelectQuestions = (language: string) => [
-  {
-    id: "motivation-factors",
-    text: languageContent[language].motivationFactorsQuestion,
-    section: "Collaboration & Cross-Functional Work",
-    options: [
-      { value: "compensation", label: languageContent[language].compensation },
-      { value: "benefits-package", label: languageContent[language].benefitsPackage },
-      { value: "job-satisfaction", label: languageContent[language].jobSatisfactionOpt },
-      { value: "the-people", label: languageContent[language].thePeople },
-      { value: "growth-opportunities", label: languageContent[language].growthOpportunities },
-      { value: "company-future", label: languageContent[language].companyFuture },
-      { value: "recognition", label: languageContent[language].recognition },
-      { value: "other", label: languageContent[language].otherOption }
-    ]
-  }
-];
-
-// Updated rating questions based on new document
 const getRatingQuestions = (language: string): RatingQuestion[] => [
   // Engagement & Job Satisfaction
   {
@@ -499,28 +497,6 @@ const getRatingQuestions = (language: string): RatingQuestion[] => [
 
 const getDemographicQuestions = (language: string): DemographicQuestion[] => [
   {
-    id: "division",
-    text: languageContent[language].locationQuestion,
-    options: [
-      { value: "magnetics", label: languageContent[language].magnetics },
-      { value: "equipment", label: languageContent[language].equipment },
-      { value: "other", label: languageContent[language].other }
-    ]
-  },
-  {
-    id: "role",
-    text: languageContent[language].roleQuestion,
-    options: [
-      { value: "operations-distribution", label: languageContent[language].operationsDistribution },
-      { value: "engineering-services", label: languageContent[language].engineeringServices },
-      { value: "sales-finance", label: languageContent[language].salesFinance },
-      { value: "admin-management", label: languageContent[language].adminManagement }
-    ]
-  }
-];
-
-const demographicQuestions: DemographicQuestion[] = [
-  {
     id: "continent",
     text: "Which Continent is your primary work location?",
     options: [
@@ -533,7 +509,7 @@ const demographicQuestions: DemographicQuestion[] = [
     text: "Which Division of Bunting do you work in?",
     options: [
       { value: "equipment", label: "Equipment" },
-      { value: "magnets", label: "Magnets" },
+      { value: "magnetics", label: "Magnetics" },
       { value: "both", label: "Both" }
     ]
   },
@@ -565,11 +541,10 @@ const getRatingLabels = (language: string) => ({
   5: languageContent[language].stronglyAgree
 });
 
-type SurveySection = "demographics" | "ratings" | "complete";
+type SurveySection = "landing" | "survey" | "complete";
 
 export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }) {
-  const [currentSection, setCurrentSection] = useState<SurveySection>("demographics");
-  const [currentDemographicIndex, setCurrentDemographicIndex] = useState(0);
+  const [currentSection, setCurrentSection] = useState<SurveySection>("landing");
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [ratingResponses, setRatingResponses] = useState<Record<string, number>>({});
   const [feedbackResponses, setFeedbackResponses] = useState<Record<string, string>>({});
@@ -581,6 +556,9 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   const [submissionCount, setSubmissionCount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [language, setLanguage] = useState<'en' | 'es' | 'fr' | 'it'>('en');
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [showQRCode, setShowQRCode] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -588,18 +566,67 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     setSubmissionCount(count);
   }, []);
 
+  // Timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (startTime && !isComplete) {
+      interval = setInterval(() => {
+        setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [startTime, isComplete]);
+
+  const startSurvey = () => {
+    setStartTime(Date.now());
+    setCurrentSection("survey");
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const downloadQRCode = () => {
+    const svg = document.getElementById('survey-qr-code');
+    if (!svg) return;
+    
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx?.drawImage(img, 0, 0);
+      const pngFile = canvas.toDataURL('image/png');
+      
+      const downloadLink = document.createElement('a');
+      downloadLink.download = 'survey-qr-code.png';
+      downloadLink.href = pngFile;
+      downloadLink.click();
+    };
+    
+    img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+  };
+
   // Reset function for testing purposes
   const resetSurveyData = () => {
     localStorage.removeItem("survey-submissions");
     localStorage.removeItem("survey-data");
     setSubmissionCount(0);
     setIsComplete(false);
+    setCurrentSection("landing");
     setResponses({});
     setRatingResponses({});
     setFeedbackResponses({});
+    setMultiSelectResponses({});
     setCollaborationFeedback("");
+    setStartTime(null);
+    setElapsedTime(0);
     setAdditionalComments("");
-    setCurrentSection("demographics");
     toast({
       title: "Survey data reset",
       description: "You can now take the survey again for testing.",
@@ -618,28 +645,13 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     return getDemographicQuestions(language).length + getRatingQuestions(language).length + getMultiSelectQuestions(language).length;
   };
 
-  const getCurrentQuestionNumber = () => {
-    if (currentSection === "demographics") {
-      return currentDemographicIndex + 1;
-    } else if (currentSection === "ratings") {
-      const ratingCount = Object.keys(ratingResponses).length;
-      const multiSelectCount = Object.keys(multiSelectResponses).length;
-      return getDemographicQuestions(language).length + ratingCount + multiSelectCount + 1;
-    }
-    return getTotalQuestions();
-  };
+  const progress = ((Object.keys(responses).length + Object.keys(ratingResponses).length + Object.keys(multiSelectResponses).length) / getTotalQuestions()) * 100;
 
-  const progress = (getCurrentQuestionNumber() / getTotalQuestions()) * 100;
-
-  const handleDemographicResponse = (value: string) => {
-    const questionId = getDemographicQuestions(language)[currentDemographicIndex].id;
-    setResponses(prev => ({ ...prev, [questionId]: value }));
-    
-    if (currentDemographicIndex < getDemographicQuestions(language).length - 1) {
-      setCurrentDemographicIndex(prev => prev + 1);
-    } else {
-      setCurrentSection("ratings");
-    }
+  const handleDemographicResponse = (questionId: string, value: string) => {
+    setResponses(prev => ({
+      ...prev,
+      [questionId]: value
+    }));
   };
 
   const handleRatingResponse = (questionId: string, rating: number) => {
@@ -655,34 +667,21 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   };
 
   const isAllQuestionsAnswered = () => {
-    const allRatingsAnswered = Object.keys(ratingResponses).length === getRatingQuestions(language).length;
-    const allMultiSelectAnswered = Object.keys(multiSelectResponses).length === getMultiSelectQuestions(language).length;
+    const allDemographicsAnswered = getDemographicQuestions(language).every(q => responses[q.id] !== undefined);
+    const allRatingsAnswered = getRatingQuestions(language).every(q => ratingResponses[q.id] !== undefined);
+    const allLowRatingsFeedbackProvided = getRatingQuestions(language)
+      .filter(q => ratingResponses[q.id] <= 2)
+      .every(q => feedbackResponses[q.id]?.trim());
     
-    // Check that all low ratings (1 or 2) have feedback
-    const lowRatingQuestions = Object.entries(ratingResponses).filter(([_, rating]) => rating <= 2);
-    const allLowRatingsHaveFeedback = lowRatingQuestions.every(([questionId, _]) => {
-      const feedback = feedbackResponses[questionId];
-      return feedback && feedback.trim().length > 0;
-    });
-    
-    return allRatingsAnswered && allMultiSelectAnswered && allLowRatingsHaveFeedback;
+    return allDemographicsAnswered && allRatingsAnswered && allLowRatingsFeedbackProvided;
   };
 
   const handleSubmit = async () => {
-    if (submissionCount >= 1) {
-      toast({
-        title: "Submission limit reached",
-        description: "You have already submitted this survey.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     if (!isAllQuestionsAnswered()) {
       toast({
         title: "Incomplete survey",
-        description: "Please answer all questions before submitting.",
-        variant: "destructive"
+        description: "Please answer all required questions and provide feedback for ratings of 1 or 2.",
+        variant: "destructive",
       });
       return;
     }
@@ -690,124 +689,158 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     setIsSubmitting(true);
 
     try {
-      // Generate unique session ID
-      const sessionId = crypto.randomUUID();
-
-      // Map responses to database columns with updated question IDs
       const surveyData = {
-        session_id: sessionId,
-        continent: 'N/A', // No longer collecting continent
-        division: responses.division === 'magnetics' ? 'Magnetics' : 
-                  responses.division === 'equipment' ? 'Equipment' : 'Other',
-        role: responses.role === 'operations-distribution' ? 'Operations & Distribution' :
-              responses.role === 'engineering-services' ? 'Engineering & Services' :
-              responses.role === 'sales-finance' ? 'Sales & Finance' : 'Admin & Management',
-        
-        // Rating responses - map new question IDs to database columns
-        job_satisfaction: ratingResponses['job-satisfaction'],
-        training_satisfaction: ratingResponses['training'],
-        work_life_balance: ratingResponses['work-life-balance'],
-        communication_clarity: ratingResponses['expectations'],
-        leadership_openness: ratingResponses['management-feedback'],
-        manager_alignment: ratingResponses['performance-awareness'],
-        us_uk_collaboration: null, // No longer in survey
-        cross_functional_collaboration: ratingResponses['cooperation'],
-        strategic_confidence: ratingResponses['company-satisfaction'],
-        advancement_opportunities: ratingResponses['opportunities'],
-        workplace_safety: ratingResponses['safety-focus'],
-        recommend_company: ratingResponses['company-satisfaction'],
-        
-        // Process efficiency
-        manual_processes_focus: ratingResponses['processes'],
-        comfortable_suggesting_improvements: ratingResponses['safety-reporting'],
-        failed_experiments_learning: null,
-        
-        // Multi-select responses
-        communication_preferences: [],
-        motivation_factors: multiSelectResponses['motivation-factors'] || [],
-        information_preferences: [],
-        
-        // Follow-up responses
-        follow_up_responses: feedbackResponses,
-        collaboration_feedback: collaborationFeedback || null,
-        additional_comments: additionalComments || null
+        continent: responses.continent,
+        division: responses.division,
+        role: responses.role,
+        completion_time_seconds: elapsedTime,
+        job_satisfaction: ratingResponses["job-satisfaction"],
+        company_satisfaction: ratingResponses["company-satisfaction"],
+        future_view: ratingResponses["future-view"],
+        expectations: ratingResponses["expectations"],
+        performance_awareness: ratingResponses["performance-awareness"],
+        relaying_information: ratingResponses["relaying-information"],
+        management_feedback: ratingResponses["management-feedback"],
+        training: ratingResponses["training"],
+        opportunities: ratingResponses["opportunities"],
+        cooperation: ratingResponses["cooperation"],
+        morale: ratingResponses["morale"],
+        pride: ratingResponses["pride"],
+        safety_focus: ratingResponses["safety-focus"],
+        safety_reporting: ratingResponses["safety-reporting"],
+        workload: ratingResponses["workload"],
+        work_life_balance: ratingResponses["work-life-balance"],
+        tools: ratingResponses["tools"],
+        processes: ratingResponses["processes"],
+        company_value: ratingResponses["company-value"],
+        change: ratingResponses["change"],
+        communication_preferences: multiSelectResponses["communication-preferences"] || [],
+        motivation_factors: multiSelectResponses["motivation-factors"] || [],
+        information_preferences: multiSelectResponses["information-preferences"] || [],
+        job_satisfaction_comment: feedbackResponses["job-satisfaction"] || "",
+        training_comment: feedbackResponses["training"] || "",
+        work_life_balance_comment: feedbackResponses["work-life-balance"] || "",
+        collaboration_feedback: collaborationFeedback,
+        additional_comments: additionalComments,
+        language: language
       };
 
       const { error } = await supabase
-        .from('employee_survey_responses')
+        .from("survey_responses")
         .insert(surveyData);
 
-      if (error) {
-        console.error('Error submitting survey:', error);
-        toast({
-          title: "Submission failed",
-          description: "Please try again later.",
-          variant: "destructive"
-        });
-        return;
-      }
+      if (error) throw error;
 
-      // Update local storage for submission tracking
-      const newCount = submissionCount + 1;
-      localStorage.setItem("survey-submissions", newCount.toString());
-      
+      const currentCount = parseInt(localStorage.getItem("survey-submissions") || "0");
+      localStorage.setItem("survey-submissions", String(currentCount + 1));
+      setSubmissionCount(currentCount + 1);
       setIsComplete(true);
-      
-      toast({
-        title: "Survey submitted successfully",
-        description: "Thank you for your valuable feedback!",
-      });
 
+      toast({
+        title: "Survey submitted!",
+        description: "Thank you for your feedback.",
+      });
     } catch (error) {
-      console.error('Error submitting survey:', error);
+      console.error("Error submitting survey:", error);
       toast({
         title: "Submission failed",
-        description: "Please try again later.",
-        variant: "destructive"
+        description: "There was an error submitting your survey. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (submissionCount >= 1 && !isComplete) {
+  if (currentSection === "landing") {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="text-center p-8">
-            <AlertTriangleIcon className="h-12 w-12 text-warning mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Survey Already Submitted</h2>
-            <p className="text-muted-foreground">
-              You have already completed this survey. Thank you for your participation!
-            </p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-background p-4">
+        <div className="max-w-4xl mx-auto mt-12">
+          <Card className="text-center">
+            <CardHeader>
+              <CardTitle className="text-3xl mb-4">Employee Survey – Actionable Insights</CardTitle>
+              <p className="text-muted-foreground text-lg">
+                Your feedback helps us improve. This survey takes approximately 10-15 minutes to complete.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Button 
+                onClick={startSurvey}
+                className="w-full max-w-md mx-auto"
+                size="lg"
+              >
+                Start Survey
+              </Button>
+              
+              <div className="pt-8 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowQRCode(!showQRCode)}
+                  className="mb-4"
+                >
+                  {showQRCode ? 'Hide' : 'Show'} QR Code
+                </Button>
+                
+                {showQRCode && (
+                  <div className="space-y-4">
+                    <div className="flex justify-center">
+                      <QRCodeSVG 
+                        id="survey-qr-code"
+                        value="https://survey.buntinggpt.com"
+                        size={256}
+                        level="H"
+                        includeMargin={true}
+                      />
+                    </div>
+                    <Button
+                      variant="secondary"
+                      onClick={downloadQRCode}
+                      className="gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download QR Code
+                    </Button>
+                    <p className="text-sm text-muted-foreground">
+                      Scan to access: https://survey.buntinggpt.com
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   if (isComplete) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="text-center p-8">
-            <CheckIcon className="h-12 w-12 text-success mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Thank You!</h2>
-            <p className="text-muted-foreground mb-4">
-              Your feedback has been submitted successfully and will help improve our workplace.
-            </p>
-            <p className="text-sm text-muted-foreground mb-6">
-              As a thank you for participating, you can now explore what everyone else shared!
-            </p>
-            <Button 
-              onClick={onViewResults}
-              className="w-full"
-              size="lg"
-            >
-              View Survey Results
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-background p-4">
+        <div className="max-w-4xl mx-auto mt-12">
+          <Card className="text-center">
+            <CardHeader>
+              <CardTitle className="text-3xl mb-4">Thank You!</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <p className="text-lg font-medium">
+                  Your survey has been submitted successfully.
+                </p>
+                <p className="text-muted-foreground">
+                  Time to complete: {formatTime(elapsedTime)}
+                </p>
+              </div>
+              <div className="bg-muted/50 p-6 rounded-lg">
+                <p className="text-lg">
+                  We truly appreciate you taking the time to share your feedback with us.
+                </p>
+                <p className="text-muted-foreground mt-4">
+                  Survey results will be posted within the next 30 days.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -821,7 +854,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
              WebkitUserSelect: 'none',
              userSelect: 'none'
            }}>
-        {/* Language Selector and Reset Button */}
+        {/* Language Selector and Timer */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-2">
             <Globe className="h-4 w-4 text-muted-foreground" />
@@ -856,13 +889,18 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
               </Button>
             </div>
           </div>
-          <Button 
-            variant="destructive" 
-            size="sm" 
-            onClick={resetSurveyData}
-          >
-            Reset Survey
-          </Button>
+          <div className="flex items-center gap-4">
+            <div className="text-sm font-medium">
+              Time: {formatTime(elapsedTime)}
+            </div>
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              onClick={resetSurveyData}
+            >
+              Reset
+            </Button>
+          </div>
         </div>
         
         <div className="mb-8">
@@ -875,60 +913,214 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
           </p>
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Question {getCurrentQuestionNumber()} of {getTotalQuestions()}</span>
+              <span>Progress</span>
               <span>{Math.round(progress)}% complete</span>
             </div>
             <Progress value={progress} className="h-2" />
           </div>
         </div>
 
-        {currentSection === "demographics" && (
-          <DemographicSection 
-            question={getDemographicQuestions(language)[currentDemographicIndex]}
-            onResponse={handleDemographicResponse}
-            canGoBack={currentDemographicIndex > 0}
-            onGoBack={() => setCurrentDemographicIndex(prev => prev - 1)}
-          />
-        )}
-
-        {currentSection === "ratings" && (
-          <RatingsSection 
-            questions={getRatingQuestions(language)}
-            multiSelectQuestions={getMultiSelectQuestions(language)}
-            responses={ratingResponses}
-            feedbackResponses={feedbackResponses}
-            multiSelectResponses={multiSelectResponses}
-            collaborationFeedback={collaborationFeedback}
-            additionalComments={additionalComments}
-            onRatingChange={handleRatingResponse}
-            onFeedbackChange={handleFeedbackResponse}
-            onMultiSelectChange={handleMultiSelectResponse}
-            onCollaborationFeedbackChange={setCollaborationFeedback}
-            onAdditionalCommentsChange={setAdditionalComments}
-            onSubmit={handleSubmit}
-            canSubmit={isAllQuestionsAnswered()}
-            isSubmitting={isSubmitting}
-            language={language}
-            onGoBack={() => {
-              setCurrentDemographicIndex(getDemographicQuestions(language).length - 1);
-              setCurrentSection("demographics");
-            }}
-          />
-        )}
+        <OnPageSurvey
+          demographicQuestions={getDemographicQuestions(language)}
+          ratingQuestions={getRatingQuestions(language)}
+          multiSelectQuestions={getMultiSelectQuestions(language)}
+          demographicResponses={responses}
+          ratingResponses={ratingResponses}
+          feedbackResponses={feedbackResponses}
+          multiSelectResponses={multiSelectResponses}
+          collaborationFeedback={collaborationFeedback}
+          additionalComments={additionalComments}
+          onDemographicChange={handleDemographicResponse}
+          onRatingChange={handleRatingResponse}
+          onFeedbackChange={handleFeedbackResponse}
+          onMultiSelectChange={handleMultiSelectResponse}
+          onCollaborationFeedbackChange={setCollaborationFeedback}
+          onAdditionalCommentsChange={setAdditionalComments}
+          onSubmit={handleSubmit}
+          canSubmit={isAllQuestionsAnswered()}
+          isSubmitting={isSubmitting}
+          language={language}
+        />
       </div>
     </div>
   );
 }
 
-// Section Components
-interface DemographicSectionProps {
-  question: DemographicQuestion;
-  onResponse: (value: string) => void;
-  canGoBack: boolean;
-  onGoBack: () => void;
+// One-Page Survey Component
+interface OnPageSurveyProps {
+  demographicQuestions: DemographicQuestion[];
+  ratingQuestions: RatingQuestion[];
+  multiSelectQuestions: MultiSelectQuestion[];
+  demographicResponses: Record<string, string>;
+  ratingResponses: Record<string, number>;
+  feedbackResponses: Record<string, string>;
+  multiSelectResponses: Record<string, string[]>;
+  collaborationFeedback: string;
+  additionalComments: string;
+  onDemographicChange: (questionId: string, value: string) => void;
+  onRatingChange: (questionId: string, rating: number) => void;
+  onFeedbackChange: (questionId: string, feedback: string) => void;
+  onMultiSelectChange: (questionId: string, selectedOptions: string[]) => void;
+  onCollaborationFeedbackChange: (feedback: string) => void;
+  onAdditionalCommentsChange: (comments: string) => void;
+  onSubmit: () => void;
+  canSubmit: boolean;
+  isSubmitting?: boolean;
+  language: 'en' | 'es' | 'fr' | 'it';
 }
 
-function DemographicSection({ question, onResponse, canGoBack, onGoBack }: DemographicSectionProps) {
+function OnPageSurvey({
+  demographicQuestions,
+  ratingQuestions,
+  multiSelectQuestions,
+  demographicResponses,
+  ratingResponses,
+  feedbackResponses,
+  multiSelectResponses,
+  collaborationFeedback,
+  additionalComments,
+  onDemographicChange,
+  onRatingChange,
+  onFeedbackChange,
+  onMultiSelectChange,
+  onCollaborationFeedbackChange,
+  onAdditionalCommentsChange,
+  onSubmit,
+  canSubmit,
+  isSubmitting = false,
+  language
+}: OnPageSurveyProps) {
+  const sectionOrder = [
+    "Engagement & Job Satisfaction",
+    "Leadership & Communication",
+    "Training & Development",
+    "Teamwork & Culture",
+    "Safety & Work Environment",
+    "Scheduling & Workload",
+    "Tools, Equipment & Processes"
+  ];
+
+  const allQuestions = [...ratingQuestions, ...multiSelectQuestions];
+  const groupedQuestions = allQuestions.reduce((acc, question) => {
+    if (!acc[question.section]) {
+      acc[question.section] = [];
+    }
+    acc[question.section].push(question);
+    return acc;
+  }, {} as Record<string, (RatingQuestion | MultiSelectQuestion)[]>);
+
+  const sortedSections = sectionOrder.filter(section => groupedQuestions[section]);
+
+  return (
+    <div className="space-y-8">
+      {/* Demographics Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Demographics</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {demographicQuestions.map((question) => (
+            <DemographicQuestion
+              key={question.id}
+              question={question}
+              value={demographicResponses[question.id]}
+              onResponse={(value) => onDemographicChange(question.id, value)}
+            />
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Rating Sections */}
+      {sortedSections.map((section) => {
+        const sectionQuestions = groupedQuestions[section];
+        return (
+          <Card key={section}>
+            <CardHeader>
+              <CardTitle>{section}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {sectionQuestions.map((question) => {
+                if ('options' in question) {
+                  // Multi-select question
+                  return (
+                    <div key={question.id} className="space-y-4">
+                      <h3 className="font-medium">{question.text}</h3>
+                      <div className="space-y-2">
+                        {question.options.map((option) => (
+                          <div key={option.value} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`${question.id}-${option.value}`}
+                              checked={multiSelectResponses[question.id]?.includes(option.value)}
+                              onCheckedChange={(checked) => {
+                                const current = multiSelectResponses[question.id] || [];
+                                const updated = checked
+                                  ? [...current, option.value]
+                                  : current.filter(v => v !== option.value);
+                                onMultiSelectChange(question.id, updated);
+                              }}
+                            />
+                            <Label htmlFor={`${question.id}-${option.value}`}>{option.label}</Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                } else {
+                  // Rating question
+                  return (
+                    <RatingQuestion
+                      key={question.id}
+                      question={question}
+                      response={ratingResponses[question.id]}
+                      feedback={feedbackResponses[question.id]}
+                      onRatingChange={(rating) => onRatingChange(question.id, rating)}
+                      onFeedbackChange={(feedback) => onFeedbackChange(question.id, feedback)}
+                      language={language}
+                    />
+                  );
+                }
+              })}
+            </CardContent>
+          </Card>
+        );
+      })}
+
+      {/* Additional Comments Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Additional Comments</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            placeholder="Any additional comments or suggestions..."
+            value={additionalComments}
+            onChange={(e) => onAdditionalCommentsChange(e.target.value)}
+            className="min-h-[120px]"
+          />
+        </CardContent>
+      </Card>
+
+      {/* Submit Button */}
+      <Button
+        onClick={onSubmit}
+        disabled={!canSubmit || isSubmitting}
+        className="w-full"
+        size="lg"
+      >
+        {isSubmitting ? "Submitting..." : "Submit Survey"}
+      </Button>
+    </div>
+  );
+}
+
+// Demographic Question Component
+interface DemographicQuestionProps {
+  question: DemographicQuestion;
+  value: string;
+  onResponse: (value: string) => void;
+}
+
+function DemographicQuestion({ question, value, onResponse }: DemographicQuestionProps) {
   const isDivisionQuestion = question.id === "division";
   const isContinentQuestion = question.id === "continent";
   
@@ -938,7 +1130,7 @@ function DemographicSection({ question, onResponse, canGoBack, onGoBack }: Demog
         <CardTitle>{question.text}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <RadioGroup onValueChange={onResponse}>
+        <RadioGroup onValueChange={onResponse} value={value}>
           {question.options.map((option) => (
             <div key={option.value} className="flex items-center space-x-4 p-4 rounded-lg hover:bg-muted/50 transition-colors touch-manipulation border">
               <RadioGroupItem value={option.value} id={option.value} className="min-w-[20px] min-h-[20px]" />
@@ -969,215 +1161,69 @@ function DemographicSection({ question, onResponse, canGoBack, onGoBack }: Demog
             </div>
           ))}
         </RadioGroup>
-        {canGoBack && (
-          <Button variant="outline" onClick={onGoBack} className="touch-manipulation min-h-[48px]">
-            Previous
-          </Button>
-        )}
       </CardContent>
     </Card>
   );
 }
 
-interface RatingsSectionProps {
-  questions: RatingQuestion[];
-  multiSelectQuestions: MultiSelectQuestion[];
-  responses: Record<string, number>;
-  feedbackResponses: Record<string, string>;
-  multiSelectResponses: Record<string, string[]>;
-  collaborationFeedback: string;
-  additionalComments: string;
-  onRatingChange: (questionId: string, rating: number) => void;
-  onFeedbackChange: (questionId: string, feedback: string) => void;
-  onMultiSelectChange: (questionId: string, selectedOptions: string[]) => void;
-  onCollaborationFeedbackChange: (feedback: string) => void;
-  onAdditionalCommentsChange: (comments: string) => void;
-  onSubmit: () => void;
-  canSubmit: boolean;
-  onGoBack: () => void;
-  isSubmitting?: boolean;
+interface RatingQuestionProps {
+  question: RatingQuestion;
+  response: number | undefined;
+  feedback: string | undefined;
+  onRatingChange: (rating: number) => void;
+  onFeedbackChange: (feedback: string) => void;
   language: 'en' | 'es' | 'fr' | 'it';
 }
 
-function RatingsSection({ 
-  questions, 
-  multiSelectQuestions,
-  responses, 
-  feedbackResponses,
-  multiSelectResponses,
-  collaborationFeedback,
-  additionalComments,
-  onRatingChange, 
-  onFeedbackChange,
-  onMultiSelectChange,
-  onCollaborationFeedbackChange,
-  onAdditionalCommentsChange,
-  onSubmit,
-  canSubmit,
-  onGoBack,
-  isSubmitting = false,
-  language
-}: RatingsSectionProps) {
-  // Define the desired section order
-  const sectionOrder = [
-    "Engagement & Job Satisfaction",
-    "Leadership & Communication",
-    "Training & Development",
-    "Teamwork & Culture",
-    "Safety & Work Environment",
-    "Scheduling & Workload",
-    "Tools, Equipment & Processes"
-  ];
-
-  // Combine rating questions and multi-select questions by section
-  const allQuestions = [...questions, ...multiSelectQuestions];
-  const groupedQuestions = allQuestions.reduce((acc, question) => {
-    if (!acc[question.section]) {
-      acc[question.section] = [];
-    }
-    acc[question.section].push(question);
-    return acc;
-  }, {} as Record<string, (RatingQuestion | MultiSelectQuestion)[]>);
-
-  // Sort sections based on the defined order
-  const sortedSections = sectionOrder.filter(section => groupedQuestions[section]);
+function RatingQuestion({ question, response, feedback, onRatingChange, onFeedbackChange, language }: RatingQuestionProps) {
+  const ratingLabels = getRatingLabels(language);
 
   return (
-    <div className="space-y-8">
-      {sortedSections.map((section) => {
-        const sectionQuestions = groupedQuestions[section];
-        return (
-          <Card key={section}>
-            <CardHeader>
-              <CardTitle className="text-xl">{section}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {sectionQuestions.map((question) => (
-              <div key={question.id} className="space-y-4">
-                {'feedbackPrompt' in question ? (
-                  // Rating Question
-                  <div>
-                    <h3 className="font-medium mb-4">{question.text}</h3>
-                    
-                    {/* Rating Scale with Emojis */}
-                    <div className="flex justify-center space-x-2 md:space-x-4 mb-4">
-                      {[1, 2, 3, 4, 5].map((rating) => {
-                        const currentRatingLabels = getRatingLabels(language);
-                        
-                        return (
-                          <button
-                            key={rating}
-                            onClick={() => onRatingChange(question.id, rating)}
-                            className={cn(
-                              "flex flex-col items-center p-2 md:p-3 rounded-lg border-2 transition-all touch-manipulation",
-                              "select-none focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px] min-w-[60px]",
-                              "active:scale-95 hover:scale-105",
-                              responses[question.id] === rating
-                                ? "border-primary bg-primary/10 ring-2 ring-primary"
-                                : "border-border hover:border-primary/50 active:bg-muted/70"
-                            )}
-                            onTouchStart={(e) => e.preventDefault()}
-                          >
-                            <span className="text-xl md:text-2xl mb-1 select-none">{ratingEmojis[rating as keyof typeof ratingEmojis]}</span>
-                            <span className="text-xs font-medium select-none">{rating}</span>
-                            <span className="text-xs text-muted-foreground text-center select-none leading-tight">
-                              {currentRatingLabels[rating as keyof typeof currentRatingLabels]}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Feedback box for low scores - REQUIRED for all 1-2 ratings */}
-                    {responses[question.id] && responses[question.id] <= 2 && (
-                      <div className="space-y-2">
-                        <Label htmlFor={`feedback-${question.id}`} className="text-sm font-medium text-destructive">
-                          {languageContent[language].lowRatingFeedback} *
-                        </Label>
-                        <Textarea
-                          id={`feedback-${question.id}`}
-                          placeholder={languageContent[language].lowRatingFeedback}
-                          value={feedbackResponses[question.id] || ""}
-                          onChange={(e) => onFeedbackChange(question.id, e.target.value)}
-                          className="min-h-[100px] touch-manipulation border-destructive/50"
-                          required
-                        />
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  // Multi-Select Question
-                  <div>
-                    <h3 className="font-medium mb-4">{question.text}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {question.options?.map((option) => (
-                        <div key={option.value} className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors touch-manipulation">
-                          <input
-                            type="checkbox"
-                            id={`${question.id}-${option.value}`}
-                            checked={multiSelectResponses[question.id]?.includes(option.value) || false}
-                            onChange={(e) => {
-                              const currentSelections = multiSelectResponses[question.id] || [];
-                              if (e.target.checked) {
-                                onMultiSelectChange(question.id, [...currentSelections, option.value]);
-                              } else {
-                                onMultiSelectChange(question.id, currentSelections.filter(v => v !== option.value));
-                              }
-                            }}
-                            className="min-w-[20px] min-h-[20px] rounded border-2 border-muted-foreground checked:bg-primary checked:border-primary focus:ring-2 focus:ring-primary"
-                          />
-                          <Label htmlFor={`${question.id}-${option.value}`} className="flex-1 cursor-pointer select-none">
-                            {option.label}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-        );
-      })}
-
-      {/* Additional Comments Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Additional Comments</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <h3 className="font-medium">Please feel free to share any other thoughts or comments you would like to share.</h3>
-            <Textarea
-              placeholder="Your additional thoughts and comments..."
-              value={additionalComments}
-              onChange={(e) => onAdditionalCommentsChange(e.target.value)}
-              className="min-h-[120px] touch-manipulation"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex flex-col sm:flex-row gap-4 mt-8">
-        <Button variant="outline" onClick={onGoBack} disabled={isSubmitting} className="touch-manipulation min-h-[48px]">
-          Previous
-        </Button>
-        <Button 
-          onClick={onSubmit} 
-          disabled={!canSubmit || isSubmitting}
-          className="flex-1 min-h-[48px] touch-manipulation"
-        >
-          {isSubmitting ? (
-            <div className="flex items-center gap-2">
-              <LoaderIcon className="h-4 w-4 animate-spin" />
-              Submitting...
-            </div>
-          ) : (
-            "Submit Survey"
-          )}
-        </Button>
+    <div>
+      <h3 className="font-medium mb-4">{question.text}</h3>
+      
+      {/* Rating Scale with Emojis */}
+      <div className="flex justify-center space-x-2 md:space-x-4 mb-4">
+        {[1, 2, 3, 4, 5].map((rating) => (
+          <button
+            key={rating}
+            onClick={() => onRatingChange(rating)}
+            className={cn(
+              "flex flex-col items-center p-2 md:p-3 rounded-lg border-2 transition-all touch-manipulation",
+              "select-none focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px] min-w-[60px]",
+              "active:scale-95 hover:scale-105",
+              response === rating
+                ? "border-primary bg-primary/10 ring-2 ring-primary"
+                : "border-border hover:border-primary/50 active:bg-muted/70"
+            )}
+            onTouchStart={(e) => e.preventDefault()}
+            type="button"
+          >
+            <span className="text-xl md:text-2xl mb-1 select-none">{ratingEmojis[rating as keyof typeof ratingEmojis]}</span>
+            <span className="text-xs font-medium select-none">{rating}</span>
+            <span className="text-xs text-muted-foreground text-center select-none leading-tight">
+              {ratingLabels[rating as keyof typeof ratingLabels]}
+            </span>
+          </button>
+        ))}
       </div>
+
+      {/* Feedback box for low scores - REQUIRED for all 1-2 ratings */}
+      {response !== undefined && response <= 2 && (
+        <div className="space-y-2">
+          <Label htmlFor={`feedback-${question.id}`} className="text-sm font-medium text-destructive">
+            {languageContent[language].lowRatingFeedback} *
+          </Label>
+          <Textarea
+            id={`feedback-${question.id}`}
+            placeholder={languageContent[language].lowRatingFeedback}
+            value={feedback || ""}
+            onChange={(e) => onFeedbackChange(e.target.value)}
+            className="min-h-[100px] touch-manipulation border-destructive/50"
+            required
+          />
+        </div>
+      )}
     </div>
   );
 }
