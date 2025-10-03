@@ -235,8 +235,10 @@ export function SurveyDashboardNew({ onBack, setCurrentView }: { onBack: () => v
   const calculateSectionAverage = (section: typeof surveySections[0]) => {
     if (surveyData.length === 0) return 0;
     
-    // Handle sections that might not have questions (only multiSelect items)
-    if (!section.questions || section.questions.length === 0) return 0;
+    // Handle sections without rating questions (e.g., only multiSelect items)
+    if (!section.questions || section.questions.length === 0) {
+      return 0;
+    }
     
     const validResponses = section.questions
       .map(q => surveyData
