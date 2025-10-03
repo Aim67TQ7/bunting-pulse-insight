@@ -133,6 +133,7 @@ const surveySections = [
     id: "preferences-motivation",
     title: "Preferences & Motivation",
     description: "Communication styles and motivational factors",
+    questions: [],
     multiSelect: [
       { key: "motivation_factors", label: "Motivation Factors" },
       { key: "information_preferences", label: "Information Preferences" }
@@ -233,6 +234,9 @@ export function SurveyDashboardNew({ onBack, setCurrentView }: { onBack: () => v
 
   const calculateSectionAverage = (section: typeof surveySections[0]) => {
     if (surveyData.length === 0) return 0;
+    
+    // Handle sections that might not have questions (only multiSelect items)
+    if (!section.questions || section.questions.length === 0) return 0;
     
     const validResponses = section.questions
       .map(q => surveyData
