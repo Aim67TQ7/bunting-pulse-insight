@@ -434,11 +434,20 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Response Rate</CardTitle>
+              <CardTitle className="text-sm">Avg Completion Time</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {((filteredResponses.length / Math.max(responses.length, 1)) * 100).toFixed(0)}%
+                {(() => {
+                  const completionTimes = filteredResponses
+                    .map((r: any) => r.completion_time_seconds)
+                    .filter(t => t !== undefined && t !== null && t > 0);
+                  if (completionTimes.length === 0) return "N/A";
+                  const avgSeconds = completionTimes.reduce((sum, t) => sum + t, 0) / completionTimes.length;
+                  const mins = Math.floor(avgSeconds / 60);
+                  const secs = Math.round(avgSeconds % 60);
+                  return `${mins}m ${secs}s`;
+                })()}
               </div>
             </CardContent>
           </Card>

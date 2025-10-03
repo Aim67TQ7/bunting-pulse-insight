@@ -921,6 +921,7 @@ export type Database = {
           comfortable_suggesting_improvements: number | null
           communication_clarity: number | null
           communication_preferences: string[] | null
+          completion_time_seconds: number | null
           continent: string
           created_at: string
           cross_functional_collaboration: number | null
@@ -952,6 +953,7 @@ export type Database = {
           comfortable_suggesting_improvements?: number | null
           communication_clarity?: number | null
           communication_preferences?: string[] | null
+          completion_time_seconds?: number | null
           continent: string
           created_at?: string
           cross_functional_collaboration?: number | null
@@ -983,6 +985,7 @@ export type Database = {
           comfortable_suggesting_improvements?: number | null
           communication_clarity?: number | null
           communication_preferences?: string[] | null
+          completion_time_seconds?: number | null
           continent?: string
           created_at?: string
           cross_functional_collaboration?: number | null
@@ -1298,6 +1301,57 @@ export type Database = {
           qr_code_url?: string | null
           settings?: Json | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      "MAI Customers": {
+        Row: {
+          Customer: string | null
+          CustomerAddress: string | null
+          CustomerGoogleMarker: string | null
+          CustomerPhone: string | null
+          "Quote $$ (12mo)": number | null
+          "Quotes(12mo)": number | null
+          sales2022: number | null
+          sales2023: number | null
+          sales2024: number | null
+          sales2025: number | null
+          "Ship To Name": string | null
+          shipid: number
+          ShipToAddress: string | null
+          ShipToGoogleMarker: string | null
+        }
+        Insert: {
+          Customer?: string | null
+          CustomerAddress?: string | null
+          CustomerGoogleMarker?: string | null
+          CustomerPhone?: string | null
+          "Quote $$ (12mo)"?: number | null
+          "Quotes(12mo)"?: number | null
+          sales2022?: number | null
+          sales2023?: number | null
+          sales2024?: number | null
+          sales2025?: number | null
+          "Ship To Name"?: string | null
+          shipid: number
+          ShipToAddress?: string | null
+          ShipToGoogleMarker?: string | null
+        }
+        Update: {
+          Customer?: string | null
+          CustomerAddress?: string | null
+          CustomerGoogleMarker?: string | null
+          CustomerPhone?: string | null
+          "Quote $$ (12mo)"?: number | null
+          "Quotes(12mo)"?: number | null
+          sales2022?: number | null
+          sales2023?: number | null
+          sales2024?: number | null
+          sales2025?: number | null
+          "Ship To Name"?: string | null
+          shipid?: number
+          ShipToAddress?: string | null
+          ShipToGoogleMarker?: string | null
         }
         Relationships: []
       }
@@ -2572,6 +2626,42 @@ export type Database = {
           search_radius?: number
           total_results_count?: number | null
           user_agent?: string | null
+        }
+        Relationships: []
+      }
+      shipment_history: {
+        Row: {
+          created_at: string | null
+          id: string
+          month: string
+          month_index: number
+          monthly_value: number | null
+          target_value: number
+          updated_at: string | null
+          year: number
+          ytd_value: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          month: string
+          month_index: number
+          monthly_value?: number | null
+          target_value: number
+          updated_at?: string | null
+          year: number
+          ytd_value: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          month?: string
+          month_index?: number
+          monthly_value?: number | null
+          target_value?: number
+          updated_at?: string | null
+          year?: number
+          ytd_value?: number
         }
         Relationships: []
       }

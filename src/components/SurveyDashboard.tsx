@@ -224,11 +224,21 @@ Based on ${stats.totalResponses} employee responses, Bunting shows strong perfor
       return count + feedbackEntries + (response.collaboration_feedback ? 1 : 0);
     }, 0);
 
+    // Calculate average completion time
+    const completionTimes = surveyData
+      .map(r => (r as any).completion_time_seconds)
+      .filter(t => t !== undefined && t !== null && t > 0);
+    
+    const avgCompletionSeconds = completionTimes.length > 0
+      ? completionTimes.reduce((sum, t) => sum + t, 0) / completionTimes.length
+      : 0;
+
     return {
       totalResponses: surveyData.length,
       ratingAverages,
       demographics,
-      feedbackCount
+      feedbackCount,
+      avgCompletionSeconds
     };
   };
 
@@ -359,12 +369,6 @@ Based on ${stats.totalResponses} employee responses, Bunting shows strong perfor
             <h1 className="text-3xl font-bold">Employee Survey Dashboard</h1>
           </div>
           
-          {isAdminAuthenticated && (
-            <Button onClick={generateAIAnalysis} className="bg-gradient-to-r from-primary to-secondary">
-              <BrainIcon className="h-4 w-4 mr-2" />
-              HR Analysis Report
-            </Button>
-          )}
         </div>
 
         {/* Overview Cards */}
@@ -415,8 +419,19 @@ Based on ${stats.totalResponses} employee responses, Bunting shows strong perfor
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Completion Rate</p>
-                  <p className="text-2xl font-bold">100%</p>
+                  <p className="text-sm font-medium text-muted-foreground">Avg Completion Time</p>
+                  <p className="text-2xl font-bold">
+                    {(() => {
+                      const completionTimes = surveyData
+                        .map((r: any) => r.completion_time_seconds)
+                        .filter(t => t !== undefined && t !== null && t > 0);
+                      if (completionTimes.length === 0) return "N/A";
+                      const avgSeconds = completionTimes.reduce((sum, t) => sum + t, 0) / completionTimes.length;
+                      const mins = Math.floor(avgSeconds / 60);
+                      const secs = Math.round(avgSeconds % 60);
+                      return `${mins}m ${secs}s`;
+                    })()}
+                  </p>
                 </div>
                 <div className="h-8 w-8 bg-success rounded-full flex items-center justify-center">
                   <span className="text-white text-xs">✓</span>

@@ -559,6 +559,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showQRCode, setShowQRCode] = useState(false);
+  const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -689,44 +690,55 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     setIsSubmitting(true);
 
     try {
+      // Map survey responses to database schema
       const surveyData = {
         continent: responses.continent,
         division: responses.division,
         role: responses.role,
+        session_id: sessionId,
         completion_time_seconds: elapsedTime,
+        // Core satisfaction metrics
         job_satisfaction: ratingResponses["job-satisfaction"],
-        company_satisfaction: ratingResponses["company-satisfaction"],
-        future_view: ratingResponses["future-view"],
-        expectations: ratingResponses["expectations"],
-        performance_awareness: ratingResponses["performance-awareness"],
-        relaying_information: ratingResponses["relaying-information"],
-        management_feedback: ratingResponses["management-feedback"],
-        training: ratingResponses["training"],
-        opportunities: ratingResponses["opportunities"],
-        cooperation: ratingResponses["cooperation"],
-        morale: ratingResponses["morale"],
-        pride: ratingResponses["pride"],
-        safety_focus: ratingResponses["safety-focus"],
-        safety_reporting: ratingResponses["safety-reporting"],
-        workload: ratingResponses["workload"],
         work_life_balance: ratingResponses["work-life-balance"],
-        tools: ratingResponses["tools"],
-        processes: ratingResponses["processes"],
-        company_value: ratingResponses["company-value"],
-        change: ratingResponses["change"],
+        training_satisfaction: ratingResponses["training"],
+        advancement_opportunities: ratingResponses["opportunities"],
+        workplace_safety: ratingResponses["safety-focus"],
+        // Leadership & communication
+        manager_alignment: ratingResponses["management-feedback"],
+        leadership_openness: ratingResponses["expectations"],
+        communication_clarity: ratingResponses["relaying-information"],
+        // Collaboration
+        cross_functional_collaboration: ratingResponses["cooperation"],
+        us_uk_collaboration: ratingResponses["morale"], // Using morale as proxy
+        strategic_confidence: ratingResponses["future-view"],
+        // Engagement metrics
+        recommend_company: ratingResponses["company-satisfaction"],
+        comfortable_suggesting_improvements: ratingResponses["change"],
+        failed_experiments_learning: ratingResponses["pride"],
+        manual_processes_focus: ratingResponses["processes"],
+        // Multi-select arrays
         communication_preferences: multiSelectResponses["communication-preferences"] || [],
-        motivation_factors: multiSelectResponses["motivation-factors"] || [],
         information_preferences: multiSelectResponses["information-preferences"] || [],
-        job_satisfaction_comment: feedbackResponses["job-satisfaction"] || "",
-        training_comment: feedbackResponses["training"] || "",
-        work_life_balance_comment: feedbackResponses["work-life-balance"] || "",
-        collaboration_feedback: collaborationFeedback,
-        additional_comments: additionalComments,
-        language: language
+        motivation_factors: multiSelectResponses["motivation-factors"] || [],
+        // Text feedback
+        collaboration_feedback: collaborationFeedback || "",
+        additional_comments: additionalComments || "",
+        // Store all other responses and feedback in jsonb field
+        follow_up_responses: {
+          performance_awareness: ratingResponses["performance-awareness"],
+          safety_reporting: ratingResponses["safety-reporting"],
+          workload: ratingResponses["workload"],
+          tools: ratingResponses["tools"],
+          company_value: ratingResponses["company-value"],
+          job_satisfaction_feedback: feedbackResponses["job-satisfaction"] || "",
+          training_feedback: feedbackResponses["training"] || "",
+          work_life_balance_feedback: feedbackResponses["work-life-balance"] || "",
+          language: language
+        }
       };
 
       const { error } = await supabase
-        .from("survey_responses")
+        .from("employee_survey_responses")
         .insert(surveyData);
 
       if (error) throw error;
