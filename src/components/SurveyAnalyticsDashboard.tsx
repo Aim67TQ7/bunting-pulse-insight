@@ -270,28 +270,16 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
   const satisfactionTrend = getSatisfactionTrend();
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <Button 
-              variant="ghost" 
-              onClick={onBack}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeftIcon className="h-4 w-4" />
-              Back to Admin
-            </Button>
-            <h1 className="text-2xl font-bold text-foreground">Survey Analytics Dashboard</h1>
-            <Button onClick={exportToPDF} className="flex items-center gap-2">
-              <DownloadIcon className="h-4 w-4" />
-              Export PDF
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="space-y-6" id="analytics-dashboard">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-foreground">Survey Analytics Dashboard</h2>
+        <Button onClick={exportToPDF} className="flex items-center gap-2">
+          <DownloadIcon className="h-4 w-4" />
+          Export PDF
+        </Button>
+      </div>
 
-      <main className="max-w-7xl mx-auto px-4 py-8" id="analytics-dashboard">
+      <div className="space-y-6">
         {/* Main Navigation Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
@@ -633,7 +621,7 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
             <AIAnalysisSection responses={filteredResponses} />
           </TabsContent>
         </Tabs>
-      </main>
+      </div>
     </div>
   );
 };

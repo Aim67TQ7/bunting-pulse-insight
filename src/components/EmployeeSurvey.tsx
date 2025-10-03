@@ -677,6 +677,28 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     return allDemographicsAnswered && allRatingsAnswered && allLowRatingsFeedbackProvided;
   };
 
+  // Helper function to map frontend values to database-expected values
+  const mapDemographicValues = (value: string, field: 'continent' | 'division' | 'role'): string => {
+    const mappings = {
+      continent: {
+        'north-america': 'North America',
+        'europe': 'Europe'
+      },
+      division: {
+        'equipment': 'Equipment',
+        'magnetics': 'Magnets', // Note: database expects "Magnets" not "Magnetics"
+        'both': 'Both'
+      },
+      role: {
+        'sales-marketing': 'Sales/Marketing/Product',
+        'operations': 'Operations/Engineering/Production',
+        'admin': 'Admin/HR/Finance'
+      }
+    };
+
+    return mappings[field][value as keyof typeof mappings[typeof field]] || value;
+  };
+
   const handleSubmit = async () => {
     if (!isAllQuestionsAnswered()) {
       toast({
@@ -690,11 +712,11 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     setIsSubmitting(true);
 
     try {
-      // Map survey responses to database schema
+      // Map survey responses to database schema with proper value mapping
       const surveyData = {
-        continent: responses.continent,
-        division: responses.division,
-        role: responses.role,
+        continent: mapDemographicValues(responses.continent, 'continent'),
+        division: mapDemographicValues(responses.division, 'division'),
+        role: mapDemographicValues(responses.role, 'role'),
         session_id: sessionId,
         completion_time_seconds: elapsedTime,
         // Core satisfaction metrics

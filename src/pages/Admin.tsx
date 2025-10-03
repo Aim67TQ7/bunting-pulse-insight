@@ -3,20 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeftIcon, ShieldCheckIcon } from "lucide-react";
 import { SurveyAnalyticsDashboard } from "@/components/SurveyAnalyticsDashboard";
+import buntingLogo from "@/assets/bunting-logo.png";
+import magnetLogo from "@/assets/magnet-applications-logo.png";
 
 interface AdminProps {
   onBack: () => void;
 }
 
-type AdminView = 'main' | 'analytics';
-
 export const Admin = ({ onBack }: AdminProps) => {
   const [passcode, setPasscode] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentView, setCurrentView] = useState<AdminView>('main');
   const { toast } = useToast();
 
   const handleAuth = () => {
@@ -92,96 +92,89 @@ export const Admin = ({ onBack }: AdminProps) => {
     );
   }
 
-  if (currentView === 'analytics') {
-    return <SurveyAnalyticsDashboard onBack={() => setCurrentView('main')} />;
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
-        <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <img src={buntingLogo} alt="Bunting" className="h-10" />
+              <img src={magnetLogo} alt="Magnet Applications" className="h-10" />
+            </div>
+            <h1 className="text-2xl font-bold text-foreground">Admin Panel</h1>
             <Button 
               variant="ghost" 
               onClick={onBack}
               className="flex items-center gap-2"
             >
               <ArrowLeftIcon className="h-4 w-4" />
-              Back to Dashboard
+              Back to Survey
             </Button>
-            <h1 className="text-2xl font-bold text-foreground">Admin Panel</h1>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Survey Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4">
-                View and analyze all employee survey responses with detailed analytics and filtering options.
-              </p>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => setCurrentView('analytics')}
-              >
-                View All Responses
-              </Button>
-            </CardContent>
-          </Card>
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <Tabs defaultValue="dashboard" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="admin">Admin</TabsTrigger>
+          </TabsList>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Data Export</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4">
-                Export survey data in CSV, Excel, or PDF formats for external analysis and reporting.
-              </p>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => {
-                  // TODO: Implement data export functionality
-                  toast({
-                    title: "Feature Coming Soon",
-                    description: "Data export functionality will allow CSV, Excel, and PDF downloads",
-                  });
-                }}
-              >
-                Export Data
-              </Button>
-            </CardContent>
-          </Card>
+          <TabsContent value="dashboard" className="space-y-6">
+            <SurveyAnalyticsDashboard onBack={onBack} />
+          </TabsContent>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>System Settings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4">
-                Configure survey settings, manage languages, update questions, and system preferences.
-              </p>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => {
-                  // TODO: Open system settings panel
-                  toast({
-                    title: "Feature Coming Soon", 
-                    description: "System configuration panel will be available here",
-                  });
-                }}
-              >
-                Settings
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+          <TabsContent value="admin" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Data Export</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-4">
+                    Export survey data in CSV, Excel, or PDF formats for external analysis and reporting.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      toast({
+                        title: "Feature Coming Soon",
+                        description: "Data export functionality will allow CSV, Excel, and PDF downloads",
+                      });
+                    }}
+                  >
+                    Export Data
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>System Settings</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-4">
+                    Configure survey settings, manage languages, update questions, and system preferences.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      toast({
+                        title: "Feature Coming Soon", 
+                        description: "System configuration panel will be available here",
+                      });
+                    }}
+                  >
+                    Settings
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
