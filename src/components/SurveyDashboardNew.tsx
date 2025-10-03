@@ -367,39 +367,14 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4 mb-8">
+          <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
+            <ChevronLeftIcon className="h-4 w-4" />
+            Back to Survey
+          </Button>
           <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
-              <ChevronLeftIcon className="h-4 w-4" />
-              Back to Survey
-            </Button>
-            <div className="flex items-center gap-4">
-              <img src={buntingLogo} alt="Bunting" className="h-8" />
-              <img src={magnetApplicationsLogo} alt="Magnet Applications" className="h-8" />
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button
-              onClick={generateAIAnalysis}
-              disabled={isLoadingAnalysis || totalResponses < 10}
-              className="flex items-center gap-2"
-              variant={totalResponses >= 10 ? "default" : "outline"}
-            >
-              {isLoadingAnalysis ? (
-                <LoaderIcon className="h-4 w-4 animate-spin" />
-              ) : (
-                <BrainIcon className="h-4 w-4" />
-              )}
-              {totalResponses >= 10 ? 'Generate AI Analysis' : `AI Analysis (${totalResponses}/10 responses)`}
-            </Button>
-            <Button
-              onClick={() => setCurrentView("admin")}
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Admin
-            </Button>
+            <img src={buntingLogo} alt="Bunting" className="h-8" />
+            <img src={magnetApplicationsLogo} alt="Magnet Applications" className="h-8" />
           </div>
         </div>
 
