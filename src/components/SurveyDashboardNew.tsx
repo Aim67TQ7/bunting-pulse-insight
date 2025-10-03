@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Globe } from "lucide-react";
 
 // Enhanced color palette using design system tokens
 const CHART_COLORS = [
@@ -61,93 +63,416 @@ interface SurveyResponse {
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))', 'hsl(var(--success))', 'hsl(var(--warning))'];
 
-const surveySections = [
+// Translations
+const translations = {
+  en: {
+    backToSurvey: "Back to Survey",
+    totalResponses: "Total Responses",
+    avgJobSatisfaction: "Avg. Job Satisfaction",
+    comments: "Comments",
+    completionRate: "Completion Rate",
+    noSurveyData: "No Survey Data",
+    noResponsesYet: "No survey responses have been submitted yet. Complete the survey to see analytics.",
+    language: "Language",
+    viewComments: "View Comments",
+    generateAIAnalysis: "Generate AI Analysis",
+    adminPasscode: "Admin Passcode",
+    enterPasscode: "Enter the admin passcode to access comments and AI analysis",
+    unlock: "Unlock",
+    cancel: "Cancel",
+    invalidPasscode: "Invalid passcode",
+    checkPasscode: "Please check your admin passcode",
+    adminAccessGranted: "Admin access granted",
+    canViewComments: "You can now view comments and generate AI analysis",
+    insufficientData: "Insufficient data",
+    aiRequires10: "AI analysis requires at least 10 responses. Currently have",
+    responses: "responses",
+    excellent: "Excellent",
+    good: "Good",
+    neutral: "Neutral",
+    poor: "Poor",
+    critical: "Critical",
+    // Demographics
+    northAmerica: "North America",
+    europe: "Europe",
+    magnetics: "Magnetics",
+    equipment: "Equipment",
+    other: "Other",
+    operationsDistribution: "Operations & Distribution",
+    engineeringServices: "Engineering & Services",
+    salesFinance: "Sales & Finance",
+    adminManagement: "Admin & Management",
+    // Sections
+    engagementSatisfaction: "Engagement & Job Satisfaction",
+    engagementDesc: "Overall satisfaction and engagement with the company",
+    leadershipCommunication: "Leadership & Communication",
+    leadershipDesc: "Management effectiveness and communication quality",
+    trainingDevelopment: "Training & Development",
+    trainingDesc: "Professional growth and learning opportunities",
+    teamworkCulture: "Teamwork & Culture",
+    teamworkDesc: "Collaboration and workplace culture",
+    safetyEnvironment: "Safety & Work Environment",
+    safetyDesc: "Workplace safety and environmental conditions",
+    schedulingWorkload: "Scheduling & Workload",
+    schedulingDesc: "Work-life balance and workload management",
+    toolsProcesses: "Tools, Equipment & Processes",
+    toolsDesc: "Resources and continuous improvement",
+    preferencesMotivation: "Preferences & Motivation",
+    preferencesDesc: "Communication styles and motivational factors",
+    // Questions
+    jobSatisfaction: "Job Satisfaction",
+    recommendCompany: "Would Recommend Company",
+    confidenceFuture: "Confidence in Future Direction",
+    clearExpectations: "Clear Expectations from Leadership",
+    performanceAwareness: "Awareness of Performance",
+    infoQuality: "Information Communication Quality",
+    managerFeedback: "Manager Feedback & Alignment",
+    trainingQuality: "Training & Development Quality",
+    growthOpportunities: "Growth Opportunities",
+    crossFunctional: "Cross-Functional Cooperation",
+    teamMorale: "Team Morale",
+    prideInWork: "Pride in Work",
+    workplaceSafety: "Workplace Safety Focus",
+    safetyReporting: "Safety Concern Reporting Comfort",
+    workloadManage: "Workload Manageability",
+    workLifeBalance: "Work-Life Balance",
+    toolsEquipment: "Tools & Equipment Quality",
+    processImprovement: "Process Improvement Focus",
+    feelingValued: "Feeling Valued by Company",
+    comfortSuggesting: "Comfort Suggesting Changes",
+    communicationPrefs: "Communication Preferences",
+    motivationFactors: "Motivation Factors",
+    informationPrefs: "Information Preferences"
+  },
+  es: {
+    backToSurvey: "Volver a la Encuesta",
+    totalResponses: "Respuestas Totales",
+    avgJobSatisfaction: "Satisfacción Laboral Promedio",
+    comments: "Comentarios",
+    completionRate: "Tasa de Finalización",
+    noSurveyData: "Sin Datos de Encuesta",
+    noResponsesYet: "Aún no se han enviado respuestas de encuestas. Complete la encuesta para ver análisis.",
+    language: "Idioma",
+    viewComments: "Ver Comentarios",
+    generateAIAnalysis: "Generar Análisis AI",
+    adminPasscode: "Código de Administrador",
+    enterPasscode: "Ingrese el código de administrador para acceder a comentarios y análisis AI",
+    unlock: "Desbloquear",
+    cancel: "Cancelar",
+    invalidPasscode: "Código inválido",
+    checkPasscode: "Por favor verifique su código de administrador",
+    adminAccessGranted: "Acceso de administrador concedido",
+    canViewComments: "Ahora puede ver comentarios y generar análisis AI",
+    insufficientData: "Datos insuficientes",
+    aiRequires10: "El análisis AI requiere al menos 10 respuestas. Actualmente tiene",
+    responses: "respuestas",
+    excellent: "Excelente",
+    good: "Bueno",
+    neutral: "Neutral",
+    poor: "Pobre",
+    critical: "Crítico",
+    // Demographics
+    northAmerica: "América del Norte",
+    europe: "Europa",
+    magnetics: "Magnéticos",
+    equipment: "Equipo",
+    other: "Otro",
+    operationsDistribution: "Operaciones y Distribución",
+    engineeringServices: "Ingeniería y Servicios",
+    salesFinance: "Ventas y Finanzas",
+    adminManagement: "Administración y Gestión",
+    // Sections
+    engagementSatisfaction: "Compromiso y Satisfacción Laboral",
+    engagementDesc: "Satisfacción general y compromiso con la empresa",
+    leadershipCommunication: "Liderazgo y Comunicación",
+    leadershipDesc: "Efectividad de gestión y calidad de comunicación",
+    trainingDevelopment: "Capacitación y Desarrollo",
+    trainingDesc: "Crecimiento profesional y oportunidades de aprendizaje",
+    teamworkCulture: "Trabajo en Equipo y Cultura",
+    teamworkDesc: "Colaboración y cultura laboral",
+    safetyEnvironment: "Seguridad y Entorno Laboral",
+    safetyDesc: "Seguridad laboral y condiciones ambientales",
+    schedulingWorkload: "Programación y Carga de Trabajo",
+    schedulingDesc: "Equilibrio trabajo-vida y gestión de carga laboral",
+    toolsProcesses: "Herramientas, Equipo y Procesos",
+    toolsDesc: "Recursos y mejora continua",
+    preferencesMotivation: "Preferencias y Motivación",
+    preferencesDesc: "Estilos de comunicación y factores motivacionales",
+    // Questions
+    jobSatisfaction: "Satisfacción Laboral",
+    recommendCompany: "Recomendaría la Empresa",
+    confidenceFuture: "Confianza en la Dirección Futura",
+    clearExpectations: "Expectativas Claras del Liderazgo",
+    performanceAwareness: "Conocimiento del Desempeño",
+    infoQuality: "Calidad de Comunicación de Información",
+    managerFeedback: "Retroalimentación y Alineación del Gerente",
+    trainingQuality: "Calidad de Capacitación y Desarrollo",
+    growthOpportunities: "Oportunidades de Crecimiento",
+    crossFunctional: "Cooperación Interfuncional",
+    teamMorale: "Moral del Equipo",
+    prideInWork: "Orgullo en el Trabajo",
+    workplaceSafety: "Enfoque en Seguridad Laboral",
+    safetyReporting: "Comodidad para Reportar Preocupaciones de Seguridad",
+    workloadManage: "Gestión de Carga de Trabajo",
+    workLifeBalance: "Equilibrio Trabajo-Vida",
+    toolsEquipment: "Calidad de Herramientas y Equipo",
+    processImprovement: "Enfoque en Mejora de Procesos",
+    feelingValued: "Sentirse Valorado por la Empresa",
+    comfortSuggesting: "Comodidad Sugiriendo Cambios",
+    communicationPrefs: "Preferencias de Comunicación",
+    motivationFactors: "Factores de Motivación",
+    informationPrefs: "Preferencias de Información"
+  },
+  fr: {
+    backToSurvey: "Retour à l'Enquête",
+    totalResponses: "Réponses Totales",
+    avgJobSatisfaction: "Satisfaction au Travail Moyenne",
+    comments: "Commentaires",
+    completionRate: "Taux de Complétion",
+    noSurveyData: "Aucune Donnée d'Enquête",
+    noResponsesYet: "Aucune réponse à l'enquête n'a encore été soumise. Complétez l'enquête pour voir les analyses.",
+    language: "Langue",
+    viewComments: "Voir les Commentaires",
+    generateAIAnalysis: "Générer une Analyse AI",
+    adminPasscode: "Code Administrateur",
+    enterPasscode: "Entrez le code administrateur pour accéder aux commentaires et à l'analyse AI",
+    unlock: "Déverrouiller",
+    cancel: "Annuler",
+    invalidPasscode: "Code invalide",
+    checkPasscode: "Veuillez vérifier votre code administrateur",
+    adminAccessGranted: "Accès administrateur accordé",
+    canViewComments: "Vous pouvez maintenant voir les commentaires et générer une analyse AI",
+    insufficientData: "Données insuffisantes",
+    aiRequires10: "L'analyse AI nécessite au moins 10 réponses. Actuellement",
+    responses: "réponses",
+    excellent: "Excellent",
+    good: "Bon",
+    neutral: "Neutre",
+    poor: "Pauvre",
+    critical: "Critique",
+    // Demographics
+    northAmerica: "Amérique du Nord",
+    europe: "Europe",
+    magnetics: "Magnétiques",
+    equipment: "Équipement",
+    other: "Autre",
+    operationsDistribution: "Opérations et Distribution",
+    engineeringServices: "Ingénierie et Services",
+    salesFinance: "Ventes et Finance",
+    adminManagement: "Administration et Gestion",
+    // Sections
+    engagementSatisfaction: "Engagement et Satisfaction au Travail",
+    engagementDesc: "Satisfaction globale et engagement envers l'entreprise",
+    leadershipCommunication: "Leadership et Communication",
+    leadershipDesc: "Efficacité de la gestion et qualité de la communication",
+    trainingDevelopment: "Formation et Développement",
+    trainingDesc: "Croissance professionnelle et opportunités d'apprentissage",
+    teamworkCulture: "Travail d'Équipe et Culture",
+    teamworkDesc: "Collaboration et culture d'entreprise",
+    safetyEnvironment: "Sécurité et Environnement de Travail",
+    safetyDesc: "Sécurité au travail et conditions environnementales",
+    schedulingWorkload: "Planification et Charge de Travail",
+    schedulingDesc: "Équilibre travail-vie et gestion de la charge de travail",
+    toolsProcesses: "Outils, Équipement et Processus",
+    toolsDesc: "Ressources et amélioration continue",
+    preferencesMotivation: "Préférences et Motivation",
+    preferencesDesc: "Styles de communication et facteurs de motivation",
+    // Questions
+    jobSatisfaction: "Satisfaction au Travail",
+    recommendCompany: "Recommanderait l'Entreprise",
+    confidenceFuture: "Confiance dans la Direction Future",
+    clearExpectations: "Attentes Claires du Leadership",
+    performanceAwareness: "Conscience de la Performance",
+    infoQuality: "Qualité de la Communication d'Information",
+    managerFeedback: "Retour et Alignement du Manager",
+    trainingQuality: "Qualité de la Formation et du Développement",
+    growthOpportunities: "Opportunités de Croissance",
+    crossFunctional: "Coopération Interfonctionnelle",
+    teamMorale: "Moral de l'Équipe",
+    prideInWork: "Fierté au Travail",
+    workplaceSafety: "Focus sur la Sécurité au Travail",
+    safetyReporting: "Confort pour Signaler des Préoccupations de Sécurité",
+    workloadManage: "Gestion de la Charge de Travail",
+    workLifeBalance: "Équilibre Travail-Vie",
+    toolsEquipment: "Qualité des Outils et de l'Équipement",
+    processImprovement: "Focus sur l'Amélioration des Processus",
+    feelingValued: "Se Sentir Valorisé par l'Entreprise",
+    comfortSuggesting: "Confort pour Suggérer des Changements",
+    communicationPrefs: "Préférences de Communication",
+    motivationFactors: "Facteurs de Motivation",
+    informationPrefs: "Préférences d'Information"
+  },
+  it: {
+    backToSurvey: "Torna al Sondaggio",
+    totalResponses: "Risposte Totali",
+    avgJobSatisfaction: "Soddisfazione Lavorativa Media",
+    comments: "Commenti",
+    completionRate: "Tasso di Completamento",
+    noSurveyData: "Nessun Dato del Sondaggio",
+    noResponsesYet: "Non sono ancora state inviate risposte al sondaggio. Completa il sondaggio per vedere le analisi.",
+    language: "Lingua",
+    viewComments: "Visualizza Commenti",
+    generateAIAnalysis: "Genera Analisi AI",
+    adminPasscode: "Codice Amministratore",
+    enterPasscode: "Inserisci il codice amministratore per accedere ai commenti e all'analisi AI",
+    unlock: "Sblocca",
+    cancel: "Annulla",
+    invalidPasscode: "Codice non valido",
+    checkPasscode: "Per favore controlla il tuo codice amministratore",
+    adminAccessGranted: "Accesso amministratore concesso",
+    canViewComments: "Ora puoi visualizzare i commenti e generare analisi AI",
+    insufficientData: "Dati insufficienti",
+    aiRequires10: "L'analisi AI richiede almeno 10 risposte. Attualmente hai",
+    responses: "risposte",
+    excellent: "Eccellente",
+    good: "Buono",
+    neutral: "Neutrale",
+    poor: "Scarso",
+    critical: "Critico",
+    // Demographics
+    northAmerica: "Nord America",
+    europe: "Europa",
+    magnetics: "Magnetici",
+    equipment: "Attrezzatura",
+    other: "Altro",
+    operationsDistribution: "Operazioni e Distribuzione",
+    engineeringServices: "Ingegneria e Servizi",
+    salesFinance: "Vendite e Finanza",
+    adminManagement: "Amministrazione e Gestione",
+    // Sections
+    engagementSatisfaction: "Coinvolgimento e Soddisfazione Lavorativa",
+    engagementDesc: "Soddisfazione complessiva e coinvolgimento con l'azienda",
+    leadershipCommunication: "Leadership e Comunicazione",
+    leadershipDesc: "Efficacia della gestione e qualità della comunicazione",
+    trainingDevelopment: "Formazione e Sviluppo",
+    trainingDesc: "Crescita professionale e opportunità di apprendimento",
+    teamworkCulture: "Lavoro di Squadra e Cultura",
+    teamworkDesc: "Collaborazione e cultura aziendale",
+    safetyEnvironment: "Sicurezza e Ambiente di Lavoro",
+    safetyDesc: "Sicurezza sul lavoro e condizioni ambientali",
+    schedulingWorkload: "Pianificazione e Carico di Lavoro",
+    schedulingDesc: "Equilibrio vita-lavoro e gestione del carico di lavoro",
+    toolsProcesses: "Strumenti, Attrezzature e Processi",
+    toolsDesc: "Risorse e miglioramento continuo",
+    preferencesMotivation: "Preferenze e Motivazione",
+    preferencesDesc: "Stili di comunicazione e fattori motivazionali",
+    // Questions
+    jobSatisfaction: "Soddisfazione Lavorativa",
+    recommendCompany: "Raccomanderebbe l'Azienda",
+    confidenceFuture: "Fiducia nella Direzione Futura",
+    clearExpectations: "Aspettative Chiare dalla Leadership",
+    performanceAwareness: "Consapevolezza della Performance",
+    infoQuality: "Qualità della Comunicazione delle Informazioni",
+    managerFeedback: "Feedback e Allineamento del Manager",
+    trainingQuality: "Qualità della Formazione e dello Sviluppo",
+    growthOpportunities: "Opportunità di Crescita",
+    crossFunctional: "Cooperazione Interfunzionale",
+    teamMorale: "Morale del Team",
+    prideInWork: "Orgoglio nel Lavoro",
+    workplaceSafety: "Focus sulla Sicurezza sul Lavoro",
+    safetyReporting: "Comfort nel Segnalare Preoccupazioni di Sicurezza",
+    workloadManage: "Gestione del Carico di Lavoro",
+    workLifeBalance: "Equilibrio Vita-Lavoro",
+    toolsEquipment: "Qualità degli Strumenti e dell'Attrezzatura",
+    processImprovement: "Focus sul Miglioramento dei Processi",
+    feelingValued: "Sentirsi Valorizzati dall'Azienda",
+    comfortSuggesting: "Comfort nel Suggerire Cambiamenti",
+    communicationPrefs: "Preferenze di Comunicazione",
+    motivationFactors: "Fattori di Motivazione",
+    informationPrefs: "Preferenze di Informazione"
+  }
+};
+
+const getSurveySections = (t: typeof translations.en) => [
   {
     id: "engagement-satisfaction",
-    title: "Engagement & Job Satisfaction",
-    description: "Overall satisfaction and engagement with the company",
+    title: t.engagementSatisfaction,
+    description: t.engagementDesc,
     questions: [
-      { key: "job_satisfaction", label: "Job Satisfaction" },
-      { key: "recommend_company", label: "Would Recommend Company" },
-      { key: "strategic_confidence", label: "Confidence in Future Direction" }
+      { key: "job_satisfaction", label: t.jobSatisfaction },
+      { key: "recommend_company", label: t.recommendCompany },
+      { key: "strategic_confidence", label: t.confidenceFuture }
     ]
   },
   {
     id: "leadership-communication",
-    title: "Leadership & Communication",
-    description: "Management effectiveness and communication quality",
+    title: t.leadershipCommunication,
+    description: t.leadershipDesc,
     questions: [
-      { key: "leadership_openness", label: "Clear Expectations from Leadership" },
-      { key: "performance_awareness", label: "Awareness of Performance" },
-      { key: "communication_clarity", label: "Information Communication Quality" },
-      { key: "manager_alignment", label: "Manager Feedback & Alignment" }
+      { key: "leadership_openness", label: t.clearExpectations },
+      { key: "performance_awareness", label: t.performanceAwareness },
+      { key: "communication_clarity", label: t.infoQuality },
+      { key: "manager_alignment", label: t.managerFeedback }
     ],
     multiSelect: [
-      { key: "communication_preferences", label: "Communication Preferences" }
+      { key: "communication_preferences", label: t.communicationPrefs }
     ]
   },
   {
     id: "training-development",
-    title: "Training & Development",
-    description: "Professional growth and learning opportunities",
+    title: t.trainingDevelopment,
+    description: t.trainingDesc,
     questions: [
-      { key: "training_satisfaction", label: "Training & Development Quality" },
-      { key: "advancement_opportunities", label: "Growth Opportunities" }
+      { key: "training_satisfaction", label: t.trainingQuality },
+      { key: "advancement_opportunities", label: t.growthOpportunities }
     ]
   },
   {
     id: "teamwork-culture",
-    title: "Teamwork & Culture",
-    description: "Collaboration and workplace culture",
+    title: t.teamworkCulture,
+    description: t.teamworkDesc,
     questions: [
-      { key: "cross_functional_collaboration", label: "Cross-Functional Cooperation" },
-      { key: "team_morale", label: "Team Morale" },
-      { key: "pride_in_work", label: "Pride in Work" }
+      { key: "cross_functional_collaboration", label: t.crossFunctional },
+      { key: "team_morale", label: t.teamMorale },
+      { key: "pride_in_work", label: t.prideInWork }
     ]
   },
   {
     id: "safety-environment",
-    title: "Safety & Work Environment",
-    description: "Workplace safety and environmental conditions",
+    title: t.safetyEnvironment,
+    description: t.safetyDesc,
     questions: [
-      { key: "workplace_safety", label: "Workplace Safety Focus" },
-      { key: "safety_reporting_comfort", label: "Safety Concern Reporting Comfort" }
+      { key: "workplace_safety", label: t.workplaceSafety },
+      { key: "safety_reporting_comfort", label: t.safetyReporting }
     ]
   },
   {
     id: "scheduling-workload",
-    title: "Scheduling & Workload",
-    description: "Work-life balance and workload management",
+    title: t.schedulingWorkload,
+    description: t.schedulingDesc,
     questions: [
-      { key: "workload_manageability", label: "Workload Manageability" },
-      { key: "work_life_balance", label: "Work-Life Balance" }
+      { key: "workload_manageability", label: t.workloadManage },
+      { key: "work_life_balance", label: t.workLifeBalance }
     ]
   },
   {
     id: "tools-processes",
-    title: "Tools, Equipment & Processes",
-    description: "Resources and continuous improvement",
+    title: t.toolsProcesses,
+    description: t.toolsDesc,
     questions: [
-      { key: "tools_equipment_quality", label: "Tools & Equipment Quality" },
-      { key: "manual_processes_focus", label: "Process Improvement Focus" },
-      { key: "company_value_alignment", label: "Feeling Valued by Company" },
-      { key: "comfortable_suggesting_improvements", label: "Comfort Suggesting Changes" }
+      { key: "tools_equipment_quality", label: t.toolsEquipment },
+      { key: "manual_processes_focus", label: t.processImprovement },
+      { key: "company_value_alignment", label: t.feelingValued },
+      { key: "comfortable_suggesting_improvements", label: t.comfortSuggesting }
     ]
   },
   {
     id: "preferences-motivation",
-    title: "Preferences & Motivation",
-    description: "Communication styles and motivational factors",
+    title: t.preferencesMotivation,
+    description: t.preferencesDesc,
     questions: [],
     multiSelect: [
-      { key: "motivation_factors", label: "Motivation Factors" },
-      { key: "information_preferences", label: "Information Preferences" }
+      { key: "motivation_factors", label: t.motivationFactors },
+      { key: "information_preferences", label: t.informationPrefs }
     ]
   }
 ];
 
 export function SurveyDashboardNew({ onBack, setCurrentView }: { onBack: () => void; setCurrentView: (view: string) => void }) {
   const [surveyData, setSurveyData] = useState<SurveyResponse[]>([]);
+  const [language, setLanguage] = useState<'en' | 'es' | 'fr' | 'it'>('en');
+  const t = translations[language];
+  const surveySections = getSurveySections(t);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [adminPasscode, setAdminPasscode] = useState("");
@@ -215,13 +540,13 @@ export function SurveyDashboardNew({ onBack, setCurrentView }: { onBack: () => v
       setIsAdminAuthenticated(true);
       setShowAdminDialog(false);
       toast({
-        title: "Admin access granted",
-        description: "You can now view comments and generate AI analysis"
+        title: t.adminAccessGranted,
+        description: t.canViewComments
       });
     } else {
       toast({
-        title: "Invalid passcode",
-        description: "Please check your admin passcode",
+        title: t.invalidPasscode,
+        description: t.checkPasscode,
         variant: "destructive"
       });
     }
@@ -256,11 +581,11 @@ export function SurveyDashboardNew({ onBack, setCurrentView }: { onBack: () => v
   };
 
   const getSectionStatus = (average: number) => {
-    if (average >= 4) return { status: "excellent", color: "bg-green-500", textColor: "text-green-700" };
-    if (average >= 3.5) return { status: "good", color: "bg-blue-500", textColor: "text-blue-700" };
-    if (average >= 3) return { status: "neutral", color: "bg-yellow-500", textColor: "text-yellow-700" };
-    if (average >= 2) return { status: "poor", color: "bg-orange-500", textColor: "text-orange-700" };
-    return { status: "critical", color: "bg-red-500", textColor: "text-red-700" };
+    if (average >= 4) return { status: t.excellent.toLowerCase(), color: "bg-green-500", textColor: "text-green-700" };
+    if (average >= 3.5) return { status: t.good.toLowerCase(), color: "bg-blue-500", textColor: "text-blue-700" };
+    if (average >= 3) return { status: t.neutral.toLowerCase(), color: "bg-yellow-500", textColor: "text-yellow-700" };
+    if (average >= 2) return { status: t.poor.toLowerCase(), color: "bg-orange-500", textColor: "text-orange-700" };
+    return { status: t.critical.toLowerCase(), color: "bg-red-500", textColor: "text-red-700" };
   };
 
   const generateChartData = (questionKey: string) => {
@@ -320,11 +645,29 @@ export function SurveyDashboardNew({ onBack, setCurrentView }: { onBack: () => v
     return { continentData, divisionData, roleData };
   };
 
+  // Translate demographic values
+  const translateDemographic = (value: string) => {
+    const demographicMap: Record<string, keyof typeof translations.en> = {
+      'North America': 'northAmerica',
+      'Europe': 'europe',
+      'Magnetics': 'magnetics',
+      'Equipment': 'equipment',
+      'Other': 'other',
+      'Operations & Distribution': 'operationsDistribution',
+      'Engineering & Services': 'engineeringServices',
+      'Sales & Finance': 'salesFinance',
+      'Admin & Management': 'adminManagement'
+    };
+    
+    const key = demographicMap[value];
+    return key ? t[key] : value;
+  };
+
   const generateAIAnalysis = async () => {
     if (totalResponses < 10) {
       toast({
-        title: "Insufficient data",
-        description: `AI analysis requires at least 10 responses. Currently have ${totalResponses} responses.`,
+        title: t.insufficientData,
+        description: `${t.aiRequires10} ${totalResponses} ${t.responses}.`,
         variant: "destructive"
       });
       return;
@@ -373,15 +716,27 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
           <div className="flex items-center justify-between mb-8">
             <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
               <ChevronLeftIcon className="h-4 w-4" />
-              Back to Survey
+              {t.backToSurvey}
             </Button>
+            <Select value={language} onValueChange={(value: 'en' | 'es' | 'fr' | 'it') => setLanguage(value)}>
+              <SelectTrigger className="w-[180px]">
+                <Globe className="mr-2 h-4 w-4" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="es">Español</SelectItem>
+                <SelectItem value="fr">Français</SelectItem>
+                <SelectItem value="it">Italiano</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <Card>
             <CardContent className="text-center p-8">
               <AlertTriangleIcon className="h-12 w-12 text-warning mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">No Survey Data</h2>
+              <h2 className="text-xl font-semibold mb-2">{t.noSurveyData}</h2>
               <p className="text-muted-foreground">
-                No survey responses have been submitted yet. Complete the survey to see analytics.
+                {t.noResponsesYet}
               </p>
             </CardContent>
           </Card>
@@ -397,15 +752,29 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
-            <ChevronLeftIcon className="h-4 w-4" />
-            Back to Survey
-          </Button>
+        <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <img src={buntingLogo} alt="Bunting" className="h-8" />
-            <img src={magnetApplicationsLogo} alt="Magnet Applications" className="h-8" />
+            <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
+              <ChevronLeftIcon className="h-4 w-4" />
+              {t.backToSurvey}
+            </Button>
+            <div className="flex items-center gap-4">
+              <img src={buntingLogo} alt="Bunting" className="h-8" />
+              <img src={magnetApplicationsLogo} alt="Magnet Applications" className="h-8" />
+            </div>
           </div>
+          <Select value={language} onValueChange={(value: 'en' | 'es' | 'fr' | 'it') => setLanguage(value)}>
+            <SelectTrigger className="w-[180px]">
+              <Globe className="mr-2 h-4 w-4" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">English</SelectItem>
+              <SelectItem value="es">Español</SelectItem>
+              <SelectItem value="fr">Français</SelectItem>
+              <SelectItem value="it">Italiano</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Overview Cards */}
@@ -414,7 +783,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Responses</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t.totalResponses}</p>
                   <p className="text-2xl font-bold">{totalResponses}</p>
                 </div>
                 <UsersIcon className="h-8 w-8 text-primary" />
@@ -426,7 +795,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Avg. Job Satisfaction</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t.avgJobSatisfaction}</p>
                   <p className="text-2xl font-bold">
                     {surveyData.filter(r => r.job_satisfaction).length > 0 
                       ? (surveyData.reduce((sum, r) => sum + (r.job_satisfaction || 0), 0) / 
@@ -443,7 +812,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Comments</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t.comments}</p>
                   <p className="text-2xl font-bold">
                     {surveyData.filter(r => r.collaboration_feedback || r.additional_comments).length}
                   </p>
@@ -457,7 +826,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Completion Rate</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t.completionRate}</p>
                   <p className="text-2xl font-bold">100%</p>
                 </div>
                 <AlertTriangleIcon className="h-8 w-8 text-primary" />
@@ -633,7 +1002,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                     <PieChart>
                       <Pie
                         data={Object.entries(continentData).map(([key, value], index) => ({
-                          name: key,
+                          name: translateDemographic(key),
                           value,
                           fill: COLORS[index % COLORS.length]
                         }))}
@@ -659,7 +1028,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                     <PieChart>
                       <Pie
                         data={Object.entries(divisionData).map(([key, value], index) => ({
-                          name: key,
+                          name: translateDemographic(key),
                           value,
                           fill: COLORS[index % COLORS.length]
                         }))}
@@ -685,7 +1054,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                     <PieChart>
                       <Pie
                         data={Object.entries(roleData).map(([key, value], index) => ({
-                          name: key,
+                          name: translateDemographic(key),
                           value,
                           fill: COLORS[index % COLORS.length]
                         }))}
@@ -752,25 +1121,25 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
         <Dialog open={showAdminDialog} onOpenChange={setShowAdminDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Admin Access Required</DialogTitle>
+              <DialogTitle>{t.adminPasscode}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Enter the admin passcode to view comments and generate AI analysis.
+                {t.enterPasscode}
               </p>
               <Input
                 type="password"
-                placeholder="Enter admin passcode"
+                placeholder={t.adminPasscode}
                 value={adminPasscode}
                 onChange={(e) => setAdminPasscode(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleAdminAuth()}
               />
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setShowAdminDialog(false)}>
-                  Cancel
+                  {t.cancel}
                 </Button>
                 <Button onClick={handleAdminAuth}>
-                  Authenticate
+                  {t.unlock}
                 </Button>
               </div>
             </div>
