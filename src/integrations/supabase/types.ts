@@ -2680,6 +2680,33 @@ export type Database = {
         }
         Relationships: []
       }
+      survey_analysis_reports: {
+        Row: {
+          analysis_text: string
+          created_at: string
+          generated_at: string
+          id: string
+          pdf_url: string | null
+          total_responses: number
+        }
+        Insert: {
+          analysis_text: string
+          created_at?: string
+          generated_at?: string
+          id?: string
+          pdf_url?: string | null
+          total_responses: number
+        }
+        Update: {
+          analysis_text?: string
+          created_at?: string
+          generated_at?: string
+          id?: string
+          pdf_url?: string | null
+          total_responses?: number
+        }
+        Relationships: []
+      }
       test_results: {
         Row: {
           attachment: string | null

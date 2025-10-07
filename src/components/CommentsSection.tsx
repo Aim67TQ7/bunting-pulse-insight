@@ -14,8 +14,9 @@ interface SurveyResponse {
   continent: string;
   division: string;
   role: string;
-  additional_comments: string;
-  collaboration_feedback: string;
+  additional_comments?: string;
+  collaboration_feedback?: string;
+  follow_up_responses?: Record<string, string>;
   submitted_at: string;
   job_satisfaction?: number;
 }
@@ -31,30 +32,88 @@ export const CommentsSection = ({ responses }: CommentsSectionProps) => {
   const [divisionFilter, setDivisionFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
 
-  // Get responses with comments
-  const responsesWithComments = responses.filter(r => 
-    r.additional_comments || r.collaboration_feedback
-  );
+  // Flatten all comments including follow-ups
+  const allComments = responses.flatMap(r => {
+    const comments = [];
+    
+    // Add additional comments
+    if (r.additional_comments) {
+      comments.push({
+        ...r,
+        comment_type: 'Additional Comments',
+        comment_text: r.additional_comments,
+      });
+    }
+    
+    // Add collaboration feedback
+    if (r.collaboration_feedback) {
+      comments.push({
+        ...r,
+        comment_type: 'Collaboration Feedback',
+        comment_text: r.collaboration_feedback,
+      });
+    }
+    
+    // Add follow-up responses for low scores
+    if (r.follow_up_responses && typeof r.follow_up_responses === 'object') {
+      Object.entries(r.follow_up_responses).forEach(([key, value]) => {
+        if (value) {
+          const questionLabels: Record<string, string> = {
+            job_satisfaction: 'Job Satisfaction',
+            work_life_balance: 'Work-Life Balance',
+            workplace_safety: 'Workplace Safety',
+            tools_equipment_quality: 'Tools & Equipment Quality',
+            training_satisfaction: 'Training Satisfaction',
+            advancement_opportunities: 'Advancement Opportunities',
+            communication_clarity: 'Communication Clarity',
+            workload_manageability: 'Workload Manageability',
+            performance_awareness: 'Performance Awareness',
+            leadership_openness: 'Leadership Openness',
+            company_value_alignment: 'Company Value Alignment',
+            manager_alignment: 'Manager Alignment',
+            team_morale: 'Team Morale',
+            pride_in_work: 'Pride in Work',
+            recommend_company: 'Recommend Company',
+            strategic_confidence: 'Strategic Confidence',
+            comfortable_suggesting_improvements: 'Comfortable Suggesting Improvements',
+            safety_reporting_comfort: 'Safety Reporting Comfort',
+            manual_processes_focus: 'Manual Processes Focus',
+            cross_functional_collaboration: 'Cross-Functional Collaboration',
+          };
+          
+          comments.push({
+            ...r,
+            comment_type: `Low Score Follow-up: ${questionLabels[key] || key}`,
+            comment_text: value,
+          });
+        }
+      });
+    }
+    
+    return comments;
+  });
+
+  const responsesWithComments = allComments;
 
   // Apply filters
-  const filteredComments = responsesWithComments.filter(response => {
-    // Search filter
-    const searchMatch = !searchTerm || 
-      (response.additional_comments?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (response.collaboration_feedback?.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    // Comment type filter
-    const commentTypeMatch = commentTypeFilter === "all" ||
-      (commentTypeFilter === "additional" && response.additional_comments) ||
-      (commentTypeFilter === "collaboration" && response.collaboration_feedback) ||
-      (commentTypeFilter === "both" && response.additional_comments && response.collaboration_feedback);
-
-    // Demographic filters
-    const continentMatch = continentFilter === "all" || response.continent === continentFilter;
-    const divisionMatch = divisionFilter === "all" || response.division === divisionFilter;
-    const roleMatch = roleFilter === "all" || response.role === roleFilter;
-
-    return searchMatch && commentTypeMatch && continentMatch && divisionMatch && roleMatch;
+  const filteredComments = responsesWithComments.filter((response: any) => {
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = !searchTerm || 
+      response.comment_text?.toLowerCase().includes(searchLower) ||
+      response.continent.toLowerCase().includes(searchLower) ||
+      response.division.toLowerCase().includes(searchLower) ||
+      response.role.toLowerCase().includes(searchLower);
+    
+    const matchesCommentType = commentTypeFilter === 'all' || 
+      (commentTypeFilter === 'additional' && response.comment_type === 'Additional Comments') ||
+      (commentTypeFilter === 'collaboration' && response.comment_type === 'Collaboration Feedback') ||
+      (commentTypeFilter === 'followup' && response.comment_type.startsWith('Low Score Follow-up'));
+    
+    const matchesContinent = continentFilter === 'all' || response.continent === continentFilter;
+    const matchesDivision = divisionFilter === 'all' || response.division === divisionFilter;
+    const matchesRole = roleFilter === 'all' || response.role === roleFilter;
+    
+    return matchesSearch && matchesCommentType && matchesContinent && matchesDivision && matchesRole;
   });
 
   const clearFilters = () => {
@@ -70,25 +129,16 @@ export const CommentsSection = ({ responses }: CommentsSectionProps) => {
       // Header
       ['ID', 'Date', 'Continent', 'Division', 'Role', 'Job Satisfaction', 'Comment Type', 'Comment Text'],
       // Data rows
-      ...filteredComments.flatMap(response => {
-        const baseData = [
-          response.id,
-          new Date(response.submitted_at).toLocaleDateString(),
-          response.continent,
-          response.division,
-          response.role,
-          response.job_satisfaction?.toString() || 'N/A'
-        ];
-
-        const rows = [];
-        if (response.additional_comments) {
-          rows.push([...baseData, 'Additional Comments', response.additional_comments]);
-        }
-        if (response.collaboration_feedback) {
-          rows.push([...baseData, 'Collaboration Feedback', response.collaboration_feedback]);
-        }
-        return rows;
-      })
+      ...filteredComments.map((response: any) => [
+        response.id,
+        new Date(response.submitted_at).toLocaleDateString(),
+        response.continent,
+        response.division,
+        response.role,
+        response.job_satisfaction?.toString() || 'N/A',
+        response.comment_type,
+        response.comment_text
+      ])
     ].map(row => row.map(cell => `"${cell?.replace(/"/g, '""') || ''}"`).join(','))
      .join('\n');
 
@@ -152,7 +202,7 @@ export const CommentsSection = ({ responses }: CommentsSectionProps) => {
                   <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="additional">Additional Comments</SelectItem>
                   <SelectItem value="collaboration">Collaboration Feedback</SelectItem>
-                  <SelectItem value="both">Both Types</SelectItem>
+                  <SelectItem value="followup">Low Score Follow-ups</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -206,81 +256,57 @@ export const CommentsSection = ({ responses }: CommentsSectionProps) => {
                   <TableHead className="w-[100px]">Date</TableHead>
                   <TableHead className="w-[120px]">Demographics</TableHead>
                   <TableHead className="w-[80px]">Satisfaction</TableHead>
-                  <TableHead className="w-[120px]">Type</TableHead>
                   <TableHead>Comment</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredComments.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                       No comments found matching your filters.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredComments.flatMap(response => {
-                    const baseRow = (
-                      <div className="text-xs space-y-1">
-                        <div><strong>Date:</strong> {new Date(response.submitted_at).toLocaleDateString()}</div>
-                        <div><strong>Continent:</strong> {response.continent}</div>
-                        <div><strong>Division:</strong> {response.division}</div>
-                        <div><strong>Role:</strong> {response.role}</div>
-                      </div>
-                    );
-
-                    const satisfactionBadge = (
-                      <Badge 
-                        variant={
-                          !response.job_satisfaction ? "secondary" :
-                          response.job_satisfaction >= 4 ? "default" : 
-                          response.job_satisfaction >= 3 ? "secondary" : 
-                          "destructive"
-                        }
-                      >
-                        {response.job_satisfaction ? `${response.job_satisfaction}/5` : 'N/A'}
-                      </Badge>
-                    );
-
-                    const rows = [];
-
-                    if (response.additional_comments) {
-                      rows.push(
-                        <TableRow key={`${response.id}-additional`}>
-                          <TableCell>{new Date(response.submitted_at).toLocaleDateString()}</TableCell>
-                          <TableCell>{baseRow}</TableCell>
-                          <TableCell>{satisfactionBadge}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">Additional Comments</Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="max-w-md text-sm leading-relaxed">
-                              {response.additional_comments}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    }
-
-                    if (response.collaboration_feedback) {
-                      rows.push(
-                        <TableRow key={`${response.id}-collaboration`}>
-                          <TableCell>{new Date(response.submitted_at).toLocaleDateString()}</TableCell>
-                          <TableCell>{baseRow}</TableCell>
-                          <TableCell>{satisfactionBadge}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">Collaboration Feedback</Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="max-w-md text-sm leading-relaxed">
-                              {response.collaboration_feedback}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    }
-
-                    return rows;
-                  })
+                  <TableBody>
+                    {filteredComments.map((response: any, idx: number) => (
+                      <TableRow key={`${response.id}-${idx}`}>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(response.submitted_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          <div className="space-y-1">
+                            <div>{response.continent}</div>
+                            <div className="text-muted-foreground">{response.division}</div>
+                            <div className="text-muted-foreground">{response.role}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {response.job_satisfaction ? (
+                            <Badge variant={
+                              response.job_satisfaction >= 4 ? "default" : 
+                              response.job_satisfaction >= 3 ? "secondary" : 
+                              "destructive"
+                            }>
+                              {response.job_satisfaction}/5
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">N/A</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <Badge 
+                              variant={response.comment_type.startsWith('Low Score') ? "destructive" : "outline"} 
+                              className="mb-1"
+                            >
+                              {response.comment_type}
+                            </Badge>
+                            <p className="text-sm">{response.comment_text}</p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
                 )}
               </TableBody>
             </Table>
@@ -289,28 +315,36 @@ export const CommentsSection = ({ responses }: CommentsSectionProps) => {
 
         {/* Summary Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          <div className="text-center">
-            <div className="text-2xl font-bold">{responsesWithComments.length}</div>
-            <div className="text-sm text-muted-foreground">Total Comments</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold">
-              {responses.filter(r => r.additional_comments).length}
-            </div>
-            <div className="text-sm text-muted-foreground">Additional Comments</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold">
-              {responses.filter(r => r.collaboration_feedback).length}
-            </div>
-            <div className="text-sm text-muted-foreground">Collaboration Feedback</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold">
-              {((responsesWithComments.length / responses.length) * 100).toFixed(0)}%
-            </div>
-            <div className="text-sm text-muted-foreground">Response Rate</div>
-          </div>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-primary">{filteredComments.length}</div>
+              <p className="text-sm text-muted-foreground">Total Comments</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-primary">
+                {filteredComments.filter((r: any) => r.comment_type === 'Additional Comments').length}
+              </div>
+              <p className="text-sm text-muted-foreground">Additional Comments</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-primary">
+                {filteredComments.filter((r: any) => r.comment_type === 'Collaboration Feedback').length}
+              </div>
+              <p className="text-sm text-muted-foreground">Collaboration Feedback</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-primary">
+                {filteredComments.filter((r: any) => r.comment_type.startsWith('Low Score Follow-up')).length}
+              </div>
+              <p className="text-sm text-muted-foreground">Low Score Follow-ups</p>
+            </CardContent>
+          </Card>
         </div>
       </CardContent>
     </Card>

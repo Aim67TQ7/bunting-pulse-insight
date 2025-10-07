@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -69,7 +69,36 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
+  const [savedReports, setSavedReports] = useState<any[]>([]);
   const { toast } = useToast();
+
+  // Load existing reports on mount
+  useEffect(() => {
+    loadSavedReports();
+  }, []);
+
+  const loadSavedReports = async () => {
+    const { data, error } = await supabase
+      .from('survey_analysis_reports')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (!error && data) {
+      setSavedReports(data);
+      // If there's a recent report, set it as the current analysis
+      if (data.length > 0 && !analysisResult) {
+        setAnalysisResult({
+          analysis: data[0].analysis_text,
+          metadata: {
+            totalResponses: data[0].total_responses,
+            generatedAt: data[0].generated_at,
+            model: 'gemini-2.5-flash',
+          }
+        });
+      }
+    }
+  };
 
   const generateAnalysis = async () => {
     if (responses.length === 0) {
@@ -100,11 +129,27 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
 
       console.log('Analysis generated successfully');
       setAnalysisResult(data);
+
+      // Save to database
+      const { error: saveError } = await supabase
+        .from('survey_analysis_reports')
+        .insert({
+          analysis_text: data.analysis,
+          total_responses: data.metadata.totalResponses,
+          generated_at: data.metadata.generatedAt,
+        });
+
+      if (saveError) {
+        console.error('Error saving analysis:', saveError);
+      } else {
+        loadSavedReports(); // Reload reports list
+      }
+
       setShowAnalysisDialog(true);
       
       toast({
         title: "Analysis Complete",
-        description: `Comprehensive analysis generated for ${data.metadata.totalResponses} responses (${data.metadata.validResponses || data.metadata.totalResponses} complete). Analysis quality: ${data.metadata.analysisLength || 0} characters.`,
+        description: `Comprehensive analysis generated and saved for ${data.metadata.totalResponses} responses.`,
       });
 
     } catch (error: any) {
@@ -357,6 +402,51 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Previous Reports */}
+      {savedReports.length > 0 && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Previous Reports</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {savedReports.map((report) => (
+                <div 
+                  key={report.id} 
+                  className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                >
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">
+                      {new Date(report.created_at).toLocaleDateString()} - {report.total_responses} responses
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Generated: {new Date(report.generated_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setAnalysisResult({
+                        analysis: report.analysis_text,
+                        metadata: {
+                          totalResponses: report.total_responses,
+                          generatedAt: report.generated_at,
+                          model: 'gemini-2.5-flash',
+                        }
+                      });
+                      setShowAnalysisDialog(true);
+                    }}
+                  >
+                    View
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Analysis Results Dialog */}
       <Dialog open={showAnalysisDialog} onOpenChange={setShowAnalysisDialog}>

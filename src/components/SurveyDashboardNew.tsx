@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Tooltip as RechartsTooltip } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Globe } from "lucide-react";
 
@@ -945,9 +945,9 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                   
                    <CollapsibleContent>
                     <CardContent className="pt-6 space-y-4">
-                      {/* Question Details */}
+                      {/* Question Details with Bar Charts */}
                       {section.questions && section.questions.length > 0 && (
-                        <div className="space-y-3">
+                        <div className="space-y-6">
                           {section.questions.map((question) => {
                             const responses = surveyData
                               .map(r => r[question.key as keyof SurveyResponse])
@@ -955,22 +955,37 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                             const avg = responses.length > 0 
                               ? responses.reduce((a, b) => a + b, 0) / responses.length 
                               : 0;
-                            const { color, textColor } = getSectionStatus(avg);
+                            
+                            // Calculate distribution for bar chart
+                            const distribution = [1, 2, 3, 4, 5].map(score => ({
+                              score: score.toString(),
+                              count: responses.filter(r => r === score).length
+                            }));
                             
                             return (
-                              <div key={question.key} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-                                <div className="flex-1">
-                                  <p className="font-medium text-foreground">{question.label}</p>
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    {responses.length} responses
-                                  </p>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                  <div className="text-right">
-                                    <div className="text-2xl font-bold text-foreground">{avg.toFixed(1)}</div>
-                                    <div className="text-xs text-muted-foreground">out of 5</div>
+                              <div key={question.key} className="p-4 bg-muted/30 rounded-lg">
+                                <div className="flex items-center justify-between mb-4">
+                                  <div className="flex-1">
+                                    <p className="font-medium text-foreground">{question.label}</p>
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                      {responses.length} responses · Average: {avg.toFixed(1)}/5
+                                    </p>
                                   </div>
-                                  <Progress value={(avg / 5) * 100} className="w-24" />
+                                </div>
+                                
+                                <div className="h-48">
+                                  <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={distribution}>
+                                      <CartesianGrid strokeDasharray="3 3" />
+                                      <XAxis 
+                                        dataKey="score" 
+                                        label={{ value: 'Rating', position: 'insideBottom', offset: -5 }}
+                                      />
+                                      <YAxis label={{ value: 'Responses', angle: -90, position: 'insideLeft' }} />
+                                      <RechartsTooltip />
+                                      <Bar dataKey="count" fill="hsl(var(--primary))" />
+                                    </BarChart>
+                                  </ResponsiveContainer>
                                 </div>
                               </div>
                             );
