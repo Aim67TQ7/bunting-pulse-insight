@@ -385,8 +385,6 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
   const motivationData = getMultiSelectData('motivation_factors');
   const informationPrefData = getMultiSelectData('information_preferences');
   const lowestScores = getLowestScoringQuestions();
-  const questionsByContinent = getQuestionsByDemographic('continent');
-  const questionsByDivision = getQuestionsByDemographic('division');
 
   const overallEngagement = calculateAverage('job_satisfaction');
   const overallSafety = calculateAverage('workplace_safety');
@@ -719,54 +717,6 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
             </div>
           </div>
 
-          {/* Section 4: All Questions Ranked */}
-          <Card>
-            <CardHeader>
-              <CardTitle>All Survey Questions - Ranked by Score</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Showing {averagesByQuestion.length} questions with response data ({filteredResponses.length} total responses)
-              </p>
-            </CardHeader>
-            <CardContent>
-              {averagesByQuestion.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  No question data available. Questions without responses are hidden.
-                </div>
-              ) : (
-                <ChartContainer config={{}} className="h-[700px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={averagesByQuestion} layout="horizontal" margin={{ left: 220, right: 40, top: 20, bottom: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis 
-                        type="number" 
-                        domain={[0, 5]} 
-                        ticks={[0, 1, 2, 3, 4, 5]}
-                        stroke="hsl(var(--foreground))"
-                      />
-                      <YAxis 
-                        dataKey="question" 
-                        type="category" 
-                        width={210}
-                        tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }}
-                        interval={0}
-                        stroke="hsl(var(--foreground))"
-                      />
-                      <ChartTooltip 
-                        content={<ChartTooltipContent />}
-                        cursor={{ fill: 'hsl(var(--muted))' }}
-                      />
-                      <Bar dataKey="average" radius={[0, 4, 4, 0]} minPointSize={5}>
-                        {averagesByQuestion.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              )}
-            </CardContent>
-          </Card>
-
           {/* Section 5: Attention Required */}
           <Card className="border-destructive/50">
             <CardHeader>
@@ -788,66 +738,6 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Section 6: Questions by Continent */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Question Scores by Continent</CardTitle>
-              <p className="text-sm text-muted-foreground">Comparative analysis across regions</p>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={{}} className="h-[700px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={questionsByContinent} layout="horizontal" margin={{ left: 180, right: 20, top: 20, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" domain={[0, 5]} />
-                    <YAxis 
-                      dataKey="question" 
-                      type="category" 
-                      width={170}
-                      tick={{ fontSize: 10 }}
-                      interval={0}
-                    />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Legend />
-                    {continentData.map((continent, index) => (
-                      <Bar key={continent.name} dataKey={continent.name} fill={CHART_COLORS[index]} />
-                    ))}
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-
-          {/* Section 7: Questions by Division */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Question Scores by Division</CardTitle>
-              <p className="text-sm text-muted-foreground">Comparative analysis across divisions</p>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={{}} className="h-[700px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={questionsByDivision} layout="horizontal" margin={{ left: 180, right: 20, top: 20, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" domain={[0, 5]} />
-                    <YAxis 
-                      dataKey="question" 
-                      type="category" 
-                      width={170}
-                      tick={{ fontSize: 10 }}
-                      interval={0}
-                    />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Legend />
-                    {divisionData.map((division, index) => (
-                      <Bar key={division.name} dataKey={division.name} fill={CHART_COLORS[index]} />
-                    ))}
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
             </CardContent>
           </Card>
 
