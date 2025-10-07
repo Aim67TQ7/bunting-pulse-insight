@@ -18,7 +18,27 @@ interface SurveyResponse {
   collaboration_feedback?: string;
   follow_up_responses?: Record<string, string>;
   submitted_at: string;
+  // All score fields
   job_satisfaction?: number;
+  work_life_balance?: number;
+  workplace_safety?: number;
+  tools_equipment_quality?: number;
+  training_satisfaction?: number;
+  advancement_opportunities?: number;
+  communication_clarity?: number;
+  workload_manageability?: number;
+  performance_awareness?: number;
+  leadership_openness?: number;
+  company_value_alignment?: number;
+  manager_alignment?: number;
+  team_morale?: number;
+  pride_in_work?: number;
+  recommend_company?: number;
+  strategic_confidence?: number;
+  comfortable_suggesting_improvements?: number;
+  safety_reporting_comfort?: number;
+  manual_processes_focus?: number;
+  cross_functional_collaboration?: number;
 }
 
 interface CommentsSectionProps {
@@ -54,38 +74,44 @@ export const CommentsSection = ({ responses }: CommentsSectionProps) => {
       });
     }
     
-    // Add follow-up responses for low scores
+    // Add follow-up responses ONLY for actual low scores (1-3)
     if (r.follow_up_responses && typeof r.follow_up_responses === 'object') {
       Object.entries(r.follow_up_responses).forEach(([key, value]) => {
         if (value) {
-          const questionLabels: Record<string, string> = {
-            job_satisfaction: 'Job Satisfaction',
-            work_life_balance: 'Work-Life Balance',
-            workplace_safety: 'Workplace Safety',
-            tools_equipment_quality: 'Tools & Equipment Quality',
-            training_satisfaction: 'Training Satisfaction',
-            advancement_opportunities: 'Advancement Opportunities',
-            communication_clarity: 'Communication Clarity',
-            workload_manageability: 'Workload Manageability',
-            performance_awareness: 'Performance Awareness',
-            leadership_openness: 'Leadership Openness',
-            company_value_alignment: 'Company Value Alignment',
-            manager_alignment: 'Manager Alignment',
-            team_morale: 'Team Morale',
-            pride_in_work: 'Pride in Work',
-            recommend_company: 'Recommend Company',
-            strategic_confidence: 'Strategic Confidence',
-            comfortable_suggesting_improvements: 'Comfortable Suggesting Improvements',
-            safety_reporting_comfort: 'Safety Reporting Comfort',
-            manual_processes_focus: 'Manual Processes Focus',
-            cross_functional_collaboration: 'Cross-Functional Collaboration',
-          };
+          // Check if the actual score for this question is low (1-3)
+          const scoreValue = r[key as keyof SurveyResponse] as number | undefined;
           
-          comments.push({
-            ...r,
-            comment_type: `Low Score Follow-up: ${questionLabels[key] || key}`,
-            comment_text: value,
-          });
+          // Only include if the score is 1, 2, or 3 (low scores)
+          if (scoreValue !== undefined && scoreValue <= 3) {
+            const questionLabels: Record<string, string> = {
+              job_satisfaction: 'Job Satisfaction',
+              work_life_balance: 'Work-Life Balance',
+              workplace_safety: 'Workplace Safety',
+              tools_equipment_quality: 'Tools & Equipment Quality',
+              training_satisfaction: 'Training Satisfaction',
+              advancement_opportunities: 'Advancement Opportunities',
+              communication_clarity: 'Communication Clarity',
+              workload_manageability: 'Workload Manageability',
+              performance_awareness: 'Performance Awareness',
+              leadership_openness: 'Leadership Openness',
+              company_value_alignment: 'Company Value Alignment',
+              manager_alignment: 'Manager Alignment',
+              team_morale: 'Team Morale',
+              pride_in_work: 'Pride in Work',
+              recommend_company: 'Recommend Company',
+              strategic_confidence: 'Strategic Confidence',
+              comfortable_suggesting_improvements: 'Comfortable Suggesting Improvements',
+              safety_reporting_comfort: 'Safety Reporting Comfort',
+              manual_processes_focus: 'Manual Processes Focus',
+              cross_functional_collaboration: 'Cross-Functional Collaboration',
+            };
+            
+            comments.push({
+              ...r,
+              comment_type: `Low Score Follow-up: ${questionLabels[key] || key} (${scoreValue}/5)`,
+              comment_text: value,
+            });
+          }
         }
       });
     }
