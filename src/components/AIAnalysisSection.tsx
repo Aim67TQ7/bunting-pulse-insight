@@ -130,13 +130,37 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
       console.log('Analysis generated successfully');
       setAnalysisResult(data);
 
-      // Save to database
+      // Generate and upload PDF
+      const pdfBlob = await generatePDFBlob(data);
+      const fileName = `survey-analysis-${Date.now()}-${crypto.randomUUID()}.pdf`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('pdfs')
+        .upload(fileName, pdfBlob, {
+          contentType: 'application/pdf',
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        console.error('Error uploading PDF:', uploadError);
+        toast({
+          title: "PDF Upload Failed",
+          description: "Analysis saved but PDF upload failed. You can still export manually.",
+          variant: "destructive",
+        });
+      }
+
+      const pdfUrl = uploadData ? supabase.storage.from('pdfs').getPublicUrl(fileName).data.publicUrl : null;
+
+      // Save to database with PDF URL
       const { error: saveError } = await supabase
         .from('survey_analysis_reports')
         .insert({
           analysis_text: data.analysis,
           total_responses: data.metadata.totalResponses,
           generated_at: data.metadata.generatedAt,
+          pdf_url: pdfUrl,
         });
 
       if (saveError) {
@@ -164,11 +188,8 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
     }
   };
 
-  const exportAnalysisToPDF = () => {
-    if (!analysisResult) return;
-
-    try {
-      const pdf = new jsPDF('p', 'pt', 'a4');
+  const generatePDFBlob = async (result: AnalysisResult): Promise<Blob> => {
+    const pdf = new jsPDF('p', 'pt', 'a4');
       const pageWidth = pdf.internal.pageSize.width;
       const pageHeight = pdf.internal.pageSize.height;
       const margin = 40;
@@ -273,31 +294,44 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
       // Metadata
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(`Generated: ${new Date(analysisResult.metadata.generatedAt).toLocaleString()}`, margin, yPosition);
+      pdf.text(`Generated: ${new Date(result.metadata.generatedAt).toLocaleString()}`, margin, yPosition);
       yPosition += lineHeight;
-      pdf.text(`Total Responses: ${analysisResult.metadata.totalResponses}`, margin, yPosition);
+      pdf.text(`Total Responses: ${result.metadata.totalResponses}`, margin, yPosition);
       yPosition += lineHeight;
-      if (analysisResult.metadata.validResponses) {
-        pdf.text(`Valid Responses: ${analysisResult.metadata.validResponses} (${analysisResult.metadata.responseRate?.toFixed(1)}% quality)`, margin, yPosition);
+      if (result.metadata.validResponses) {
+        pdf.text(`Valid Responses: ${result.metadata.validResponses} (${result.metadata.responseRate?.toFixed(1)}% quality)`, margin, yPosition);
         yPosition += lineHeight;
       }
-      if (analysisResult.metadata.commentsCount !== undefined) {
-        pdf.text(`Comments: ${analysisResult.metadata.commentsCount}`, margin, yPosition);
+      if (result.metadata.commentsCount !== undefined) {
+        pdf.text(`Comments: ${result.metadata.commentsCount}`, margin, yPosition);
         yPosition += lineHeight;
       }
-      pdf.text(`AI Model: ${analysisResult.metadata.model}`, margin, yPosition);
+      pdf.text(`AI Model: ${result.metadata.model}`, margin, yPosition);
       yPosition += 30;
 
       // Analysis content with markdown formatting
-      renderMarkdownToPDF(analysisResult.analysis);
+      renderMarkdownToPDF(result.analysis);
 
-      pdf.save('survey-ai-analysis.pdf');
-      
-      toast({
-        title: "Export Successful",
-        description: "AI analysis exported to PDF with formatting successfully.",
+      return pdf.output('blob');
+  };
+
+  const exportAnalysisToPDF = () => {
+    if (!analysisResult) return;
+
+    try {
+      generatePDFBlob(analysisResult).then(blob => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'survey-ai-analysis.pdf';
+        link.click();
+        URL.revokeObjectURL(url);
+        
+        toast({
+          title: "Export Successful",
+          description: "AI analysis exported to PDF with formatting successfully.",
+        });
       });
-
     } catch (error: any) {
       console.error('PDF export error:', error);
       toast({
@@ -424,23 +458,35 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
                       Generated: {new Date(report.generated_at).toLocaleString()}
                     </p>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setAnalysisResult({
-                        analysis: report.analysis_text,
-                        metadata: {
-                          totalResponses: report.total_responses,
-                          generatedAt: report.generated_at,
-                          model: 'gemini-2.5-flash',
-                        }
-                      });
-                      setShowAnalysisDialog(true);
-                    }}
-                  >
-                    View
-                  </Button>
+                  <div className="flex gap-2">
+                    {report.pdf_url && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(report.pdf_url, '_blank')}
+                      >
+                        <DownloadIcon className="h-3 w-3 mr-1" />
+                        PDF
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setAnalysisResult({
+                          analysis: report.analysis_text,
+                          metadata: {
+                            totalResponses: report.total_responses,
+                            generatedAt: report.generated_at,
+                            model: 'gemini-2.5-flash',
+                          }
+                        });
+                        setShowAnalysisDialog(true);
+                      }}
+                    >
+                      View
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

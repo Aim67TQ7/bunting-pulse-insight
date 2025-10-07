@@ -87,7 +87,7 @@ serve(async (req) => {
         .flatMap(r => r.motivation_factors)
     };
 
-    // Enhanced prompt for comprehensive analysis with statistical awareness
+    // Enhanced prompt for comprehensive analysis with SWOT section
     const prompt = `You are an expert HR analyst tasked with analyzing employee survey results. Provide a thorough, professional analysis with high creative insight and detailed observations. Be transparent about data limitations while still providing valuable insights.
 
 SURVEY DATA SUMMARY:
@@ -146,6 +146,32 @@ Please provide a comprehensive analysis in the following structured format. Addr
 - Identify positive vs concerning sentiment patterns
 - Provide specific quotes that illustrate trends
 - Analyze feedback by demographic segments
+
+**SWOT ANALYSIS**
+
+*Organizational Strengths*
+- Overall: Identify top organizational strengths from highest-scoring metrics
+- By Region (${dataSummary.continents.join(', ')}): Region-specific strengths with supporting data
+- By Division (${dataSummary.divisions.join(', ')}): Division-specific strengths with examples
+- Comment Highlights: Specific positive feedback quotes by group
+
+*Organizational Weaknesses*
+- Overall: Identify key weaknesses from lowest-scoring metrics
+- By Region: Region-specific challenges and concerns
+- By Division: Division-specific areas for improvement
+- Comment Concerns: Specific concerning feedback quotes by group
+
+*Opportunities for Growth*
+- Improvement Areas: Based on low scores and employee suggestions
+- Cross-Regional Learning: What regions/divisions can learn from each other
+- Innovation Potential: Employee ideas and suggestions from comments
+- Cultural Development: Areas to strengthen company culture
+
+*Threats and Risks*
+- Retention Risks: Low engagement or recommendation scores by group
+- Regional Disparities: Significant gaps between regions that could cause issues
+- Division Silos: Collaboration barriers identified in comments
+- Communication Gaps: Unclear messaging or alignment issues
 
 **STRATEGIC RECOMMENDATIONS**
 
