@@ -95,7 +95,27 @@ const languageContent: LanguageContent = {
     growthOpportunities: "Growth Opportunities",
     companyFuture: "Company's Future",
     recognition: "Recognition",
-    otherOption: "Other"
+    otherOption: "Other",
+    // Section headers
+    demographics: "Demographics",
+    engagementJobSatisfaction: "Engagement & Job Satisfaction",
+    leadershipCommunication: "Leadership & Communication",
+    trainingDevelopment: "Training & Development",
+    teamworkCulture: "Teamwork & Culture",
+    safetyWorkEnvironment: "Safety & Work Environment",
+    schedulingWorkload: "Scheduling & Workload",
+    toolsEquipmentProcesses: "Tools, Equipment & Processes",
+    // Demographic questions
+    continentQuestion: "Which Continent is your primary work location?",
+    divisionQuestion: "Which Division of Bunting do you work in?",
+    roleQuestionFull: "Which best explains your role?",
+    // Demographic options
+    northAmerica: "North America",
+    europe: "Europe",
+    both: "Both",
+    salesMarketing: "Sales/Marketing/Product",
+    operations: "Operations/Engineering/Production",
+    adminHR: "Admin/HR/Finance"
   },
   es: {
     title: "Encuesta de compromiso de los empleados",
@@ -161,7 +181,27 @@ const languageContent: LanguageContent = {
     growthOpportunities: "Oportunidades de crecimiento",
     companyFuture: "Futuro de la empresa",
     recognition: "Reconocimiento",
-    otherOption: "Otro"
+    otherOption: "Otro",
+    // Section headers
+    demographics: "Demografía",
+    engagementJobSatisfaction: "Compromiso y satisfacción laboral",
+    leadershipCommunication: "Liderazgo y comunicación",
+    trainingDevelopment: "Capacitación y desarrollo",
+    teamworkCulture: "Trabajo en equipo y cultura",
+    safetyWorkEnvironment: "Seguridad y entorno laboral",
+    schedulingWorkload: "Programación y carga de trabajo",
+    toolsEquipmentProcesses: "Herramientas, equipos y procesos",
+    // Demographic questions
+    continentQuestion: "¿En qué continente se encuentra su ubicación de trabajo principal?",
+    divisionQuestion: "¿En qué división de Bunting trabaja?",
+    roleQuestionFull: "¿Cuál describe mejor su función?",
+    // Demographic options
+    northAmerica: "Norteamérica",
+    europe: "Europa",
+    both: "Ambos",
+    salesMarketing: "Ventas/Marketing/Producto",
+    operations: "Operaciones/Ingeniería/Producción",
+    adminHR: "Administración/RRHH/Finanzas"
   },
   fr: {
     title: "Enquête d'engagement des employés",
@@ -227,7 +267,27 @@ const languageContent: LanguageContent = {
     growthOpportunities: "Opportunités de croissance",
     companyFuture: "Avenir de l'entreprise",
     recognition: "Reconnaissance",
-    otherOption: "Autre"
+    otherOption: "Autre",
+    // Section headers
+    demographics: "Démographie",
+    engagementJobSatisfaction: "Engagement et satisfaction au travail",
+    leadershipCommunication: "Leadership et communication",
+    trainingDevelopment: "Formation et développement",
+    teamworkCulture: "Travail d'équipe et culture",
+    safetyWorkEnvironment: "Sécurité et environnement de travail",
+    schedulingWorkload: "Planification et charge de travail",
+    toolsEquipmentProcesses: "Outils, équipement et processus",
+    // Demographic questions
+    continentQuestion: "Quel est votre lieu de travail principal par continent?",
+    divisionQuestion: "Dans quelle division de Bunting travaillez-vous?",
+    roleQuestionFull: "Quelle option décrit le mieux votre rôle?",
+    // Demographic options
+    northAmerica: "Amérique du Nord",
+    europe: "Europe",
+    both: "Les deux",
+    salesMarketing: "Ventes/Marketing/Produit",
+    operations: "Opérations/Ingénierie/Production",
+    adminHR: "Administration/RH/Finance"
   },
   it: {
     title: "Sondaggio sul coinvolgimento dei dipendenti",
@@ -293,7 +353,27 @@ const languageContent: LanguageContent = {
     growthOpportunities: "Opportunità di crescita",
     companyFuture: "Futuro dell'azienda",
     recognition: "Riconoscimento",
-    otherOption: "Altro"
+    otherOption: "Altro",
+    // Section headers
+    demographics: "Dati demografici",
+    engagementJobSatisfaction: "Coinvolgimento e soddisfazione lavorativa",
+    leadershipCommunication: "Leadership e comunicazione",
+    trainingDevelopment: "Formazione e sviluppo",
+    teamworkCulture: "Lavoro di squadra e cultura",
+    safetyWorkEnvironment: "Sicurezza e ambiente di lavoro",
+    schedulingWorkload: "Programmazione e carico di lavoro",
+    toolsEquipmentProcesses: "Strumenti, attrezzature e processi",
+    // Demographic questions
+    continentQuestion: "Qual è la tua sede di lavoro principale per continente?",
+    divisionQuestion: "In quale divisione di Bunting lavori?",
+    roleQuestionFull: "Quale opzione descrive meglio il tuo ruolo?",
+    // Demographic options
+    northAmerica: "Nord America",
+    europe: "Europa",
+    both: "Entrambi",
+    salesMarketing: "Vendite/Marketing/Prodotto",
+    operations: "Operazioni/Ingegneria/Produzione",
+    adminHR: "Amministrazione/HR/Finanza"
   }
 };
 
@@ -498,28 +578,28 @@ const getRatingQuestions = (language: string): RatingQuestion[] => [
 const getDemographicQuestions = (language: string): DemographicQuestion[] => [
   {
     id: "continent",
-    text: "Which Continent is your primary work location?",
+    text: languageContent[language].continentQuestion,
     options: [
-      { value: "north-america", label: "North America" },
-      { value: "europe", label: "Europe" }
+      { value: "north-america", label: languageContent[language].northAmerica },
+      { value: "europe", label: languageContent[language].europe }
     ]
   },
   {
     id: "division",
-    text: "Which Division of Bunting do you work in?",
+    text: languageContent[language].divisionQuestion,
     options: [
-      { value: "equipment", label: "Equipment" },
-      { value: "magnetics", label: "Magnetics" },
-      { value: "both", label: "Both" }
+      { value: "equipment", label: languageContent[language].equipment },
+      { value: "magnetics", label: languageContent[language].magnetics },
+      { value: "both", label: languageContent[language].both }
     ]
   },
   {
     id: "role",
-    text: "Which best explains your role?",
+    text: languageContent[language].roleQuestionFull,
     options: [
-      { value: "sales-marketing", label: "Sales/Marketing/Product" },
-      { value: "operations", label: "Operations/Engineering/Production" },
-      { value: "admin", label: "Admin/HR/Finance" }
+      { value: "sales-marketing", label: languageContent[language].salesMarketing },
+      { value: "operations", label: languageContent[language].operations },
+      { value: "admin", label: languageContent[language].adminHR }
     ]
   }
 ];
@@ -1037,6 +1117,19 @@ function OnPageSurvey({
   isSubmitting = false,
   language
 }: OnPageSurveyProps) {
+  const getSectionTitle = (sectionKey: string): string => {
+    const sectionMap: Record<string, keyof typeof languageContent.en> = {
+      "Engagement & Job Satisfaction": "engagementJobSatisfaction",
+      "Leadership & Communication": "leadershipCommunication",
+      "Training & Development": "trainingDevelopment",
+      "Teamwork & Culture": "teamworkCulture",
+      "Safety & Work Environment": "safetyWorkEnvironment",
+      "Scheduling & Workload": "schedulingWorkload",
+      "Tools, Equipment & Processes": "toolsEquipmentProcesses"
+    };
+    return languageContent[language][sectionMap[sectionKey]] || sectionKey;
+  };
+
   const sectionOrder = [
     "Engagement & Job Satisfaction",
     "Leadership & Communication",
@@ -1063,7 +1156,7 @@ function OnPageSurvey({
       {/* Demographics Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Demographics</CardTitle>
+          <CardTitle>{languageContent[language].demographics}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {demographicQuestions.map((question) => (
@@ -1083,7 +1176,7 @@ function OnPageSurvey({
         return (
           <Card key={section}>
             <CardHeader>
-              <CardTitle>{section}</CardTitle>
+              <CardTitle>{getSectionTitle(section)}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {sectionQuestions.map((question) => {
