@@ -533,9 +533,6 @@ export function SurveyDashboardNew({ onBack, setCurrentView }: { onBack: () => v
   const [aiAnalysis, setAIAnalysis] = useState<string>("");
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedContinent, setSelectedContinent] = useState<string>("all");
-  const [selectedDivision, setSelectedDivision] = useState<string>("all");
-  const [selectedRole, setSelectedRole] = useState<string>("all");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -800,16 +797,8 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
     );
   }
 
-  // Filter survey data based on selected filters
-  const filteredSurveyData = surveyData.filter(response => {
-    if (selectedContinent !== "all" && response.continent !== selectedContinent) return false;
-    if (selectedDivision !== "all" && response.division !== selectedDivision) return false;
-    if (selectedRole !== "all" && response.role !== selectedRole) return false;
-    return true;
-  });
-
   const { continentData, divisionData, roleData } = getDemographicData();
-  const totalResponses = filteredSurveyData.length;
+  const totalResponses = surveyData.length;
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -840,44 +829,6 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
           </Select>
         </div>
 
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Select value={selectedContinent} onValueChange={setSelectedContinent}>
-            <SelectTrigger>
-              <SelectValue placeholder={t.byContinent} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Continents</SelectItem>
-              <SelectItem value="north-america">{t.northAmerica}</SelectItem>
-              <SelectItem value="europe">{t.europe}</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={selectedDivision} onValueChange={setSelectedDivision}>
-            <SelectTrigger>
-              <SelectValue placeholder={t.byDivision} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Divisions</SelectItem>
-              <SelectItem value="equipment">{t.equipment}</SelectItem>
-              <SelectItem value="magnetics">{t.magnetics}</SelectItem>
-              <SelectItem value="both">{t.both}</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={selectedRole} onValueChange={setSelectedRole}>
-            <SelectTrigger>
-              <SelectValue placeholder={t.byRole} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
-              <SelectItem value="sales-marketing">{t.salesMarketing}</SelectItem>
-              <SelectItem value="operations">{t.operations}</SelectItem>
-              <SelectItem value="admin">{t.adminHR}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
         {/* Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
@@ -898,9 +849,9 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">{t.avgJobSatisfaction}</p>
                   <p className="text-2xl font-bold">
-                    {filteredSurveyData.filter(r => r.job_satisfaction).length > 0 
-                      ? (filteredSurveyData.reduce((sum, r) => sum + (r.job_satisfaction || 0), 0) / 
-                         filteredSurveyData.filter(r => r.job_satisfaction).length).toFixed(1)
+                    {surveyData.filter(r => r.job_satisfaction).length > 0 
+                      ? (surveyData.reduce((sum, r) => sum + (r.job_satisfaction || 0), 0) / 
+                         surveyData.filter(r => r.job_satisfaction).length).toFixed(1)
                       : "N/A"}
                   </p>
                 </div>
@@ -915,7 +866,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">{t.comments}</p>
                   <p className="text-2xl font-bold">
-                    {filteredSurveyData.filter(r => r.collaboration_feedback || r.additional_comments).length}
+                    {surveyData.filter(r => r.collaboration_feedback || r.additional_comments).length}
                   </p>
                 </div>
                 {isAdminAuthenticated ? <UnlockIcon className="h-8 w-8 text-success" /> : <LockIcon className="h-8 w-8 text-warning" />}
@@ -1123,7 +1074,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {filteredSurveyData
+                {surveyData
                   .filter(response => response.collaboration_feedback || response.additional_comments)
                   .map((response, index) => (
                     <div key={response.id} className="border rounded-lg p-4">
