@@ -1263,6 +1263,7 @@ interface DemographicQuestionProps {
 function DemographicQuestion({ question, value, onResponse }: DemographicQuestionProps) {
   const isDivisionQuestion = question.id === "division";
   const isContinentQuestion = question.id === "continent";
+  const isRoleQuestion = question.id === "role";
   
   return (
     <Card>
@@ -1301,6 +1302,16 @@ function DemographicQuestion({ question, value, onResponse }: DemographicQuestio
             </div>
           ))}
         </RadioGroup>
+        
+        {isRoleQuestion && (
+          <Button 
+            variant="outline" 
+            className="w-full mt-4" 
+            onClick={() => onResponse("other")}
+          >
+            Skip
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

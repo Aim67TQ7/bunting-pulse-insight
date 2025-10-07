@@ -102,6 +102,10 @@ const translations = {
     magnetics: "Magnetics",
     equipment: "Equipment",
     other: "Other",
+    both: "Both",
+    salesMarketing: "Sales/Marketing/Product",
+    operations: "Operations/Engineering/Production",
+    adminHR: "Admin/HR/Finance",
     operationsDistribution: "Operations & Distribution",
     engineeringServices: "Engineering & Services",
     salesFinance: "Sales & Finance",
@@ -190,6 +194,10 @@ const translations = {
     magnetics: "Magnéticos",
     equipment: "Equipo",
     other: "Otro",
+    both: "Ambos",
+    salesMarketing: "Ventas/Marketing/Producto",
+    operations: "Operaciones/Ingeniería/Producción",
+    adminHR: "Administración/RRHH/Finanzas",
     operationsDistribution: "Operaciones y Distribución",
     engineeringServices: "Ingeniería y Servicios",
     salesFinance: "Ventas y Finanzas",
@@ -278,6 +286,10 @@ const translations = {
     magnetics: "Magnétiques",
     equipment: "Équipement",
     other: "Autre",
+    both: "Les deux",
+    salesMarketing: "Ventes/Marketing/Produit",
+    operations: "Opérations/Ingénierie/Production",
+    adminHR: "Administration/RH/Finance",
     operationsDistribution: "Opérations et Distribution",
     engineeringServices: "Ingénierie et Services",
     salesFinance: "Ventes et Finance",
@@ -366,6 +378,10 @@ const translations = {
     magnetics: "Magnetici",
     equipment: "Attrezzatura",
     other: "Altro",
+    both: "Entrambi",
+    salesMarketing: "Vendite/Marketing/Prodotto",
+    operations: "Operazioni/Ingegneria/Produzione",
+    adminHR: "Amministrazione/HR/Finanza",
     operationsDistribution: "Operazioni e Distribuzione",
     engineeringServices: "Ingegneria e Servizi",
     salesFinance: "Vendite e Finanza",
@@ -517,6 +533,9 @@ export function SurveyDashboardNew({ onBack, setCurrentView }: { onBack: () => v
   const [aiAnalysis, setAIAnalysis] = useState<string>("");
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedContinent, setSelectedContinent] = useState<string>("all");
+  const [selectedDivision, setSelectedDivision] = useState<string>("all");
+  const [selectedRole, setSelectedRole] = useState<string>("all");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -781,8 +800,16 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
     );
   }
 
+  // Filter survey data based on selected filters
+  const filteredSurveyData = surveyData.filter(response => {
+    if (selectedContinent !== "all" && response.continent !== selectedContinent) return false;
+    if (selectedDivision !== "all" && response.division !== selectedDivision) return false;
+    if (selectedRole !== "all" && response.role !== selectedRole) return false;
+    return true;
+  });
+
   const { continentData, divisionData, roleData } = getDemographicData();
-  const totalResponses = surveyData.length;
+  const totalResponses = filteredSurveyData.length;
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -813,6 +840,44 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
           </Select>
         </div>
 
+        {/* Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <Select value={selectedContinent} onValueChange={setSelectedContinent}>
+            <SelectTrigger>
+              <SelectValue placeholder={t.byContinent} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Continents</SelectItem>
+              <SelectItem value="north-america">{t.northAmerica}</SelectItem>
+              <SelectItem value="europe">{t.europe}</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedDivision} onValueChange={setSelectedDivision}>
+            <SelectTrigger>
+              <SelectValue placeholder={t.byDivision} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Divisions</SelectItem>
+              <SelectItem value="equipment">{t.equipment}</SelectItem>
+              <SelectItem value="magnetics">{t.magnetics}</SelectItem>
+              <SelectItem value="both">{t.both}</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedRole} onValueChange={setSelectedRole}>
+            <SelectTrigger>
+              <SelectValue placeholder={t.byRole} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Roles</SelectItem>
+              <SelectItem value="sales-marketing">{t.salesMarketing}</SelectItem>
+              <SelectItem value="operations">{t.operations}</SelectItem>
+              <SelectItem value="admin">{t.adminHR}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
@@ -833,9 +898,9 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">{t.avgJobSatisfaction}</p>
                   <p className="text-2xl font-bold">
-                    {surveyData.filter(r => r.job_satisfaction).length > 0 
-                      ? (surveyData.reduce((sum, r) => sum + (r.job_satisfaction || 0), 0) / 
-                         surveyData.filter(r => r.job_satisfaction).length).toFixed(1)
+                    {filteredSurveyData.filter(r => r.job_satisfaction).length > 0 
+                      ? (filteredSurveyData.reduce((sum, r) => sum + (r.job_satisfaction || 0), 0) / 
+                         filteredSurveyData.filter(r => r.job_satisfaction).length).toFixed(1)
                       : "N/A"}
                   </p>
                 </div>
@@ -850,7 +915,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">{t.comments}</p>
                   <p className="text-2xl font-bold">
-                    {surveyData.filter(r => r.collaboration_feedback || r.additional_comments).length}
+                    {filteredSurveyData.filter(r => r.collaboration_feedback || r.additional_comments).length}
                   </p>
                 </div>
                 {isAdminAuthenticated ? <UnlockIcon className="h-8 w-8 text-success" /> : <LockIcon className="h-8 w-8 text-warning" />}
@@ -927,94 +992,9 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                     </CardHeader>
                   </CollapsibleTrigger>
                   
-                  <CollapsibleContent>
+                   <CollapsibleContent>
                     <CardContent className="pt-0">
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Rating Questions */}
-                        {section.questions.map((question) => (
-                          <div key={question.key} className="space-y-3">
-                            <h4 className="font-medium">{question.label}</h4>
-                            <div className="h-48">
-                              <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={generateChartData(question.key)}>
-                                  <CartesianGrid strokeDasharray="3 3" />
-                                  <XAxis dataKey="rating" />
-                                  <YAxis />
-                                  <Tooltip 
-                                    formatter={(value: any) => [value, 'Responses']}
-                                    labelFormatter={(label) => `Rating: ${label}`}
-                                  />
-                                  <Bar dataKey="count" fill="hsl(var(--chart-primary))" radius={4} />
-                                  <defs>
-                                    <linearGradient id="colorBarChart" x1="0" y1="0" x2="0" y2="1">
-                                      <stop offset="5%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.8}/>
-                                      <stop offset="95%" stopColor="hsl(var(--chart-primary))" stopOpacity={0.6}/>
-                                    </linearGradient>
-                                  </defs>
-                                </BarChart>
-                              </ResponsiveContainer>
-                            </div>
-                          </div>
-                        ))}
-
-                        {/* Multi-Select Questions */}
-                        {section.multiSelect?.map((multiQ) => (
-                          <div key={multiQ.key} className="space-y-3">
-                            <h4 className="font-medium">{multiQ.label}</h4>
-                            {multiQ.key === 'communication_preferences' ? (
-                              // Pie chart for Communication Preferences
-                              <div className="h-64">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <PieChart>
-                                    <Pie
-                                      data={generateMultiSelectData(multiQ.key)}
-                                      cx="50%"
-                                      cy="50%"
-                                      innerRadius={40}
-                                      outerRadius={80}
-                                      dataKey="count"
-                                      label={({ option, percentage }) => `${option}: ${percentage}%`}
-                                      labelLine={false}
-                                    >
-                                      {generateMultiSelectData(multiQ.key).map((entry, index) => (
-                                        <Cell 
-                                          key={`cell-${index}`} 
-                                          fill={COLORS[index % COLORS.length]} 
-                                        />
-                                      ))}
-                                    </Pie>
-                                    <Tooltip 
-                                      formatter={(value: any, name: any, props: any) => [
-                                        `${value} responses (${props.payload.percentage}%)`, 
-                                        props.payload.option
-                                      ]}
-                                    />
-                                  </PieChart>
-                                </ResponsiveContainer>
-                              </div>
-                            ) : (
-                              // Bar chart for other multi-select questions
-                              <div className="h-48">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <BarChart data={generateMultiSelectData(multiQ.key)} layout="horizontal">
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis type="number" />
-                                    <YAxis dataKey="option" type="category" width={120} />
-                                    <Tooltip formatter={(value: any) => [value, 'Responses']} />
-                                    <Bar dataKey="count" fill="hsl(var(--chart-tertiary))" radius={4} />
-                                    <defs>
-                                      <linearGradient id="colorMultiSelectChart" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="hsl(var(--chart-tertiary))" stopOpacity={0.8}/>
-                                        <stop offset="95%" stopColor="hsl(var(--chart-tertiary))" stopOpacity={0.6}/>
-                                      </linearGradient>
-                                    </defs>
-                                  </BarChart>
-                                </ResponsiveContainer>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                      {/* Charts removed - showing summary only */}
                     </CardContent>
                   </CollapsibleContent>
                 </Collapsible>
@@ -1047,10 +1027,17 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                         innerRadius={35}
                         outerRadius={55}
                         dataKey="value"
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) => {
+                          const RADIAN = Math.PI / 180;
+                          const radius = 55 + 30;
+                          const x = 50 + radius * Math.cos(-percent * 360 * RADIAN);
+                          const y = 45 + radius * Math.sin(-percent * 360 * RADIAN);
+                          return `${name}: ${(percent * 100).toFixed(0)}%`;
+                        }}
                         labelLine={false}
+                        style={{ fill: 'hsl(var(--foreground))' }}
                       />
-                      <Tooltip />
+                      <Tooltip contentStyle={{ color: 'hsl(var(--foreground))' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -1073,10 +1060,17 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                         innerRadius={35}
                         outerRadius={55}
                         dataKey="value"
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) => {
+                          const RADIAN = Math.PI / 180;
+                          const radius = 55 + 30;
+                          const x = 50 + radius * Math.cos(-percent * 360 * RADIAN);
+                          const y = 45 + radius * Math.sin(-percent * 360 * RADIAN);
+                          return `${name}: ${(percent * 100).toFixed(0)}%`;
+                        }}
                         labelLine={false}
+                        style={{ fill: 'hsl(var(--foreground))' }}
                       />
-                      <Tooltip />
+                      <Tooltip contentStyle={{ color: 'hsl(var(--foreground))' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -1099,10 +1093,17 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                         innerRadius={35}
                         outerRadius={55}
                         dataKey="value"
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) => {
+                          const RADIAN = Math.PI / 180;
+                          const radius = 55 + 30;
+                          const x = 50 + radius * Math.cos(-percent * 360 * RADIAN);
+                          const y = 45 + radius * Math.sin(-percent * 360 * RADIAN);
+                          return `${name}: ${(percent * 100).toFixed(0)}%`;
+                        }}
                         labelLine={false}
+                        style={{ fill: 'hsl(var(--foreground))' }}
                       />
-                      <Tooltip />
+                      <Tooltip contentStyle={{ color: 'hsl(var(--foreground))' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -1122,7 +1123,7 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {surveyData
+                {filteredSurveyData
                   .filter(response => response.collaboration_feedback || response.additional_comments)
                   .map((response, index) => (
                     <div key={response.id} className="border rounded-lg p-4">
