@@ -944,8 +944,66 @@ This is a placeholder analysis. In production, this would use AI to analyze the 
                   </CollapsibleTrigger>
                   
                    <CollapsibleContent>
-                    <CardContent className="pt-0">
-                      {/* Charts removed - showing summary only */}
+                    <CardContent className="pt-6 space-y-4">
+                      {/* Question Details */}
+                      {section.questions && section.questions.length > 0 && (
+                        <div className="space-y-3">
+                          {section.questions.map((question) => {
+                            const responses = surveyData
+                              .map(r => r[question.key as keyof SurveyResponse])
+                              .filter((v): v is number => typeof v === 'number');
+                            const avg = responses.length > 0 
+                              ? responses.reduce((a, b) => a + b, 0) / responses.length 
+                              : 0;
+                            const { color, textColor } = getSectionStatus(avg);
+                            
+                            return (
+                              <div key={question.key} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+                                <div className="flex-1">
+                                  <p className="font-medium text-foreground">{question.label}</p>
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {responses.length} responses
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <div className="text-right">
+                                    <div className="text-2xl font-bold text-foreground">{avg.toFixed(1)}</div>
+                                    <div className="text-xs text-muted-foreground">out of 5</div>
+                                  </div>
+                                  <Progress value={(avg / 5) * 100} className="w-24" />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      
+                      {/* Multi-Select Questions */}
+                      {section.multiSelect && section.multiSelect.length > 0 && (
+                        <div className="space-y-3 mt-6">
+                          {section.multiSelect.map((multiQ) => {
+                            const data = generateMultiSelectData(multiQ.key);
+                            return (
+                              <div key={multiQ.key} className="p-4 bg-muted/30 rounded-lg">
+                                <p className="font-medium text-foreground mb-3">{multiQ.label}</p>
+                                <div className="space-y-2">
+                                  {data.map((item, idx) => (
+                                    <div key={idx} className="flex items-center justify-between text-sm">
+                                      <span className="text-foreground">{item.option}</span>
+                                      <div className="flex items-center gap-2">
+                                        <Progress value={(item.count / surveyData.length) * 100} className="w-32" />
+                                        <span className="text-muted-foreground w-12 text-right">
+                                          {item.percentage}%
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </CardContent>
                   </CollapsibleContent>
                 </Collapsible>
