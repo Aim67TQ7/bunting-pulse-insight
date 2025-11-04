@@ -923,6 +923,7 @@ export type Database = {
           communication_preferences: string[] | null
           company_value_alignment: number | null
           completion_time_seconds: number | null
+          configuration_id: string | null
           continent: string
           created_at: string
           cross_functional_collaboration: number | null
@@ -960,6 +961,7 @@ export type Database = {
           communication_preferences?: string[] | null
           company_value_alignment?: number | null
           completion_time_seconds?: number | null
+          configuration_id?: string | null
           continent: string
           created_at?: string
           cross_functional_collaboration?: number | null
@@ -997,6 +999,7 @@ export type Database = {
           communication_preferences?: string[] | null
           company_value_alignment?: number | null
           completion_time_seconds?: number | null
+          configuration_id?: string | null
           continent?: string
           created_at?: string
           cross_functional_collaboration?: number | null
@@ -1025,7 +1028,15 @@ export type Database = {
           workload_manageability?: number | null
           workplace_safety?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "employee_survey_responses_configuration_id_fkey"
+            columns: ["configuration_id"]
+            isOneToOne: false
+            referencedRelation: "survey_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       employees: {
         Row: {
@@ -2601,7 +2612,7 @@ export type Database = {
           geocoded_lng: number | null
           google_results_count: number | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           prospector_results_count: number | null
           search_duration_ms: number | null
           search_location: string
@@ -2617,7 +2628,7 @@ export type Database = {
           geocoded_lng?: number | null
           google_results_count?: number | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           prospector_results_count?: number | null
           search_duration_ms?: number | null
           search_location: string
@@ -2633,7 +2644,7 @@ export type Database = {
           geocoded_lng?: number | null
           google_results_count?: number | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           prospector_results_count?: number | null
           search_duration_ms?: number | null
           search_location?: string
@@ -2680,6 +2691,36 @@ export type Database = {
         }
         Relationships: []
       }
+      supplier_data: {
+        Row: {
+          created_at: string | null
+          display_order: number
+          id: string
+          spend_percentage: number
+          spend_value: number
+          supplier_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order: number
+          id?: string
+          spend_percentage: number
+          spend_value: number
+          supplier_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          spend_percentage?: number
+          spend_value?: number
+          supplier_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       survey_analysis_reports: {
         Row: {
           analysis_text: string
@@ -2706,6 +2747,92 @@ export type Database = {
           total_responses?: number
         }
         Relationships: []
+      }
+      survey_configurations: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          enabled_demographics: Json | null
+          enabled_multiselect_questions: Json | null
+          enabled_rating_questions: Json | null
+          id: string
+          is_active: boolean | null
+          languages_enabled: string[] | null
+          name: string
+          require_low_score_feedback: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          enabled_demographics?: Json | null
+          enabled_multiselect_questions?: Json | null
+          enabled_rating_questions?: Json | null
+          id?: string
+          is_active?: boolean | null
+          languages_enabled?: string[] | null
+          name: string
+          require_low_score_feedback?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          enabled_demographics?: Json | null
+          enabled_multiselect_questions?: Json | null
+          enabled_rating_questions?: Json | null
+          id?: string
+          is_active?: boolean | null
+          languages_enabled?: string[] | null
+          name?: string
+          require_low_score_feedback?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      survey_question_config: {
+        Row: {
+          configuration_id: string | null
+          created_at: string | null
+          custom_label: Json | null
+          display_order: number | null
+          id: string
+          is_enabled: boolean | null
+          is_required: boolean | null
+          question_id: string
+          question_type: string
+        }
+        Insert: {
+          configuration_id?: string | null
+          created_at?: string | null
+          custom_label?: Json | null
+          display_order?: number | null
+          id?: string
+          is_enabled?: boolean | null
+          is_required?: boolean | null
+          question_id: string
+          question_type: string
+        }
+        Update: {
+          configuration_id?: string | null
+          created_at?: string | null
+          custom_label?: Json | null
+          display_order?: number | null
+          id?: string
+          is_enabled?: boolean | null
+          is_required?: boolean | null
+          question_id?: string
+          question_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_question_config_configuration_id_fkey"
+            columns: ["configuration_id"]
+            isOneToOne: false
+            referencedRelation: "survey_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       test_results: {
         Row: {
@@ -3090,38 +3217,19 @@ export type Database = {
         Args: { role_to_assign: string; target_user_id: string }
         Returns: boolean
       }
-      backfill_training_data_embeddings: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      binary_quantize: {
-        Args: { "": string } | { "": unknown }
-        Returns: unknown
-      }
-      calculate_rolling_points: {
-        Args: { emp_id: string }
-        Returns: number
-      }
+      backfill_training_data_embeddings: { Args: never; Returns: number }
+      calculate_rolling_points: { Args: { emp_id: string }; Returns: number }
       check_embedding_status: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           entries_missing_embeddings: number
           entries_with_embeddings: number
           total_entries: number
         }[]
       }
-      clean_old_weather_entries: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      cleanup_expired_admin_sessions: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      cleanup_expired_sessions: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      clean_old_weather_entries: { Args: never; Returns: undefined }
+      cleanup_expired_admin_sessions: { Args: never; Returns: undefined }
+      cleanup_expired_sessions: { Args: never; Returns: undefined }
       create_license: {
         Args: {
           company_name_param: string
@@ -3133,16 +3241,10 @@ export type Database = {
           license_id: string
         }[]
       }
-      expire_old_points: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      generate_license_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      expire_old_points: { Args: never; Returns: undefined }
+      generate_license_code: { Args: never; Returns: string }
       get_available_employees: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           displayname: string
           employee_id: string
@@ -3168,66 +3270,11 @@ export type Database = {
         Args: { user1_id: string; user2_id: string }
         Returns: string
       }
-      halfvec_avg: {
-        Args: { "": number[] }
-        Returns: unknown
-      }
-      halfvec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      halfvec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      halfvec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
       has_user_role: {
         Args: { role_param: string; user_id_param: string }
         Returns: boolean
       }
-      hnsw_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_sparsevec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnswhandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      is_demo_user: {
-        Args: { user_email: string }
-        Returns: boolean
-      }
-      ivfflat_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflat_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflathandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      l2_norm: {
-        Args: { "": unknown } | { "": unknown }
-        Returns: number
-      }
-      l2_normalize: {
-        Args: { "": string } | { "": unknown } | { "": unknown }
-        Returns: string
-      }
+      is_demo_user: { Args: { user_email: string }; Returns: boolean }
       log_admin_action: {
         Args: {
           action_type: string
@@ -3238,12 +3285,12 @@ export type Database = {
         }
         Returns: undefined
       }
-      log_application_usage: {
-        Args:
-          | { action: string; app_id: string }
-          | { action: string; app_id: string; session_id?: string }
-        Returns: string
-      }
+      log_application_usage:
+        | {
+            Args: { action: string; app_id: string; session_id?: string }
+            Returns: string
+          }
+        | { Args: { action: string; app_id: string }; Returns: undefined }
       match_documents: {
         Args: {
           match_count: number
@@ -3288,18 +3335,6 @@ export type Database = {
           source_doc: string
         }[]
       }
-      sparsevec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      sparsevec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      sparsevec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
       update_employee_data: {
         Args: {
           city_param: string
@@ -3319,30 +3354,6 @@ export type Database = {
           user_data: Json
           user_id: string
         }[]
-      }
-      vector_avg: {
-        Args: { "": number[] }
-        Returns: string
-      }
-      vector_dims: {
-        Args: { "": string } | { "": unknown }
-        Returns: number
-      }
-      vector_norm: {
-        Args: { "": string }
-        Returns: number
-      }
-      vector_out: {
-        Args: { "": string }
-        Returns: unknown
-      }
-      vector_send: {
-        Args: { "": string }
-        Returns: string
-      }
-      vector_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
       }
     }
     Enums: {
