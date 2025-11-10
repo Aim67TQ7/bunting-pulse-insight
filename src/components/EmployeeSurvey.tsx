@@ -383,6 +383,7 @@ interface RatingQuestion {
   text: string;
   section: string;
   feedbackPrompt: string;
+  answerSet?: any;
 }
 
 interface DemographicQuestion {
@@ -391,20 +392,30 @@ interface DemographicQuestion {
   options: { value: string; label: string }[];
 }
 
-// These functions now use database questions
+// These functions now use database questions with answer sets
 const getMultiSelectQuestions = (dbQuestions: any[] | undefined, language: string) => {
   if (!dbQuestions) return [];
   return dbQuestions
     .filter(q => q.question_type === 'multiselect')
-    .map(q => ({
-      id: q.question_id,
-      text: q.labels[language] || q.labels.en,
-      section: q.section || "Other",
-      options: (q.options || []).map((opt: any) => ({
-        value: opt.value,
-        label: opt.labels[language] || opt.labels.en
-      }))
-    }));
+    .map(q => {
+      // Use answer_set options if available, otherwise fall back to inline options
+      const options = q.answer_set?.answer_options 
+        ? q.answer_set.answer_options.map((opt: any) => ({
+            value: opt.option_key,
+            label: opt.labels[language] || opt.labels.en
+          }))
+        : (q.options || []).map((opt: any) => ({
+            value: opt.value,
+            label: opt.labels[language] || opt.labels.en
+          }));
+      
+      return {
+        id: q.question_id,
+        text: q.labels[language] || q.labels.en,
+        section: q.section || "Other",
+        options
+      };
+    });
 };
 
 interface MultiSelectQuestion {
@@ -422,7 +433,8 @@ const getRatingQuestions = (dbQuestions: any[] | undefined, language: string): R
       id: q.question_id,
       text: q.labels[language] || q.labels.en,
       section: q.section || "Other",
-      feedbackPrompt: q.follow_up_rules?.prompts?.[language] || q.follow_up_rules?.prompts?.en || ""
+      feedbackPrompt: q.follow_up_rules?.prompts?.[language] || q.follow_up_rules?.prompts?.en || "",
+      answerSet: q.answer_set
     }));
 };
 
@@ -430,14 +442,24 @@ const getDemographicQuestions = (dbQuestions: any[] | undefined, language: strin
   if (!dbQuestions) return [];
   return dbQuestions
     .filter(q => q.question_type === 'demographic')
-    .map(q => ({
-      id: q.question_id,
-      text: q.labels[language] || q.labels.en,
-      options: (q.options || []).map((opt: any) => ({
-        value: opt.value,
-        label: opt.labels[language] || opt.labels.en
-      }))
-    }));
+    .map(q => {
+      // Use answer_set options if available, otherwise fall back to inline options
+      const options = q.answer_set?.answer_options 
+        ? q.answer_set.answer_options.map((opt: any) => ({
+            value: opt.option_key,
+            label: opt.labels[language] || opt.labels.en
+          }))
+        : (q.options || []).map((opt: any) => ({
+            value: opt.value,
+            label: opt.labels[language] || opt.labels.en
+          }));
+      
+      return {
+        id: q.question_id,
+        text: q.labels[language] || q.labels.en,
+        options
+      };
+    });
 };
 
 // Emojis for 1-5 scale (matching document requirements)
@@ -449,13 +471,28 @@ const ratingEmojis = {
   5: "😍"
 };
 
-const getRatingLabels = (language: string) => ({
-  1: languageContent[language].stronglyDisagree,
-  2: languageContent[language].disagree, 
-  3: languageContent[language].neutral,
-  4: languageContent[language].agree,
-  5: languageContent[language].stronglyAgree
-});
+const getRatingLabels = (language: string, answerSet?: any) => {
+  // If we have an answer set with options, use those
+  if (answerSet?.answer_options) {
+    const labels: Record<number, string> = {};
+    answerSet.answer_options.forEach((opt: any) => {
+      const numericValue = opt.metadata?.numeric_value || parseInt(opt.option_key);
+      if (!isNaN(numericValue)) {
+        labels[numericValue] = opt.labels[language] || opt.labels.en;
+      }
+    });
+    return labels;
+  }
+  
+  // Otherwise use hardcoded labels
+  return {
+    1: languageContent[language].stronglyDisagree,
+    2: languageContent[language].disagree, 
+    3: languageContent[language].neutral,
+    4: languageContent[language].agree,
+    5: languageContent[language].stronglyAgree
+  };
+};
 
 type SurveySection = "landing" | "survey" | "complete";
 
@@ -1174,7 +1211,7 @@ interface RatingQuestionProps {
 }
 
 function RatingQuestion({ question, response, feedback, onRatingChange, onFeedbackChange, language }: RatingQuestionProps) {
-  const ratingLabels = getRatingLabels(language);
+  const ratingLabels = getRatingLabels(language, question.answerSet);
 
   return (
     <div>
