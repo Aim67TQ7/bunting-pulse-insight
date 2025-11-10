@@ -68,8 +68,7 @@ const Index = () => {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Your Voice Matters</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Help us improve our workplace by sharing your honest feedback. This survey is completely anonymous 
-            and takes approximately 5-10 minutes to complete.
+            We value your input. This is a completely anonymous survey. Please answer all questions honestly and thoroughly. Your responses help Bunting evaluate our strengths and weaknesses and continue to strive for excellence.
           </p>
         </div>
 
