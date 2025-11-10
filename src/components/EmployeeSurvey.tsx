@@ -629,13 +629,38 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   };
 
   const isAllQuestionsAnswered = () => {
-    const allDemographicsAnswered = getDemographicQuestions(allQuestions, language).every(q => responses[q.id] !== undefined);
-    const allRatingsAnswered = getRatingQuestions(allQuestions, language).every(q => ratingResponses[q.id] !== undefined);
-    const allLowRatingsFeedbackProvided = getRatingQuestions(allQuestions, language)
-      .filter(q => ratingResponses[q.id] <= 2)
-      .every(q => feedbackResponses[q.id]?.trim());
+    // Get all questions
+    const demographicQuestions = getDemographicQuestions(allQuestions, language);
+    const ratingQuestions = getRatingQuestions(allQuestions, language);
+    const multiSelectQuestions = getMultiSelectQuestions(allQuestions, language);
     
-    return allDemographicsAnswered && allRatingsAnswered && allLowRatingsFeedbackProvided;
+    // Check demographics - all required
+    const allDemographicsAnswered = demographicQuestions.every(q => {
+      const answer = responses[q.id];
+      return answer !== undefined && answer !== null && answer.trim() !== '';
+    });
+    
+    // Check ratings - all required
+    const allRatingsAnswered = ratingQuestions.every(q => {
+      const rating = ratingResponses[q.id];
+      return rating !== undefined && rating !== null && rating >= 1 && rating <= 5;
+    });
+    
+    // Check low rating feedback - required for ratings 1 or 2
+    const allLowRatingsFeedbackProvided = ratingQuestions
+      .filter(q => ratingResponses[q.id] !== undefined && ratingResponses[q.id] <= 2)
+      .every(q => {
+        const feedback = feedbackResponses[q.id];
+        return feedback !== undefined && feedback !== null && feedback.trim() !== '';
+      });
+    
+    // Check multiselect - at least one option selected for each
+    const allMultiSelectAnswered = multiSelectQuestions.every(q => {
+      const selected = multiSelectResponses[q.id];
+      return selected !== undefined && Array.isArray(selected) && selected.length > 0;
+    });
+    
+    return allDemographicsAnswered && allRatingsAnswered && allLowRatingsFeedbackProvided && allMultiSelectAnswered;
   };
 
   // Helper function to map frontend values to database-expected values
@@ -662,9 +687,30 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
 
   const handleSubmit = async () => {
     if (!isAllQuestionsAnswered()) {
+      // Provide specific feedback about what's missing
+      const demographicQuestions = getDemographicQuestions(allQuestions, language);
+      const ratingQuestions = getRatingQuestions(allQuestions, language);
+      const multiSelectQuestions = getMultiSelectQuestions(allQuestions, language);
+      
+      const missingDemographics = demographicQuestions.filter(q => !responses[q.id]?.trim()).length;
+      const missingRatings = ratingQuestions.filter(q => ratingResponses[q.id] === undefined).length;
+      const missingFeedback = ratingQuestions
+        .filter(q => ratingResponses[q.id] <= 2 && !feedbackResponses[q.id]?.trim()).length;
+      const missingMultiSelect = multiSelectQuestions
+        .filter(q => !multiSelectResponses[q.id]?.length).length;
+      
+      let message = "Please complete all required fields: ";
+      const missing = [];
+      if (missingDemographics > 0) missing.push(`${missingDemographics} demographic question(s)`);
+      if (missingRatings > 0) missing.push(`${missingRatings} rating question(s)`);
+      if (missingFeedback > 0) missing.push(`${missingFeedback} feedback comment(s) for low ratings (1-2)`);
+      if (missingMultiSelect > 0) missing.push(`${missingMultiSelect} multi-select question(s)`);
+      
+      message += missing.join(", ");
+      
       toast({
         title: "Incomplete survey",
-        description: "Please answer all required questions and provide feedback for ratings of 1 or 2.",
+        description: message,
         variant: "destructive",
       });
       return;
@@ -1107,6 +1153,26 @@ function OnPageSurvey({
 
   return (
     <div className="space-y-8">
+      {/* Required Fields Notice */}
+      <Card className="bg-muted/50 border-primary/20">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <div className="text-primary mt-1">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1 space-y-1">
+              <p className="text-sm font-medium">Required Fields</p>
+              <p className="text-sm text-muted-foreground">
+                All questions marked with <span className="text-destructive">*</span> are required. 
+                For ratings of 1 or 2, you must provide feedback explaining your response.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Dynamically render all sections based on database */}
       {sortedSections.map((section) => {
         const sectionQuestions = groupedQuestions[section].sort((a, b) => 
@@ -1133,10 +1199,21 @@ function OnPageSurvey({
                 // Check if it's a multi-select question
                 else if ('options' in question && Array.isArray((question as MultiSelectQuestion).options)) {
                   const msQuestion = question as MultiSelectQuestion;
+                  const isRequired = true; // All multiselect questions are required
+                  const hasError = isRequired && (!multiSelectResponses[question.id] || multiSelectResponses[question.id].length === 0);
+                  
                   return (
-                    <div key={question.id} className="space-y-4">
-                      <h3 className="font-medium">{msQuestion.text}</h3>
-                      <div className="space-y-2">
+                    <Card key={question.id}>
+                      <CardHeader>
+                        <CardTitle>
+                          {msQuestion.text}
+                          {isRequired && <span className="text-destructive ml-1">*</span>}
+                        </CardTitle>
+                        {hasError && (
+                          <p className="text-xs text-destructive mt-2">Please select at least one option</p>
+                        )}
+                      </CardHeader>
+                      <CardContent className="space-y-2">
                         {msQuestion.options.map((option) => (
                           <div key={option.value} className="flex items-center space-x-2">
                             <Checkbox
@@ -1153,8 +1230,8 @@ function OnPageSurvey({
                             <Label htmlFor={`${question.id}-${option.value}`}>{option.label}</Label>
                           </div>
                         ))}
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   );
                 }
                 // Rating question
@@ -1181,7 +1258,10 @@ function OnPageSurvey({
       {/* Additional Comments Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Additional Comments</CardTitle>
+          <CardTitle>
+            Additional Comments
+            <span className="text-muted-foreground text-sm ml-2 font-normal">(Optional)</span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Textarea
@@ -1217,11 +1297,15 @@ function DemographicQuestion({ question, value, onResponse }: DemographicQuestio
   const isDivisionQuestion = question.id === "division";
   const isContinentQuestion = question.id === "continent";
   const isRoleQuestion = question.id === "role";
+  const isRequired = true; // All demographic questions are required
   
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{question.text}</CardTitle>
+        <CardTitle>
+          {question.text}
+          {isRequired && <span className="text-destructive ml-1">*</span>}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <RadioGroup onValueChange={onResponse} value={value}>
@@ -1281,6 +1365,9 @@ interface RatingQuestionProps {
 
 function RatingQuestion({ question, response, feedback, onRatingChange, onFeedbackChange, language }: RatingQuestionProps) {
   const ratingLabels = getRatingLabels(language, question.answerSet);
+  const isRequired = true; // All rating questions are required
+  const requiresFeedback = response !== undefined && response <= 2;
+  const feedbackError = requiresFeedback && !feedback?.trim();
   
   // Get rating options from answerSet, or default to [1, 2, 3, 4, 5]
   const ratingOptions = question.answerSet?.answer_options
@@ -1292,7 +1379,10 @@ function RatingQuestion({ question, response, feedback, onRatingChange, onFeedba
 
   return (
     <div>
-      <h3 className="font-medium mb-4">{question.text}</h3>
+      <h3 className="font-medium mb-4">
+        {question.text}
+        {isRequired && <span className="text-destructive ml-1">*</span>}
+      </h3>
       
       {/* Rating Scale with Emojis */}
       <div className="flex justify-center space-x-2 md:space-x-4 mb-4">
@@ -1322,7 +1412,10 @@ function RatingQuestion({ question, response, feedback, onRatingChange, onFeedba
       {/* Feedback box for low scores - REQUIRED for all 1-2 ratings */}
       {response !== undefined && response <= 2 && (
         <div className="space-y-2">
-          <Label htmlFor={`feedback-${question.id}`} className="text-sm font-medium text-destructive">
+          <Label htmlFor={`feedback-${question.id}`} className={cn(
+            "text-sm font-medium",
+            feedbackError ? "text-destructive" : "text-destructive"
+          )}>
             {languageContent[language].lowRatingFeedback} *
           </Label>
           <Textarea
@@ -1330,9 +1423,15 @@ function RatingQuestion({ question, response, feedback, onRatingChange, onFeedba
             placeholder={languageContent[language].lowRatingFeedback}
             value={feedback || ""}
             onChange={(e) => onFeedbackChange(e.target.value)}
-            className="min-h-[100px] touch-manipulation border-destructive/50"
+            className={cn(
+              "min-h-[100px] touch-manipulation",
+              feedbackError ? "border-destructive/50" : "border-destructive/50"
+            )}
             required
           />
+          {feedbackError && (
+            <p className="text-xs text-destructive">This feedback is required for low ratings (1-2)</p>
+          )}
         </div>
       )}
     </div>
