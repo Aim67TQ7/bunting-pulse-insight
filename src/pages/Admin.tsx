@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeftIcon, ShieldCheckIcon } from "lucide-react";
 import { SurveyAnalyticsDashboard } from "@/components/SurveyAnalyticsDashboard";
 import { SurveyDashboardNew } from "@/components/SurveyDashboardNew";
+import { QuestionLevelAnalytics } from "@/components/QuestionLevelAnalytics";
 import buntingLogo from "@/assets/bunting-logo.png";
 import magnetLogo from "@/assets/magnet-applications-logo.png";
 
@@ -155,9 +156,10 @@ export const Admin = ({ onBack }: AdminProps) => {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="comprehensive">Comprehensive View</TabsTrigger>
+            <TabsTrigger value="question-level">Question-Level Analytics</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
@@ -166,6 +168,10 @@ export const Admin = ({ onBack }: AdminProps) => {
 
           <TabsContent value="comprehensive" className="space-y-6">
             <SurveyAnalyticsDashboard onBack={onBack} />
+          </TabsContent>
+
+          <TabsContent value="question-level" className="space-y-6">
+            <QuestionLevelAnalytics onBack={onBack} />
           </TabsContent>
         </Tabs>
       </main>
