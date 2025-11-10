@@ -1286,6 +1286,14 @@ interface RatingQuestionProps {
 
 function RatingQuestion({ question, response, feedback, onRatingChange, onFeedbackChange, language }: RatingQuestionProps) {
   const ratingLabels = getRatingLabels(language, question.answerSet);
+  
+  // Get rating options from answerSet, or default to [1, 2, 3, 4, 5]
+  const ratingOptions = question.answerSet?.answer_options
+    ? question.answerSet.answer_options
+        .map((opt: any) => opt.metadata?.numeric_value || parseInt(opt.option_key))
+        .filter((val: number) => !isNaN(val))
+        .sort((a: number, b: number) => a - b)
+    : [1, 2, 3, 4, 5];
 
   return (
     <div>
@@ -1293,7 +1301,7 @@ function RatingQuestion({ question, response, feedback, onRatingChange, onFeedba
       
       {/* Rating Scale with Emojis */}
       <div className="flex justify-center space-x-2 md:space-x-4 mb-4">
-        {[1, 2, 3, 4, 5].map((rating) => (
+        {ratingOptions.map((rating) => (
           <button
             key={rating}
             onClick={() => onRatingChange(rating)}
