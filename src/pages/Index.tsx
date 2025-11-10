@@ -7,11 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ClipboardListIcon, BarChart3Icon, ShieldCheckIcon, UsersIcon, LockIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSurveyQuestions } from "@/hooks/useSurveyQuestions";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<"landing" | "survey" | "dashboard" | "admin">("landing");
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const { toast } = useToast();
+  const { data: allQuestions } = useSurveyQuestions();
+  
+  const totalQuestions = allQuestions?.length || 0;
 
   useEffect(() => {
     const submissionCount = parseInt(localStorage.getItem("survey-submissions") || "0");
@@ -83,7 +87,7 @@ const Index = () => {
               <div className="flex flex-wrap gap-2">
                 <Badge variant="secondary">~5 min</Badge>
                 <Badge variant="secondary">Anonymous</Badge>
-                <Badge variant="secondary">13 questions</Badge>
+                <Badge variant="secondary">{totalQuestions} questions</Badge>
               </div>
               <div className="flex gap-2">
                 <Button 
