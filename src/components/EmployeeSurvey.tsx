@@ -1114,7 +1114,9 @@ function OnPageSurvey({
     <div className="space-y-8">
       {/* Dynamically render all sections based on database */}
       {sortedSections.map((section) => {
-        const sectionQuestions = groupedQuestions[section];
+        const sectionQuestions = groupedQuestions[section].sort((a, b) => 
+          (a.display_order || 0) - (b.display_order || 0)
+        );
         return (
           <Card key={section}>
             <CardHeader>
