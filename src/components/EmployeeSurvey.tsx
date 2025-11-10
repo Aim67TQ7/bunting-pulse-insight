@@ -17,6 +17,7 @@ import buntingLogo from "@/assets/bunting-logo-2.png";
 import magnetApplicationsLogo from "@/assets/magnet-applications-logo-2.png";
 import northAmericaIcon from "@/assets/north-america-icon.png";
 import europeIcon from "@/assets/europe-icon.png";
+import { useSurveyQuestions } from "@/hooks/useSurveyQuestions";
 
 interface LanguageContent {
   [key: string]: {
@@ -390,47 +391,21 @@ interface DemographicQuestion {
   options: { value: string; label: string }[];
 }
 
-const getMultiSelectQuestions = (language: string) => [
-  {
-    id: "communication-preferences",
-    text: languageContent[language].communicationPreferences,
-    section: "Leadership & Communication",
-    options: [
-      { value: "companywide-emails", label: languageContent[language].companywideEmails },
-      { value: "quarterly-town-halls", label: languageContent[language].quarterlyTownHalls },
-      { value: "company-intranet", label: languageContent[language].companyIntranet },
-      { value: "digital-signage", label: languageContent[language].digitalSignage },
-      { value: "printed-signage", label: languageContent[language].printedSignage },
-      { value: "team-meetings", label: languageContent[language].teamMeetings }
-    ]
-  },
-  {
-    id: "motivation-factors",
-    text: languageContent[language].motivationFactors,
-    section: "Engagement & Job Satisfaction",
-    options: [
-      { value: "compensation", label: languageContent[language].compensation },
-      { value: "benefits-package", label: languageContent[language].benefitsPackage },
-      { value: "job-satisfaction", label: languageContent[language].jobSatisfactionOption },
-      { value: "the-people", label: languageContent[language].thePeople },
-      { value: "growth-opportunities", label: languageContent[language].growthOpportunities },
-      { value: "company-future", label: languageContent[language].companyFuture },
-      { value: "recognition", label: languageContent[language].recognition },
-      { value: "other", label: languageContent[language].otherOption }
-    ]
-  },
-  {
-    id: "information-preferences",
-    text: languageContent[language].informationPreferences,
-    section: "Workplace Experience",
-    options: [
-      { value: "communication-transparency", label: languageContent[language].communicationTransparency },
-      { value: "strategic-direction", label: languageContent[language].strategicDirection },
-      { value: "financial-incentives", label: languageContent[language].financialIncentives },
-      { value: "performance-metrics", label: languageContent[language].performanceMetrics }
-    ]
-  }
-];
+// These functions now use database questions
+const getMultiSelectQuestions = (dbQuestions: any[] | undefined, language: string) => {
+  if (!dbQuestions) return [];
+  return dbQuestions
+    .filter(q => q.question_type === 'multiselect')
+    .map(q => ({
+      id: q.question_id,
+      text: q.labels[language] || q.labels.en,
+      section: q.section || "Other",
+      options: (q.options || []).map((opt: any) => ({
+        value: opt.value,
+        label: opt.labels[language] || opt.labels.en
+      }))
+    }));
+};
 
 interface MultiSelectQuestion {
   id: string;
@@ -439,170 +414,31 @@ interface MultiSelectQuestion {
   options: { value: string; label: string }[];
 }
 
-const getRatingQuestions = (language: string): RatingQuestion[] => [
-  // Engagement & Job Satisfaction
-  {
-    id: "job-satisfaction",
-    text: languageContent[language].jobSatisfaction,
-    section: "Engagement & Job Satisfaction",
-    feedbackPrompt: languageContent[language].jobSatisfactionFollowUp
-  },
-  {
-    id: "company-satisfaction",
-    text: languageContent[language].companySatisfaction,
-    section: "Engagement & Job Satisfaction",
-    feedbackPrompt: ""
-  },
-  {
-    id: "future-view",
-    text: languageContent[language].futureView,
-    section: "Engagement & Job Satisfaction",
-    feedbackPrompt: ""
-  },
-  
-  // Leadership & Communication
-  {
-    id: "expectations",
-    text: languageContent[language].expectations,
-    section: "Leadership & Communication",
-    feedbackPrompt: ""
-  },
-  {
-    id: "performance-awareness",
-    text: languageContent[language].performanceAwareness,
-    section: "Leadership & Communication",
-    feedbackPrompt: ""
-  },
-  {
-    id: "relaying-information",
-    text: languageContent[language].relayingInformation,
-    section: "Leadership & Communication",
-    feedbackPrompt: ""
-  },
-  {
-    id: "management-feedback",
-    text: languageContent[language].managementFeedback,
-    section: "Leadership & Communication",
-    feedbackPrompt: ""
-  },
-  
-  // Training & Development
-  {
-    id: "training",
-    text: languageContent[language].training,
-    section: "Training & Development",
-    feedbackPrompt: languageContent[language].trainingFollowUp
-  },
-  {
-    id: "opportunities",
-    text: languageContent[language].opportunities,
-    section: "Training & Development",
-    feedbackPrompt: ""
-  },
-  
-  // Teamwork & Culture
-  {
-    id: "cooperation",
-    text: languageContent[language].cooperation,
-    section: "Teamwork & Culture",
-    feedbackPrompt: ""
-  },
-  {
-    id: "morale",
-    text: languageContent[language].morale,
-    section: "Teamwork & Culture",
-    feedbackPrompt: ""
-  },
-  {
-    id: "pride",
-    text: languageContent[language].pride,
-    section: "Teamwork & Culture",
-    feedbackPrompt: ""
-  },
-  
-  // Safety & Work Environment
-  {
-    id: "safety-focus",
-    text: languageContent[language].safetyFocus,
-    section: "Safety & Work Environment",
-    feedbackPrompt: ""
-  },
-  {
-    id: "safety-reporting",
-    text: languageContent[language].safetyReporting,
-    section: "Safety & Work Environment",
-    feedbackPrompt: ""
-  },
-  
-  // Scheduling & Workload
-  {
-    id: "workload",
-    text: languageContent[language].workload,
-    section: "Scheduling & Workload",
-    feedbackPrompt: ""
-  },
-  {
-    id: "work-life-balance",
-    text: languageContent[language].workLifeBalance,
-    section: "Scheduling & Workload",
-    feedbackPrompt: languageContent[language].workLifeBalanceFollowUp
-  },
-  
-  // Tools, Equipment & Processes
-  {
-    id: "tools",
-    text: languageContent[language].tools,
-    section: "Tools, Equipment & Processes",
-    feedbackPrompt: ""
-  },
-  {
-    id: "processes",
-    text: languageContent[language].processes,
-    section: "Tools, Equipment & Processes",
-    feedbackPrompt: ""
-  },
-  {
-    id: "company-value",
-    text: languageContent[language].companyValue,
-    section: "Tools, Equipment & Processes",
-    feedbackPrompt: ""
-  },
-  {
-    id: "change",
-    text: languageContent[language].change,
-    section: "Tools, Equipment & Processes",
-    feedbackPrompt: ""
-  }
-];
+const getRatingQuestions = (dbQuestions: any[] | undefined, language: string): RatingQuestion[] => {
+  if (!dbQuestions) return [];
+  return dbQuestions
+    .filter(q => q.question_type === 'rating')
+    .map(q => ({
+      id: q.question_id,
+      text: q.labels[language] || q.labels.en,
+      section: q.section || "Other",
+      feedbackPrompt: q.follow_up_rules?.prompts?.[language] || q.follow_up_rules?.prompts?.en || ""
+    }));
+};
 
-const getDemographicQuestions = (language: string): DemographicQuestion[] => [
-  {
-    id: "continent",
-    text: languageContent[language].continentQuestion,
-    options: [
-      { value: "north-america", label: languageContent[language].northAmerica },
-      { value: "europe", label: languageContent[language].europe }
-    ]
-  },
-  {
-    id: "division",
-    text: languageContent[language].divisionQuestion,
-    options: [
-      { value: "equipment", label: languageContent[language].equipment },
-      { value: "magnetics", label: languageContent[language].magnetics },
-      { value: "both", label: languageContent[language].both }
-    ]
-  },
-  {
-    id: "role",
-    text: languageContent[language].roleQuestionFull,
-    options: [
-      { value: "sales-marketing", label: languageContent[language].salesMarketing },
-      { value: "operations", label: languageContent[language].operations },
-      { value: "admin", label: languageContent[language].adminHR }
-    ]
-  }
-];
+const getDemographicQuestions = (dbQuestions: any[] | undefined, language: string): DemographicQuestion[] => {
+  if (!dbQuestions) return [];
+  return dbQuestions
+    .filter(q => q.question_type === 'demographic')
+    .map(q => ({
+      id: q.question_id,
+      text: q.labels[language] || q.labels.en,
+      options: (q.options || []).map((opt: any) => ({
+        value: opt.value,
+        label: opt.labels[language] || opt.labels.en
+      }))
+    }));
+};
 
 // Emojis for 1-5 scale (matching document requirements)
 const ratingEmojis = {
@@ -641,6 +477,9 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   const [showQRCode, setShowQRCode] = useState(false);
   const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const { toast } = useToast();
+  
+  // Load questions from database
+  const { data: allQuestions, isLoading: questionsLoading } = useSurveyQuestions();
 
   useEffect(() => {
     const count = parseInt(localStorage.getItem("survey-submissions") || "0");
@@ -723,7 +562,9 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   }, []);
 
   const getTotalQuestions = () => {
-    return getDemographicQuestions(language).length + getRatingQuestions(language).length + getMultiSelectQuestions(language).length;
+    return getDemographicQuestions(allQuestions, language).length + 
+           getRatingQuestions(allQuestions, language).length + 
+           getMultiSelectQuestions(allQuestions, language).length;
   };
 
   const progress = ((Object.keys(responses).length + Object.keys(ratingResponses).length + Object.keys(multiSelectResponses).length) / getTotalQuestions()) * 100;
@@ -748,9 +589,9 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   };
 
   const isAllQuestionsAnswered = () => {
-    const allDemographicsAnswered = getDemographicQuestions(language).every(q => responses[q.id] !== undefined);
-    const allRatingsAnswered = getRatingQuestions(language).every(q => ratingResponses[q.id] !== undefined);
-    const allLowRatingsFeedbackProvided = getRatingQuestions(language)
+    const allDemographicsAnswered = getDemographicQuestions(allQuestions, language).every(q => responses[q.id] !== undefined);
+    const allRatingsAnswered = getRatingQuestions(allQuestions, language).every(q => ratingResponses[q.id] !== undefined);
+    const allLowRatingsFeedbackProvided = getRatingQuestions(allQuestions, language)
       .filter(q => ratingResponses[q.id] <= 2)
       .every(q => feedbackResponses[q.id]?.trim());
     
@@ -1047,27 +888,33 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
           </div>
         </div>
 
-        <OnPageSurvey
-          demographicQuestions={getDemographicQuestions(language)}
-          ratingQuestions={getRatingQuestions(language)}
-          multiSelectQuestions={getMultiSelectQuestions(language)}
-          demographicResponses={responses}
-          ratingResponses={ratingResponses}
-          feedbackResponses={feedbackResponses}
-          multiSelectResponses={multiSelectResponses}
-          collaborationFeedback={collaborationFeedback}
-          additionalComments={additionalComments}
-          onDemographicChange={handleDemographicResponse}
-          onRatingChange={handleRatingResponse}
-          onFeedbackChange={handleFeedbackResponse}
-          onMultiSelectChange={handleMultiSelectResponse}
-          onCollaborationFeedbackChange={setCollaborationFeedback}
-          onAdditionalCommentsChange={setAdditionalComments}
-          onSubmit={handleSubmit}
-          canSubmit={isAllQuestionsAnswered()}
-          isSubmitting={isSubmitting}
-          language={language}
-        />
+        {questionsLoading ? (
+          <div className="flex items-center justify-center p-12">
+            <LoaderIcon className="w-8 h-8 animate-spin" />
+          </div>
+        ) : (
+          <OnPageSurvey
+            demographicQuestions={getDemographicQuestions(allQuestions, language)}
+            ratingQuestions={getRatingQuestions(allQuestions, language)}
+            multiSelectQuestions={getMultiSelectQuestions(allQuestions, language)}
+            demographicResponses={responses}
+            ratingResponses={ratingResponses}
+            feedbackResponses={feedbackResponses}
+            multiSelectResponses={multiSelectResponses}
+            collaborationFeedback={collaborationFeedback}
+            additionalComments={additionalComments}
+            onDemographicChange={handleDemographicResponse}
+            onRatingChange={handleRatingResponse}
+            onFeedbackChange={handleFeedbackResponse}
+            onMultiSelectChange={handleMultiSelectResponse}
+            onCollaborationFeedbackChange={setCollaborationFeedback}
+            onAdditionalCommentsChange={setAdditionalComments}
+            onSubmit={handleSubmit}
+            canSubmit={isAllQuestionsAnswered()}
+            isSubmitting={isSubmitting}
+            language={language}
+          />
+        )}
       </div>
     </div>
   );
