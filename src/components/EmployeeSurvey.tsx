@@ -384,12 +384,15 @@ interface RatingQuestion {
   section: string;
   feedbackPrompt: string;
   answerSet?: any;
+  display_order: number;
 }
 
 interface DemographicQuestion {
   id: string;
   text: string;
   options: { value: string; label: string }[];
+  section: string;
+  display_order: number;
 }
 
 // These functions now use database questions with answer sets
@@ -413,7 +416,8 @@ const getMultiSelectQuestions = (dbQuestions: any[] | undefined, language: strin
         id: q.question_id,
         text: q.labels[language] || q.labels.en,
         section: q.section || "Other",
-        options
+        options,
+        display_order: q.display_order || 0
       };
     });
 };
@@ -423,6 +427,7 @@ interface MultiSelectQuestion {
   text: string;
   section: string;
   options: { value: string; label: string }[];
+  display_order: number;
 }
 
 const getRatingQuestions = (dbQuestions: any[] | undefined, language: string): RatingQuestion[] => {
@@ -434,7 +439,8 @@ const getRatingQuestions = (dbQuestions: any[] | undefined, language: string): R
       text: q.labels[language] || q.labels.en,
       section: q.section || "Other",
       feedbackPrompt: q.follow_up_rules?.prompts?.[language] || q.follow_up_rules?.prompts?.en || "",
-      answerSet: q.answer_set
+      answerSet: q.answer_set,
+      display_order: q.display_order || 0
     }));
 };
 
@@ -457,7 +463,9 @@ const getDemographicQuestions = (dbQuestions: any[] | undefined, language: strin
       return {
         id: q.question_id,
         text: q.labels[language] || q.labels.en,
-        options
+        options,
+        section: q.section || "Demographics",
+        display_order: q.display_order || 0
       };
     });
 };
@@ -1072,6 +1080,7 @@ function OnPageSurvey({
 }: OnPageSurveyProps) {
   const getSectionTitle = (sectionKey: string): string => {
     const sectionMap: Record<string, keyof typeof languageContent.en> = {
+      "Demographics": "demographics",
       "Engagement & Job Satisfaction": "engagementJobSatisfaction",
       "Leadership & Communication": "leadershipCommunication",
       "Training & Development": "trainingDevelopment",
@@ -1083,47 +1092,27 @@ function OnPageSurvey({
     return languageContent[language][sectionMap[sectionKey]] || sectionKey;
   };
 
-  const sectionOrder = [
-    "Engagement & Job Satisfaction",
-    "Leadership & Communication",
-    "Training & Development",
-    "Teamwork & Culture",
-    "Safety & Work Environment",
-    "Scheduling & Workload",
-    "Tools, Equipment & Processes"
-  ];
-
-  const allQuestions = [...ratingQuestions, ...multiSelectQuestions];
+  // Group ALL questions by section (including demographics)
+  const allQuestions = [...demographicQuestions, ...ratingQuestions, ...multiSelectQuestions];
   const groupedQuestions = allQuestions.reduce((acc, question) => {
-    if (!acc[question.section]) {
-      acc[question.section] = [];
+    const section = question.section || "Demographics";
+    if (!acc[section]) {
+      acc[section] = [];
     }
-    acc[question.section].push(question);
+    acc[section].push(question);
     return acc;
-  }, {} as Record<string, (RatingQuestion | MultiSelectQuestion)[]>);
+  }, {} as Record<string, (DemographicQuestion | RatingQuestion | MultiSelectQuestion)[]>);
 
-  const sortedSections = sectionOrder.filter(section => groupedQuestions[section]);
+  // Get all sections dynamically ordered by the display_order of the first question in each section
+  const sortedSections = Object.keys(groupedQuestions).sort((a, b) => {
+    const firstQuestionA = groupedQuestions[a][0];
+    const firstQuestionB = groupedQuestions[b][0];
+    return (firstQuestionA.display_order || 0) - (firstQuestionB.display_order || 0);
+  });
 
   return (
     <div className="space-y-8">
-      {/* Demographics Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{languageContent[language].demographics}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {demographicQuestions.map((question) => (
-            <DemographicQuestion
-              key={question.id}
-              question={question}
-              value={demographicResponses[question.id]}
-              onResponse={(value) => onDemographicChange(question.id, value)}
-            />
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* Rating Sections */}
+      {/* Dynamically render all sections based on database */}
       {sortedSections.map((section) => {
         const sectionQuestions = groupedQuestions[section];
         return (
@@ -1133,13 +1122,25 @@ function OnPageSurvey({
             </CardHeader>
             <CardContent className="space-y-6">
               {sectionQuestions.map((question) => {
-                if ('options' in question) {
-                  // Multi-select question
+                // Check if it's a demographic question (has 'continent', 'division', 'role' id pattern)
+                if ('id' in question && demographicQuestions.some(dq => dq.id === question.id)) {
+                  return (
+                    <DemographicQuestion
+                      key={question.id}
+                      question={question as DemographicQuestion}
+                      value={demographicResponses[question.id]}
+                      onResponse={(value) => onDemographicChange(question.id, value)}
+                    />
+                  );
+                }
+                // Check if it's a multi-select question
+                else if ('options' in question && Array.isArray((question as MultiSelectQuestion).options)) {
+                  const msQuestion = question as MultiSelectQuestion;
                   return (
                     <div key={question.id} className="space-y-4">
-                      <h3 className="font-medium">{question.text}</h3>
+                      <h3 className="font-medium">{msQuestion.text}</h3>
                       <div className="space-y-2">
-                        {question.options.map((option) => (
+                        {msQuestion.options.map((option) => (
                           <div key={option.value} className="flex items-center space-x-2">
                             <Checkbox
                               id={`${question.id}-${option.value}`}
@@ -1158,12 +1159,14 @@ function OnPageSurvey({
                       </div>
                     </div>
                   );
-                } else {
-                  // Rating question
+                }
+                // Rating question
+                else {
+                  const ratingQuestion = question as RatingQuestion;
                   return (
                     <RatingQuestion
                       key={question.id}
-                      question={question}
+                      question={ratingQuestion}
                       response={ratingResponses[question.id]}
                       feedback={feedbackResponses[question.id]}
                       onRatingChange={(rating) => onRatingChange(question.id, rating)}
