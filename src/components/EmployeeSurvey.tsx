@@ -730,11 +730,80 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
         }
       };
 
-      const { error } = await supabase
+      const { data: insertedResponse, error } = await supabase
         .from("employee_survey_responses")
-        .insert(surveyData);
+        .insert(surveyData)
+        .select('id')
+        .single();
 
       if (error) throw error;
+
+      // Track individual question responses for analytics
+      if (insertedResponse?.id && allQuestions) {
+        const questionResponses = [];
+
+        // Create a lookup map for display_order from raw database questions
+        const displayOrderMap = new Map(
+          allQuestions.map(q => [q.question_id, q.display_order])
+        );
+
+        // Track demographic questions
+        const demographicQuestions = getDemographicQuestions(allQuestions, language);
+        for (const question of demographicQuestions) {
+          if (responses[question.id]) {
+            questionResponses.push({
+              response_id: insertedResponse.id,
+              question_id: question.id,
+              question_type: 'demographic',
+              answer_value: { value: responses[question.id] },
+              display_order: displayOrderMap.get(question.id)
+            });
+          }
+        }
+
+        // Track rating questions
+        const ratingQuestions = getRatingQuestions(allQuestions, language);
+        for (const question of ratingQuestions) {
+          if (ratingResponses[question.id]) {
+            questionResponses.push({
+              response_id: insertedResponse.id,
+              question_id: question.id,
+              question_type: 'rating',
+              answer_value: { 
+                rating: ratingResponses[question.id],
+                feedback: feedbackResponses[question.id] || null
+              },
+              display_order: displayOrderMap.get(question.id)
+            });
+          }
+        }
+
+        // Track multi-select questions
+        const multiSelectQuestions = getMultiSelectQuestions(allQuestions, language);
+        for (const question of multiSelectQuestions) {
+          if (multiSelectResponses[question.id]) {
+            questionResponses.push({
+              response_id: insertedResponse.id,
+              question_id: question.id,
+              question_type: 'multiselect',
+              answer_value: { selected: multiSelectResponses[question.id] },
+              display_order: displayOrderMap.get(question.id)
+            });
+          }
+        }
+
+        // Insert all question responses
+        if (questionResponses.length > 0) {
+          const { error: detailError } = await supabase
+            .from("survey_question_responses")
+            .insert(questionResponses);
+
+          if (detailError) {
+            console.error("Error saving question responses:", detailError);
+            // Don't fail the whole submission if detail tracking fails
+          }
+        }
+      }
 
       const currentCount = parseInt(localStorage.getItem("survey-submissions") || "0");
       localStorage.setItem("survey-submissions", String(currentCount + 1));

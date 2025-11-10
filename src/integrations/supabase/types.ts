@@ -2933,6 +2933,44 @@ export type Database = {
           },
         ]
       }
+      survey_question_responses: {
+        Row: {
+          answer_value: Json
+          created_at: string
+          display_order: number | null
+          id: string
+          question_id: string
+          question_type: string
+          response_id: string
+        }
+        Insert: {
+          answer_value: Json
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          question_id: string
+          question_type: string
+          response_id: string
+        }
+        Update: {
+          answer_value?: Json
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          question_id?: string
+          question_type?: string
+          response_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_question_responses_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "employee_survey_responses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       test_results: {
         Row: {
           attachment: string | null
