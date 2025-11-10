@@ -2866,6 +2866,7 @@ export type Database = {
       }
       survey_question_config: {
         Row: {
+          allow_na: boolean | null
           answer_set_id: string | null
           configuration_id: string | null
           created_at: string | null
@@ -2883,6 +2884,7 @@ export type Database = {
           section: string | null
         }
         Insert: {
+          allow_na?: boolean | null
           answer_set_id?: string | null
           configuration_id?: string | null
           created_at?: string | null
@@ -2900,6 +2902,7 @@ export type Database = {
           section?: string | null
         }
         Update: {
+          allow_na?: boolean | null
           answer_set_id?: string | null
           configuration_id?: string | null
           created_at?: string | null
