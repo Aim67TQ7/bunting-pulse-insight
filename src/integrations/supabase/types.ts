@@ -2795,34 +2795,49 @@ export type Database = {
           configuration_id: string | null
           created_at: string | null
           custom_label: Json | null
+          description: Json | null
           display_order: number | null
+          follow_up_rules: Json | null
           id: string
           is_enabled: boolean | null
           is_required: boolean | null
+          labels: Json | null
+          options: Json | null
           question_id: string
           question_type: string
+          section: string | null
         }
         Insert: {
           configuration_id?: string | null
           created_at?: string | null
           custom_label?: Json | null
+          description?: Json | null
           display_order?: number | null
+          follow_up_rules?: Json | null
           id?: string
           is_enabled?: boolean | null
           is_required?: boolean | null
+          labels?: Json | null
+          options?: Json | null
           question_id: string
           question_type: string
+          section?: string | null
         }
         Update: {
           configuration_id?: string | null
           created_at?: string | null
           custom_label?: Json | null
+          description?: Json | null
           display_order?: number | null
+          follow_up_rules?: Json | null
           id?: string
           is_enabled?: boolean | null
           is_required?: boolean | null
+          labels?: Json | null
+          options?: Json | null
           question_id?: string
           question_type?: string
+          section?: string | null
         }
         Relationships: [
           {
