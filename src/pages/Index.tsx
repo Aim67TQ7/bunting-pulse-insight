@@ -65,13 +65,6 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-12">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Your Voice Matters</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            We value your input. This is a completely anonymous survey. Please answer all questions honestly and thoroughly. Your responses help Bunting evaluate our strengths and weaknesses and continue to strive for excellence.
-          </p>
-        </div>
-
         {/* Action Cards */}
         <div className="grid grid-cols-1 gap-8 mb-12 max-w-2xl mx-auto">
           <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
@@ -80,13 +73,12 @@ const Index = () => {
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <ClipboardListIcon className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle>Take Survey</CardTitle>
+                <CardTitle>Your Voice Matters</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                Share your experience and help shape the future of our workplace. 
-                Your responses are completely anonymous and secure.
+                We value your input. This is a completely anonymous survey. Please answer all questions honestly and thoroughly. Your responses help Bunting evaluate our strengths and weaknesses and continue to strive for excellence.
               </p>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="secondary">~5 min</Badge>
