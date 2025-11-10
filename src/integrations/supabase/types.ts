@@ -931,7 +931,9 @@ export type Database = {
           follow_up_responses: Json | null
           id: string
           information_preferences: string[] | null
+          is_draft: boolean | null
           job_satisfaction: number | null
+          last_autosave_at: string | null
           leadership_openness: number | null
           manager_alignment: number | null
           manual_processes_focus: number | null
@@ -969,7 +971,9 @@ export type Database = {
           follow_up_responses?: Json | null
           id?: string
           information_preferences?: string[] | null
+          is_draft?: boolean | null
           job_satisfaction?: number | null
+          last_autosave_at?: string | null
           leadership_openness?: number | null
           manager_alignment?: number | null
           manual_processes_focus?: number | null
@@ -1007,7 +1011,9 @@ export type Database = {
           follow_up_responses?: Json | null
           id?: string
           information_preferences?: string[] | null
+          is_draft?: boolean | null
           job_satisfaction?: number | null
+          last_autosave_at?: string | null
           leadership_openness?: number | null
           manager_alignment?: number | null
           manual_processes_focus?: number | null
