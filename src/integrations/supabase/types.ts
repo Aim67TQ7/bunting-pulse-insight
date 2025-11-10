@@ -2748,6 +2748,80 @@ export type Database = {
         }
         Relationships: []
       }
+      survey_answer_options: {
+        Row: {
+          answer_set_id: string | null
+          created_at: string | null
+          display_order: number
+          id: string
+          is_active: boolean | null
+          labels: Json
+          metadata: Json | null
+          option_key: string
+        }
+        Insert: {
+          answer_set_id?: string | null
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean | null
+          labels: Json
+          metadata?: Json | null
+          option_key: string
+        }
+        Update: {
+          answer_set_id?: string | null
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean | null
+          labels?: Json
+          metadata?: Json | null
+          option_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "survey_answer_options_answer_set_id_fkey"
+            columns: ["answer_set_id"]
+            isOneToOne: false
+            referencedRelation: "survey_answer_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      survey_answer_sets: {
+        Row: {
+          created_at: string | null
+          description: Json | null
+          id: string
+          is_active: boolean | null
+          name: Json
+          set_key: string
+          set_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: Json
+          set_key: string
+          set_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: Json
+          set_key?: string
+          set_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       survey_configurations: {
         Row: {
           created_at: string | null
@@ -2792,6 +2866,7 @@ export type Database = {
       }
       survey_question_config: {
         Row: {
+          answer_set_id: string | null
           configuration_id: string | null
           created_at: string | null
           custom_label: Json | null
@@ -2808,6 +2883,7 @@ export type Database = {
           section: string | null
         }
         Insert: {
+          answer_set_id?: string | null
           configuration_id?: string | null
           created_at?: string | null
           custom_label?: Json | null
@@ -2824,6 +2900,7 @@ export type Database = {
           section?: string | null
         }
         Update: {
+          answer_set_id?: string | null
           configuration_id?: string | null
           created_at?: string | null
           custom_label?: Json | null
@@ -2840,6 +2917,13 @@ export type Database = {
           section?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "survey_question_config_answer_set_id_fkey"
+            columns: ["answer_set_id"]
+            isOneToOne: false
+            referencedRelation: "survey_answer_sets"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "survey_question_config_configuration_id_fkey"
             columns: ["configuration_id"]
