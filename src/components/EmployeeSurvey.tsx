@@ -480,7 +480,7 @@ const ratingEmojis = {
 };
 
 const getRatingLabels = (language: string, answerSet?: any) => {
-  // If we have an answer set with options, use those
+  // Always use answer set from database
   if (answerSet?.answer_options) {
     const labels: Record<number, string> = {};
     answerSet.answer_options.forEach((opt: any) => {
@@ -492,14 +492,9 @@ const getRatingLabels = (language: string, answerSet?: any) => {
     return labels;
   }
   
-  // Otherwise use hardcoded labels
-  return {
-    1: languageContent[language].stronglyDisagree,
-    2: languageContent[language].disagree, 
-    3: languageContent[language].neutral,
-    4: languageContent[language].agree,
-    5: languageContent[language].stronglyAgree
-  };
+  // No fallback - return empty object if no answer set
+  console.warn('No answer set found for rating question');
+  return {};
 };
 
 type SurveySection = "landing" | "survey" | "complete";
