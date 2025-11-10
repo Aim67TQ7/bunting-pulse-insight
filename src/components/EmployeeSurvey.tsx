@@ -1312,9 +1312,8 @@ function RatingQuestion({ question, response, feedback, onRatingChange, onFeedba
             type="button"
           >
             <span className="text-xl md:text-2xl mb-1 select-none">{ratingEmojis[rating as keyof typeof ratingEmojis]}</span>
-            <span className="text-xs font-medium select-none">{rating}</span>
             <span className="text-xs text-muted-foreground text-center select-none leading-tight">
-              {ratingLabels[rating as keyof typeof ratingLabels]}
+              {ratingLabels[rating as keyof typeof ratingLabels] || rating}
             </span>
           </button>
         ))}
