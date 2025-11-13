@@ -7,11 +7,14 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckIcon, AlertTriangleIcon, LoaderIcon, Globe, Download, SaveIcon } from "lucide-react";
+import { CheckIcon, AlertTriangleIcon, LoaderIcon, Globe, Download, SaveIcon, ShieldIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { PrivacyNotice } from "./PrivacyNotice";
+import { CookieConsentBanner } from "./CookieConsentBanner";
+import { GDPRPrivacyPolicy } from "./GDPRPrivacyPolicy";
+import { SurveyConsentDialog } from "./SurveyConsentDialog";
+import { DataRightsManager } from "./DataRightsManager";
 import { QRCodeSVG } from 'qrcode.react';
 import buntingLogo from "@/assets/bunting-logo-2.png";
 import magnetApplicationsLogo from "@/assets/magnet-applications-logo-2.png";
@@ -508,7 +511,6 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   const [collaborationFeedback, setCollaborationFeedback] = useState("");
   const [additionalComments, setAdditionalComments] = useState("");
   const [isComplete, setIsComplete] = useState(false);
-  const [showPrivacyNotice, setShowPrivacyNotice] = useState(false);
   const [submissionCount, setSubmissionCount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [language, setLanguage] = useState<'en' | 'es' | 'fr' | 'it'>('en');
@@ -516,6 +518,12 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showQRCode, setShowQRCode] = useState(false);
   const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+  
+  // GDPR Consent state
+  const [showConsentDialog, setShowConsentDialog] = useState(false);
+  const [consentGiven, setConsentGiven] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showDataRights, setShowDataRights] = useState(false);
   
   // Auto-save state
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -613,7 +621,11 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
         follow_up_responses: {
           ...feedbackResponses,
           language: language
-        }
+        },
+        
+        // GDPR consent fields
+        consent_given: consentGiven,
+        consent_timestamp: consentGiven ? new Date().toISOString() : null
       };
 
       const { data, error } = await supabase
@@ -770,8 +782,54 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   }, [startTime, isComplete]);
 
   const startSurvey = () => {
+    // Check if cookie consent has been given
+    const cookieConsent = localStorage.getItem("cookie-consent");
+    if (cookieConsent !== "accepted") {
+      toast({
+        title: "Cookie Consent Required",
+        description: "Please accept cookies to proceed with the survey",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Show consent dialog
+    setShowConsentDialog(true);
+  };
+
+  const handleConsentGiven = async () => {
+    setConsentGiven(true);
+    setShowConsentDialog(false);
+    
+    // Record consent in database
+    try {
+      await supabase.from("survey_consent_log").insert({
+        session_id: sessionId,
+        consent_given: true,
+        consent_timestamp: new Date().toISOString(),
+        user_agent: navigator.userAgent,
+        consent_version: "1.0"
+      });
+    } catch (error) {
+      console.error("Error recording consent:", error);
+    }
+    
+    // Start the survey
     setStartTime(Date.now());
     setCurrentSection("survey");
+    
+    toast({
+      title: "Thank you",
+      description: "Your consent has been recorded. Let's begin the survey.",
+    });
+  };
+
+  const handleConsentDeclined = () => {
+    setShowConsentDialog(false);
+    toast({
+      title: "Survey Cancelled",
+      description: "You chose not to participate. No data has been collected.",
+    });
   };
 
   const formatTime = (seconds: number) => {
@@ -1008,7 +1066,11 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
         follow_up_responses: {
           ...feedbackResponses,
           language: language
-        }
+        },
+        
+        // GDPR consent fields
+        consent_given: consentGiven,
+        consent_timestamp: consentGiven ? new Date().toISOString() : null
       };
 
       // Use upsert to update existing draft or insert new
@@ -1128,7 +1190,26 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
                 Start Survey
               </Button>
               
-              <div className="pt-8 border-t">
+              <div className="pt-8 border-t space-y-4">
+                <div className="flex gap-2 flex-wrap justify-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPrivacyPolicy(true)}
+                  >
+                    <ShieldIcon className="h-4 w-4 mr-2" />
+                    Privacy Policy
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowDataRights(true)}
+                  >
+                    <ShieldIcon className="h-4 w-4 mr-2" />
+                    Manage My Data
+                  </Button>
+                </div>
+                
                 <Button
                   variant="outline"
                   onClick={() => setShowQRCode(!showQRCode)}
@@ -1194,16 +1275,58 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
                   Survey results will be posted within the next 30 days.
                 </p>
               </div>
+              
+              {/* GDPR Data Rights */}
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-left">
+                <div className="flex items-start gap-2 mb-2">
+                  <ShieldIcon className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold">Your Data Rights (GDPR)</p>
+                    <p className="text-xs text-muted-foreground">
+                      Save this Session ID to access, download, or delete your survey response:
+                    </p>
+                    <div className="bg-background rounded px-3 py-2 font-mono text-xs break-all border">
+                      {sessionId}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Your data will be automatically deleted after 12 months. 
+                      You can request deletion anytime using the button below.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <Button 
+                variant="outline"
+                onClick={() => setShowDataRights(true)}
+                className="gap-2"
+              >
+                <ShieldIcon className="h-4 w-4" />
+                Manage My Data (Access, Download, or Delete)
+              </Button>
             </CardContent>
           </Card>
         </div>
+        
+        {/* Data Rights Manager Dialog */}
+        <DataRightsManager open={showDataRights} onOpenChange={setShowDataRights} />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background p-4 touch-pan-y">
-      <PrivacyNotice />
+      {/* GDPR Components */}
+      <CookieConsentBanner />
+      <GDPRPrivacyPolicy open={showPrivacyPolicy} onOpenChange={setShowPrivacyPolicy} />
+      <SurveyConsentDialog 
+        open={showConsentDialog}
+        onConsent={handleConsentGiven}
+        onDecline={handleConsentDeclined}
+        onViewPrivacyPolicy={() => setShowPrivacyPolicy(true)}
+      />
+      <DataRightsManager open={showDataRights} onOpenChange={setShowDataRights} />
+      
       <div className="max-w-4xl mx-auto"
            style={{ 
              WebkitTouchCallout: 'none',

@@ -924,9 +924,14 @@ export type Database = {
           company_value_alignment: number | null
           completion_time_seconds: number | null
           configuration_id: string | null
+          consent_given: boolean
+          consent_ip_hash: string | null
+          consent_timestamp: string | null
           continent: string | null
           created_at: string
           cross_functional_collaboration: number | null
+          data_retention_date: string | null
+          deleted_at: string | null
           division: string | null
           follow_up_responses: Json | null
           id: string
@@ -964,9 +969,14 @@ export type Database = {
           company_value_alignment?: number | null
           completion_time_seconds?: number | null
           configuration_id?: string | null
+          consent_given?: boolean
+          consent_ip_hash?: string | null
+          consent_timestamp?: string | null
           continent?: string | null
           created_at?: string
           cross_functional_collaboration?: number | null
+          data_retention_date?: string | null
+          deleted_at?: string | null
           division?: string | null
           follow_up_responses?: Json | null
           id?: string
@@ -1004,9 +1014,14 @@ export type Database = {
           company_value_alignment?: number | null
           completion_time_seconds?: number | null
           configuration_id?: string | null
+          consent_given?: boolean
+          consent_ip_hash?: string | null
+          consent_timestamp?: string | null
           continent?: string | null
           created_at?: string
           cross_functional_collaboration?: number | null
+          data_retention_date?: string | null
+          deleted_at?: string | null
           division?: string | null
           follow_up_responses?: Json | null
           id?: string
@@ -2870,6 +2885,39 @@ export type Database = {
         }
         Relationships: []
       }
+      survey_consent_log: {
+        Row: {
+          consent_given: boolean
+          consent_timestamp: string
+          consent_version: string
+          created_at: string
+          id: string
+          ip_hash: string | null
+          session_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          consent_given: boolean
+          consent_timestamp?: string
+          consent_version?: string
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          session_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          consent_given?: boolean
+          consent_timestamp?: string
+          consent_version?: string
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          session_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       survey_question_config: {
         Row: {
           allow_na: boolean | null
@@ -3376,6 +3424,7 @@ export type Database = {
       clean_old_weather_entries: { Args: never; Returns: undefined }
       cleanup_expired_admin_sessions: { Args: never; Returns: undefined }
       cleanup_expired_sessions: { Args: never; Returns: undefined }
+      cleanup_expired_survey_data: { Args: never; Returns: number }
       create_license: {
         Args: {
           company_name_param: string
