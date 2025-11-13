@@ -947,29 +947,45 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     const multiSelectQuestions = getMultiSelectQuestions(allQuestions, language);
     
     // Check demographics - all required
-    const allDemographicsAnswered = demographicQuestions.every(q => {
+    const unansweredDemographics = demographicQuestions.filter(q => {
       const answer = responses[q.id];
-      return answer !== undefined && answer !== null && answer.trim() !== '';
+      return !answer || answer.trim() === '';
     });
+    const allDemographicsAnswered = unansweredDemographics.length === 0;
     
     // Check ratings - all required
-    const allRatingsAnswered = ratingQuestions.every(q => {
+    const unansweredRatings = ratingQuestions.filter(q => {
       const rating = ratingResponses[q.id];
-      return rating !== undefined && rating !== null && rating >= 1 && rating <= 5;
+      return rating === undefined || rating === null || rating < 1 || rating > 5;
     });
+    const allRatingsAnswered = unansweredRatings.length === 0;
     
     // Check low rating feedback - required for ratings 1 or 2
-    const allLowRatingsFeedbackProvided = ratingQuestions
+    const lowRatingsWithoutFeedback = ratingQuestions
       .filter(q => ratingResponses[q.id] !== undefined && ratingResponses[q.id] <= 2)
-      .every(q => {
+      .filter(q => {
         const feedback = feedbackResponses[q.id];
-        return feedback !== undefined && feedback !== null && feedback.trim() !== '';
+        return !feedback || feedback.trim() === '';
       });
+    const allLowRatingsFeedbackProvided = lowRatingsWithoutFeedback.length === 0;
     
     // Check multiselect - at least one option selected for each
-    const allMultiSelectAnswered = multiSelectQuestions.every(q => {
+    const unansweredMultiSelect = multiSelectQuestions.filter(q => {
       const selected = multiSelectResponses[q.id];
-      return selected !== undefined && Array.isArray(selected) && selected.length > 0;
+      return !selected || !Array.isArray(selected) || selected.length === 0;
+    });
+    const allMultiSelectAnswered = unansweredMultiSelect.length === 0;
+    
+    // Debug logging
+    console.log('Survey Completion Check:', {
+      allDemographicsAnswered,
+      unansweredDemographics: unansweredDemographics.map(q => q.id),
+      allRatingsAnswered,
+      unansweredRatings: unansweredRatings.map(q => q.id),
+      allLowRatingsFeedbackProvided,
+      lowRatingsWithoutFeedback: lowRatingsWithoutFeedback.map(q => q.id),
+      allMultiSelectAnswered,
+      unansweredMultiSelect: unansweredMultiSelect.map(q => q.id)
     });
     
     return allDemographicsAnswered && allRatingsAnswered && allLowRatingsFeedbackProvided && allMultiSelectAnswered;
