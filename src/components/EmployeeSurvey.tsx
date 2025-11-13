@@ -1195,7 +1195,10 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setShowPrivacyPolicy(true)}
+                    onClick={() => {
+                      console.log('Survey - Privacy Policy button clicked');
+                      setShowPrivacyPolicy(true);
+                    }}
                   >
                     <ShieldIcon className="h-4 w-4 mr-2" />
                     Privacy Policy
@@ -1203,7 +1206,10 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setShowDataRights(true)}
+                    onClick={() => {
+                      console.log('Survey - Manage My Data button clicked');
+                      setShowDataRights(true);
+                    }}
                   >
                     <ShieldIcon className="h-4 w-4 mr-2" />
                     Manage My Data

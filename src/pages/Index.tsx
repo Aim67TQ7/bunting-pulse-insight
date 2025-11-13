@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSurveyQuestions } from "@/hooks/useSurveyQuestions";
 import { GDPRPrivacyPolicy } from "@/components/GDPRPrivacyPolicy";
 import { DataRightsManager } from "@/components/DataRightsManager";
+import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<"landing" | "survey" | "dashboard" | "admin">("landing");
@@ -49,6 +50,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Cookie Consent Banner */}
+      <CookieConsentBanner />
+      
       {/* Header */}
       <header className="border-b bg-card">
         <div className="max-w-6xl mx-auto px-4 py-6">
