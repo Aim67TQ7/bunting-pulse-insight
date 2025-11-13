@@ -1020,27 +1020,46 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
       const ratingQuestions = getRatingQuestions(allQuestions, language);
       const multiSelectQuestions = getMultiSelectQuestions(allQuestions, language);
       
-      const missingDemographics = demographicQuestions.filter(q => !responses[q.id]?.trim()).length;
-      const missingRatings = ratingQuestions.filter(q => ratingResponses[q.id] === undefined).length;
+      const missingDemographics = demographicQuestions.filter(q => !responses[q.id]?.trim());
+      const missingRatings = ratingQuestions.filter(q => ratingResponses[q.id] === undefined);
+      const missingMultiSelect = multiSelectQuestions.filter(q => !multiSelectResponses[q.id]?.length);
       const missingFeedback = ratingQuestions
-        .filter(q => ratingResponses[q.id] <= 2 && !feedbackResponses[q.id]?.trim()).length;
-      const missingMultiSelect = multiSelectQuestions
-        .filter(q => !multiSelectResponses[q.id]?.length).length;
+        .filter(q => ratingResponses[q.id] <= 2 && !feedbackResponses[q.id]?.trim());
       
-      let message = "Please complete all required fields: ";
-      const missing = [];
-      if (missingDemographics > 0) missing.push(`${missingDemographics} demographic question(s)`);
-      if (missingRatings > 0) missing.push(`${missingRatings} rating question(s)`);
-      if (missingFeedback > 0) missing.push(`${missingFeedback} feedback comment(s) for low ratings (1-2)`);
-      if (missingMultiSelect > 0) missing.push(`${missingMultiSelect} multi-select question(s)`);
+      let errorMessage = "Please complete all required fields:\n";
       
-      message += missing.join(", ");
+      if (missingDemographics.length > 0) {
+        errorMessage += `\n• ${missingDemographics.length} demographic question(s)`;
+      }
+      if (missingRatings.length > 0) {
+        errorMessage += `\n• ${missingRatings.length} rating question(s):`;
+        missingRatings.forEach(q => {
+          errorMessage += `\n  - ${q.text.substring(0, 60)}...`;
+        });
+      }
+      if (missingMultiSelect.length > 0) {
+        errorMessage += `\n• ${missingMultiSelect.length} multi-select question(s)`;
+      }
+      if (missingFeedback.length > 0) {
+        errorMessage += `\n• ${missingFeedback.length} low rating(s) need explanation`;
+      }
       
       toast({
-        title: "Incomplete survey",
-        description: message,
+        title: "Survey Incomplete",
+        description: errorMessage,
         variant: "destructive",
+        duration: 10000,
       });
+      
+      // Scroll to first missing question
+      const firstMissing = missingDemographics[0] || missingRatings[0] || missingMultiSelect[0];
+      if (firstMissing) {
+        setTimeout(() => {
+          const element = document.querySelector(`[data-question-id="${firstMissing.id}"]`);
+          element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+      }
+      
       return;
     }
 
@@ -1717,12 +1736,16 @@ function DemographicQuestion({ question, value, onResponse }: DemographicQuestio
   const isRequired = true; // All demographic questions are required
   
   return (
-    <Card>
+    <Card data-question-id={question.id}>
       <CardHeader>
         <CardTitle>
           {question.text}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </CardTitle>
+        {/* Show error if unanswered */}
+        {!value && (
+          <p className="text-xs text-destructive mt-2">⚠️ This question is required</p>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         <RadioGroup onValueChange={onResponse} value={value}>
@@ -1795,11 +1818,18 @@ function RatingQuestion({ question, response, feedback, onRatingChange, onFeedba
     : [1, 2, 3, 4, 5];
 
   return (
-    <div>
+    <div data-question-id={question.id}>
       <h3 className="font-medium mb-4">
         {question.text}
         {isRequired && <span className="text-destructive ml-1">*</span>}
       </h3>
+      
+      {/* Show warning if unanswered */}
+      {response === undefined && (
+        <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+          <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">⚠️ Please rate this question to continue</p>
+        </div>
+      )}
       
       {/* Rating Scale with Emojis */}
       <div className="flex justify-center space-x-2 md:space-x-4 mb-4">
