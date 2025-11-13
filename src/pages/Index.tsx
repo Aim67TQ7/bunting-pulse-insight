@@ -5,13 +5,17 @@ import Admin from "./Admin";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ClipboardListIcon, BarChart3Icon, ShieldCheckIcon, UsersIcon, LockIcon } from "lucide-react";
+import { ClipboardListIcon, BarChart3Icon, ShieldCheckIcon, UsersIcon, LockIcon, ShieldIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSurveyQuestions } from "@/hooks/useSurveyQuestions";
+import { GDPRPrivacyPolicy } from "@/components/GDPRPrivacyPolicy";
+import { DataRightsManager } from "@/components/DataRightsManager";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<"landing" | "survey" | "dashboard" | "admin">("landing");
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showDataRights, setShowDataRights] = useState(false);
   const { toast } = useToast();
   const { data: allQuestions } = useSurveyQuestions();
   
@@ -155,7 +159,31 @@ const Index = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* GDPR Links */}
+        <div className="flex gap-3 justify-center mt-8">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowPrivacyPolicy(true)}
+          >
+            <ShieldIcon className="h-4 w-4 mr-2" />
+            Privacy Policy
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowDataRights(true)}
+          >
+            <ShieldIcon className="h-4 w-4 mr-2" />
+            Manage My Data
+          </Button>
+        </div>
       </main>
+
+      {/* GDPR Dialogs */}
+      <GDPRPrivacyPolicy open={showPrivacyPolicy} onOpenChange={setShowPrivacyPolicy} />
+      <DataRightsManager open={showDataRights} onOpenChange={setShowDataRights} />
     </div>
   );
 };
