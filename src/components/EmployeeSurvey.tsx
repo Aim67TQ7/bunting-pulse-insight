@@ -609,11 +609,9 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
         collaboration_feedback: collaborationFeedback || "",
         additional_comments: additionalComments || "",
         
-        // Store only non-rating feedback in JSONB
+        // Store ALL feedback responses in JSONB (including low-rating feedback)
         follow_up_responses: {
-          job_satisfaction_feedback: feedbackResponses["job-satisfaction"] || "",
-          training_feedback: feedbackResponses["training"] || "",
-          work_life_balance_feedback: feedbackResponses["work-life-balance"] || "",
+          ...feedbackResponses,
           language: language
         }
       };
@@ -711,13 +709,16 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
           if (data.comfortable_suggesting_improvements) restoredRatings["change"] = data.comfortable_suggesting_improvements;
           setRatingResponses(restoredRatings);
 
-          // Restore feedback responses
+          // Restore ALL feedback responses (including low-rating feedback)
           const restoredFeedback: Record<string, string> = {};
           if (data.follow_up_responses) {
             const followUp = data.follow_up_responses as any;
-            if (followUp.job_satisfaction_feedback) restoredFeedback["job-satisfaction"] = followUp.job_satisfaction_feedback;
-            if (followUp.training_feedback) restoredFeedback["training"] = followUp.training_feedback;
-            if (followUp.work_life_balance_feedback) restoredFeedback["work-life-balance"] = followUp.work_life_balance_feedback;
+            // Restore all feedback except the 'language' property
+            Object.keys(followUp).forEach(key => {
+              if (key !== 'language' && followUp[key]) {
+                restoredFeedback[key] = followUp[key];
+              }
+            });
           }
           setFeedbackResponses(restoredFeedback);
 
@@ -1003,11 +1004,9 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
         collaboration_feedback: collaborationFeedback || "",
         additional_comments: additionalComments || "",
         
-        // Store only non-rating feedback in JSONB
+        // Store ALL feedback responses in JSONB (including low-rating feedback)
         follow_up_responses: {
-          job_satisfaction_feedback: feedbackResponses["job-satisfaction"] || "",
-          training_feedback: feedbackResponses["training"] || "",
-          work_life_balance_feedback: feedbackResponses["work-life-balance"] || "",
+          ...feedbackResponses,
           language: language
         }
       };

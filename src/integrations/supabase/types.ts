@@ -924,10 +924,10 @@ export type Database = {
           company_value_alignment: number | null
           completion_time_seconds: number | null
           configuration_id: string | null
-          continent: string
+          continent: string | null
           created_at: string
           cross_functional_collaboration: number | null
-          division: string
+          division: string | null
           follow_up_responses: Json | null
           id: string
           information_preferences: string[] | null
@@ -941,7 +941,7 @@ export type Database = {
           performance_awareness: number | null
           pride_in_work: number | null
           recommend_company: number | null
-          role: string
+          role: string | null
           safety_reporting_comfort: number | null
           session_id: string
           strategic_confidence: number | null
@@ -964,10 +964,10 @@ export type Database = {
           company_value_alignment?: number | null
           completion_time_seconds?: number | null
           configuration_id?: string | null
-          continent: string
+          continent?: string | null
           created_at?: string
           cross_functional_collaboration?: number | null
-          division: string
+          division?: string | null
           follow_up_responses?: Json | null
           id?: string
           information_preferences?: string[] | null
@@ -981,7 +981,7 @@ export type Database = {
           performance_awareness?: number | null
           pride_in_work?: number | null
           recommend_company?: number | null
-          role: string
+          role?: string | null
           safety_reporting_comfort?: number | null
           session_id: string
           strategic_confidence?: number | null
@@ -1004,10 +1004,10 @@ export type Database = {
           company_value_alignment?: number | null
           completion_time_seconds?: number | null
           configuration_id?: string | null
-          continent?: string
+          continent?: string | null
           created_at?: string
           cross_functional_collaboration?: number | null
-          division?: string
+          division?: string | null
           follow_up_responses?: Json | null
           id?: string
           information_preferences?: string[] | null
@@ -1021,7 +1021,7 @@ export type Database = {
           performance_awareness?: number | null
           pride_in_work?: number | null
           recommend_company?: number | null
-          role?: string
+          role?: string | null
           safety_reporting_comfort?: number | null
           session_id?: string
           strategic_confidence?: number | null
