@@ -18,6 +18,9 @@ const Index = () => {
   const [showDataRights, setShowDataRights] = useState(false);
   const { toast } = useToast();
   const { data: allQuestions } = useSurveyQuestions();
+
+  // Debug: Log state changes
+  console.log('Dialog states:', { showPrivacyPolicy, showDataRights });
   
   const totalQuestions = allQuestions?.length || 0;
 
@@ -165,7 +168,10 @@ const Index = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowPrivacyPolicy(true)}
+            onClick={() => {
+              console.log('Privacy Policy button clicked');
+              setShowPrivacyPolicy(true);
+            }}
           >
             <ShieldIcon className="h-4 w-4 mr-2" />
             Privacy Policy
@@ -173,7 +179,10 @@ const Index = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowDataRights(true)}
+            onClick={() => {
+              console.log('Manage My Data button clicked');
+              setShowDataRights(true);
+            }}
           >
             <ShieldIcon className="h-4 w-4 mr-2" />
             Manage My Data
