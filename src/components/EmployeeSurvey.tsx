@@ -781,7 +781,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     return () => clearInterval(interval);
   }, [startTime, isComplete]);
 
-  const startSurvey = () => {
+  const startSurvey = async () => {
     // Check if cookie consent has been given
     const cookieConsent = localStorage.getItem("cookie-consent");
     if (cookieConsent !== "accepted") {
@@ -793,8 +793,30 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
       return;
     }
     
-    // Show consent dialog
-    setShowConsentDialog(true);
+    // Auto-consent and proceed directly to survey
+    setConsentGiven(true);
+    
+    // Record consent in database
+    try {
+      await supabase.from("survey_consent_log").insert({
+        session_id: sessionId,
+        consent_given: true,
+        consent_timestamp: new Date().toISOString(),
+        user_agent: navigator.userAgent,
+        consent_version: "1.0"
+      });
+    } catch (error) {
+      console.error("Error recording consent:", error);
+    }
+    
+    // Start the survey
+    setStartTime(Date.now());
+    setCurrentSection("survey");
+    
+    toast({
+      title: "Welcome",
+      description: "Let's begin the survey.",
+    });
   };
 
   const handleConsentGiven = async () => {
