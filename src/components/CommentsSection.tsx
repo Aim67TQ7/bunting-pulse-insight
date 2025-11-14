@@ -28,107 +28,62 @@ export const CommentsSection = ({ configurationId }: CommentsSectionProps) => {
     const loadTextResponses = async () => {
       setLoading(true);
       
-      // Get all text-type question responses with metadata
-      const { data: textResponses, error: textError } = await supabase
-        .from('survey_question_responses')
-        .select(`
-          id,
-          response_id,
-          question_id,
-          answer_value,
-          created_at,
-        survey_question_config!inner(
-          labels,
-          question_type
-        ),
-          employee_survey_responses!inner(
-            continent,
-            division,
-            role,
-            is_draft
-          )
-        `)
-        .eq('survey_question_config.question_type', 'text')
-        .eq('employee_survey_responses.is_draft', false);
+      // Get all surveys from single table
+      const { data: surveys, error } = await supabase
+        .from('employee_survey_responses')
+        .select('id, responses_jsonb, continent, division, role, submitted_at')
+        .eq('is_draft', false);
 
-      if (textError) {
-        console.error('Error loading text responses:', textError);
+      if (error) {
+        console.error('Error loading survey responses:', error);
         setLoading(false);
         return;
       }
 
-      // Also get rating responses with follow-ups (low scores 1-3)
-      const { data: ratingResponses, error: ratingError } = await supabase
-        .from('survey_question_responses')
-        .select(`
-          id,
-          response_id,
-          question_id,
-          answer_value,
-          created_at,
-        survey_question_config!inner(
-          labels,
-          question_type
-        ),
-          employee_survey_responses!inner(
-            continent,
-            division,
-            role,
-            is_draft
-          )
-        `)
-        .eq('survey_question_config.question_type', 'rating')
-        .eq('employee_survey_responses.is_draft', false);
-
-      if (ratingError) {
-        console.error('Error loading rating responses:', ratingError);
-      }
-
       const comments: any[] = [];
 
-      // Process text responses
-      if (textResponses) {
-        textResponses.forEach((response: any) => {
-          // Handle both new text structure and legacy feedback structure
-          const textValue = response.answer_value?.text || response.answer_value?.feedback;
-          if (textValue && textValue.trim()) {
-            comments.push({
-              id: response.id,
-              response_id: response.response_id,
-              comment_type: response.survey_question_config.labels?.en || 'Text Response',
-              comment_text: textValue,
-              created_at: response.created_at,
-              continent: response.employee_survey_responses.continent,
-              division: response.employee_survey_responses.division,
-              role: response.employee_survey_responses.role,
-            });
-          }
-        });
-      }
-
-      // Process rating responses with follow-ups
-      if (ratingResponses) {
-        ratingResponses.forEach((response: any) => {
-          const followUp = response.answer_value?.follow_up;
-          const rating = response.answer_value?.rating;
-          if (followUp && followUp.trim()) {
-            // Only include follow-ups if rating is 1-3 (low score)
-            if (rating && rating <= 3) {
+      // Process each survey's responses_jsonb
+      (surveys || []).forEach((survey: any) => {
+        const responses = survey.responses_jsonb as any[] || [];
+        
+        responses.forEach((answer: any) => {
+          // Process text questions
+          if (answer.question_type === 'text') {
+            const textValue = answer.answer_value?.text;
+            if (textValue && textValue.trim()) {
               comments.push({
-                id: response.id,
-                response_id: response.response_id,
-                comment_type: `Low Score Follow-up: ${response.survey_question_config.question_labels?.en || 'Rating Question'}`,
-                comment_text: followUp,
-                score: rating,
-                created_at: response.created_at,
-                continent: response.employee_survey_responses.continent,
-                division: response.employee_survey_responses.division,
-                role: response.employee_survey_responses.role,
+                id: `${survey.id}-${answer.question_id}`,
+                response_id: survey.id,
+                comment_type: getQuestionLabel(answer.question_id),
+                comment_text: textValue,
+                created_at: survey.submitted_at,
+                continent: survey.continent,
+                division: survey.division,
+                role: survey.role,
+              });
+            }
+          }
+          
+          // Process rating questions with feedback
+          if (answer.question_type === 'rating') {
+            const feedback = answer.answer_value?.feedback;
+            const rating = answer.answer_value?.rating;
+            if (feedback && feedback.trim() && rating && rating <= 3) {
+              comments.push({
+                id: `${survey.id}-${answer.question_id}-feedback`,
+                response_id: survey.id,
+                comment_type: `Low Score Follow-up: ${getQuestionLabel(answer.question_id)}`,
+                comment_text: feedback,
+                rating: rating,
+                created_at: survey.submitted_at,
+                continent: survey.continent,
+                division: survey.division,
+                role: survey.role,
               });
             }
           }
         });
-      }
+      });
 
       setAllComments(comments);
       setLoading(false);
@@ -136,6 +91,34 @@ export const CommentsSection = ({ configurationId }: CommentsSectionProps) => {
 
     loadTextResponses();
   }, [configurationId]);
+  
+  const getQuestionLabel = (questionId: string): string => {
+    const labels: Record<string, string> = {
+      'additional-comments': 'Additional Comments',
+      'collaboration-feedback': 'Collaboration Feedback',
+      'job-satisfaction': 'Job Satisfaction',
+      'company-satisfaction': 'Company Recommendation',
+      'work-life-balance': 'Work-Life Balance',
+      'team-morale': 'Team Morale',
+      'performance-awareness': 'Performance Awareness',
+      'advancement-opportunities': 'Advancement Opportunities',
+      'training-satisfaction': 'Training Satisfaction',
+      'tools-equipment-quality': 'Tools & Equipment',
+      'workplace-safety': 'Workplace Safety',
+      'safety-reporting-comfort': 'Safety Reporting Comfort',
+      'communication-clarity': 'Communication Clarity',
+      'leadership-openness': 'Leadership Openness',
+      'manager-alignment': 'Manager Alignment',
+      'cross-functional-collaboration': 'Cross-Functional Collaboration',
+      'strategic-confidence': 'Strategic Confidence',
+      'company-value-alignment': 'Company Values Alignment',
+      'comfortable-suggesting-improvements': 'Comfort Suggesting Improvements',
+      'workload-manageability': 'Workload Manageability',
+      'manual-processes-focus': 'Manual Processes Focus',
+      'pride-in-work': 'Pride in Work'
+    };
+    return labels[questionId] || questionId;
+  };
 
   // Filter comments based on search and filters
   const filteredComments = allComments.filter((comment: any) => {

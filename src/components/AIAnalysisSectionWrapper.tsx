@@ -29,21 +29,28 @@ export const AIAnalysisSectionWrapper = () => {
   const loadResponses = async () => {
     setLoading(true);
     try {
-      const { data: metadata, error: metaError } = await supabase
+      const { data: surveyData, error } = await supabase
         .from('employee_survey_responses')
-        .select('id, continent, division, role, submitted_at, completion_time_seconds')
+        .select('id, responses_jsonb, continent, division, role, submitted_at, completion_time_seconds')
+        .eq('is_draft', false)
         .order('submitted_at', { ascending: false });
-      if (metaError) throw metaError;
+      
+      if (error) throw error;
 
-      const { data: responseData, error: respError } = await supabase
-        .from('survey_question_responses')
-        .select('*');
-      if (respError) throw respError;
-
-      const combined = (metadata || []).map(meta => ({
-        ...meta,
-        responses: (responseData || []).filter(r => r.response_id === meta.id)
+      const combined = (surveyData || []).map(survey => ({
+        id: survey.id,
+        continent: survey.continent,
+        division: survey.division,
+        role: survey.role,
+        submitted_at: survey.submitted_at,
+        completion_time_seconds: survey.completion_time_seconds,
+        responses: (survey.responses_jsonb as any[] || []).map((answer: any) => ({
+          question_id: answer.question_id,
+          question_type: answer.question_type,
+          answer_value: answer.answer_value
+        }))
       }));
+      
       setResponses(combined);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });

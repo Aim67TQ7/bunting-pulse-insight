@@ -59,28 +59,30 @@ export const QuestionLevelAnalytics = ({
     try {
       setLoading(true);
 
-      // Load question-level responses
+      // Load from single table
       const {
-        data: responses,
-        error: responsesError
-      } = await supabase.from('survey_question_responses').select('*').order('created_at', {
+        data: surveys,
+        error
+      } = await supabase.from('employee_survey_responses').select('id, responses_jsonb, continent, division, completion_time_seconds, submitted_at').eq('is_draft', false).order('submitted_at', {
         ascending: false
       });
-      if (responsesError) throw responsesError;
+      if (error) throw error;
 
-      // Load survey metadata
-      const {
-        data: metadata,
-        error: metadataError
-      } = await supabase.from('employee_survey_responses').select('id, continent, division, completion_time_seconds, submitted_at').order('submitted_at', {
-        ascending: false
-      });
-      if (metadataError) throw metadataError;
-      setQuestionResponses(responses || []);
-      setSurveyMetadata(metadata || []);
+      // Transform responses_jsonb into flat question responses
+      const flatResponses: QuestionResponse[] = (surveys || []).flatMap(survey => (survey.responses_jsonb as any[] || []).map((answer: any) => ({
+        id: `${survey.id}-${answer.question_id}`,
+        response_id: survey.id,
+        question_id: answer.question_id,
+        question_type: answer.question_type,
+        answer_value: answer.answer_value,
+        display_order: answer.display_order,
+        created_at: survey.submitted_at
+      })));
+      setQuestionResponses(flatResponses);
+      setSurveyMetadata(surveys || []);
       toast({
         title: "Data Loaded",
-        description: `${responses?.length || 0} question responses from ${metadata?.length || 0} surveys`
+        description: `${flatResponses.length} question responses from ${surveys?.length || 0} surveys`
       });
     } catch (error: any) {
       console.error('Error loading data:', error);

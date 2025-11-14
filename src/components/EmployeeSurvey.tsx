@@ -892,6 +892,76 @@ export function EmployeeSurvey({
     }
     setIsSubmitting(true);
     try {
+      // Get display order for all questions
+      const displayOrderMap = new Map(
+        allQuestions.map(q => [q.question_id, q.display_order])
+      );
+
+      // Build question responses array for responses_jsonb
+      const questionResponses = [];
+      
+      // Add demographic questions
+      const demographicQuestions = getDemographicQuestions(allQuestions, language);
+      for (const question of demographicQuestions) {
+        if (responses[question.id]) {
+          questionResponses.push({
+            question_id: question.id,
+            question_type: 'demographic',
+            answer_value: {
+              value: responses[question.id]
+            },
+            display_order: displayOrderMap.get(question.id)
+          });
+        }
+      }
+      
+      // Add rating questions
+      const ratingQuestions = getRatingQuestions(allQuestions, language);
+      for (const question of ratingQuestions) {
+        if (ratingResponses[question.id]) {
+          questionResponses.push({
+            question_id: question.id,
+            question_type: 'rating',
+            answer_value: {
+              rating: ratingResponses[question.id],
+              feedback: feedbackResponses[question.id] || null,
+              na: naResponses[question.id] || false
+            },
+            display_order: displayOrderMap.get(question.id)
+          });
+        }
+      }
+      
+      // Add multi-select questions
+      const multiSelectQuestions = getMultiSelectQuestions(allQuestions, language);
+      for (const question of multiSelectQuestions) {
+        if (multiSelectResponses[question.id] && multiSelectResponses[question.id].length > 0) {
+          questionResponses.push({
+            question_id: question.id,
+            question_type: 'multiselect',
+            answer_value: {
+              selected: multiSelectResponses[question.id]
+            },
+            display_order: displayOrderMap.get(question.id)
+          });
+        }
+      }
+      
+      // Add text questions
+      const textQuestions = getTextQuestions(allQuestions, language);
+      for (const question of textQuestions) {
+        if (textResponses[question.id]) {
+          questionResponses.push({
+            question_id: question.id,
+            question_type: 'text',
+            answer_value: {
+              text: textResponses[question.id]
+            },
+            display_order: displayOrderMap.get(question.id)
+          });
+        }
+      }
+
       // Map survey responses to database schema with proper value mapping
       const surveyData = {
         continent: mapDemographicValues(responses.continent, 'continent'),
@@ -900,145 +970,59 @@ export function EmployeeSurvey({
         session_id: sessionId,
         completion_time_seconds: elapsedTime,
         is_draft: false,
-        // Mark as complete
         submitted_at: new Date().toISOString(),
-        // Engagement & Job Satisfaction
+        responses_jsonb: questionResponses,
+        
+        // Store all rating values directly for backward compatibility
         job_satisfaction: ratingResponses["job-satisfaction"],
         recommend_company: ratingResponses["company-satisfaction"],
         strategic_confidence: ratingResponses["future-view"],
-        // Leadership & Communication
         leadership_openness: ratingResponses["expectations"],
         performance_awareness: ratingResponses["performance-awareness"],
         communication_clarity: ratingResponses["relaying-information"],
         manager_alignment: ratingResponses["management-feedback"],
-        // Training & Development
         training_satisfaction: ratingResponses["training"],
         advancement_opportunities: ratingResponses["opportunities"],
-        // Teamwork & Culture
         cross_functional_collaboration: ratingResponses["cooperation"],
         team_morale: ratingResponses["morale"],
         pride_in_work: ratingResponses["pride"],
-        // Safety & Work Environment
         workplace_safety: ratingResponses["safety-focus"],
         safety_reporting_comfort: ratingResponses["safety-reporting"],
-        // Scheduling & Workload
         workload_manageability: ratingResponses["workload"],
         work_life_balance: ratingResponses["work-life-balance"],
-        // Tools, Equipment & Processes
         tools_equipment_quality: ratingResponses["tools"],
         manual_processes_focus: ratingResponses["processes"],
         company_value_alignment: ratingResponses["company-value"],
         comfortable_suggesting_improvements: ratingResponses["change"],
+        
         // Multi-select arrays
         communication_preferences: multiSelectResponses["communication-preferences"] || [],
         information_preferences: multiSelectResponses["information-preferences"] || [],
         motivation_factors: multiSelectResponses["motivation-factors"] || [],
+        
         // Text feedback
         collaboration_feedback: collaborationFeedback || "",
         additional_comments: additionalComments || "",
+        
         // Store ALL feedback responses in JSONB (including low-rating feedback)
         follow_up_responses: {
           ...feedbackResponses,
           language: language,
           na_responses: naResponses
         },
+        
         // GDPR consent fields
         consent_given: consentGiven,
         consent_timestamp: consentGiven ? new Date().toISOString() : null
       };
 
-      // Insert the survey response
-      const { data: insertedResponse, error: insertError } = await supabase
+      // Single insert with all data
+      const { error: insertError } = await supabase
         .from("employee_survey_responses")
-        .insert(surveyData)
-        .select('id')
-        .single();
+        .insert(surveyData);
 
       if (insertError) throw insertError;
 
-      // Track individual question responses for analytics
-      if (insertedResponse?.id && allQuestions) {
-        const questionResponses = [];
-
-        // Create a lookup map for display_order from raw database questions
-        const displayOrderMap = new Map(allQuestions.map(q => [q.question_id, q.display_order]));
-
-        // Track demographic questions
-        const demographicQuestions = getDemographicQuestions(allQuestions, language);
-        for (const question of demographicQuestions) {
-          if (responses[question.id]) {
-            questionResponses.push({
-              response_id: insertedResponse.id,
-              question_id: question.id,
-              question_type: 'demographic',
-              answer_value: {
-                value: responses[question.id]
-              },
-              display_order: displayOrderMap.get(question.id)
-            });
-          }
-        }
-
-        // Track rating questions
-        const ratingQuestions = getRatingQuestions(allQuestions, language);
-        for (const question of ratingQuestions) {
-          if (ratingResponses[question.id]) {
-            questionResponses.push({
-              response_id: insertedResponse.id,
-              question_id: question.id,
-              question_type: 'rating',
-              answer_value: {
-                rating: ratingResponses[question.id],
-                feedback: feedbackResponses[question.id] || null
-              },
-              display_order: displayOrderMap.get(question.id)
-            });
-          }
-        }
-
-        // Track multi-select questions
-        const multiSelectQuestions = getMultiSelectQuestions(allQuestions, language);
-        for (const question of multiSelectQuestions) {
-          if (multiSelectResponses[question.id]) {
-            questionResponses.push({
-              response_id: insertedResponse.id,
-              question_id: question.id,
-              question_type: 'multiselect',
-              answer_value: {
-                selected: multiSelectResponses[question.id]
-              },
-              display_order: displayOrderMap.get(question.id)
-            });
-          }
-        }
-
-        // Track text questions
-        const textQuestions = getTextQuestions(allQuestions, language);
-        for (const question of textQuestions) {
-          if (textResponses[question.id]) {
-            questionResponses.push({
-              response_id: insertedResponse.id,
-              question_id: question.id,
-              question_type: 'text',
-              answer_value: {
-                text: textResponses[question.id]
-              },
-              display_order: displayOrderMap.get(question.id)
-            });
-          }
-        }
-
-        // Insert all question responses
-        if (questionResponses.length > 0) {
-          const {
-            error: detailError
-          } = await supabase.from("survey_question_responses").insert(questionResponses);
-          if (detailError) {
-            console.error("Error saving question responses:", detailError);
-            // Don't fail the whole submission if detail tracking fails
-          }
-        }
-      }
       const currentCount = parseInt(localStorage.getItem("survey-submissions") || "0");
       localStorage.setItem("survey-submissions", String(currentCount + 1));
       setSubmissionCount(currentCount + 1);

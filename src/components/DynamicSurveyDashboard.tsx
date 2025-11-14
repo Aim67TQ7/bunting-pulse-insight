@@ -53,24 +53,31 @@ export default function DynamicSurveyDashboard({
       const {
         data,
         error
-      } = await supabase.from("survey_question_responses").select("*").order("created_at", {
+      } = await supabase.from("employee_survey_responses").select("id, responses_jsonb, created_at").eq("is_draft", false).order("submitted_at", {
         ascending: false
       });
       if (error) throw error;
 
-      // Group responses by response_id
-      const grouped = new Map<string, GroupedResponse>();
-      (data || []).forEach((response: QuestionResponse) => {
-        if (!grouped.has(response.response_id)) {
-          grouped.set(response.response_id, {
-            response_id: response.response_id,
-            created_at: response.created_at,
-            answers: new Map()
+      // Transform responses_jsonb into the old GroupedResponse format
+      const groupedArray: GroupedResponse[] = (data || []).map(survey => {
+        const answers = new Map();
+        (survey.responses_jsonb as any[] || []).forEach((answer: any) => {
+          answers.set(answer.question_id, {
+            response_id: survey.id,
+            question_id: answer.question_id,
+            question_type: answer.question_type,
+            answer_value: answer.answer_value,
+            display_order: answer.display_order,
+            created_at: survey.created_at
           });
-        }
-        grouped.get(response.response_id)!.answers.set(response.question_id, response);
+        });
+        return {
+          response_id: survey.id,
+          created_at: survey.created_at,
+          answers
+        };
       });
-      setResponses(Array.from(grouped.values()));
+      setResponses(groupedArray);
     } catch (error: any) {
       toast({
         title: "Error loading responses",
