@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { CookieIcon, XIcon } from "lucide-react";
+import { CookieIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function CookieConsentBanner() {
@@ -32,44 +32,65 @@ export function CookieConsentBanner() {
   if (!showBanner) return null;
 
   return (
-    <div
-      className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 p-4 bg-background border-t border-border shadow-lg transition-transform duration-300",
-        isVisible ? "translate-y-0" : "translate-y-full"
-      )}
-    >
-      <div className="container mx-auto max-w-6xl">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="flex items-start gap-3 flex-1">
-            <CookieIcon className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
-            <div className="space-y-1">
-              <p className="text-sm font-medium">Cookie Notice</p>
-              <p className="text-xs text-muted-foreground">
-                This survey uses local storage to track your session and prevent duplicate submissions. 
-                No third-party cookies or tracking. <a href="#privacy" className="underline">Learn more</a>
+    <>
+      {/* Backdrop overlay - blocks all interaction */}
+      <div
+        className={cn(
+          "fixed inset-0 bg-background/80 backdrop-blur-sm z-50 transition-opacity duration-300",
+          isVisible ? "opacity-100" : "opacity-0"
+        )}
+      />
+      
+      {/* Modal dialog */}
+      <div
+        className={cn(
+          "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg transition-all duration-300",
+          isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
+        )}
+      >
+        <div className="mx-4 rounded-lg border-2 border-primary bg-card p-6 shadow-2xl">
+          <div className="flex items-start gap-4 mb-6">
+            <div className="p-3 bg-primary/10 rounded-full">
+              <CookieIcon className="h-8 w-8 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-bold text-foreground mb-2">Cookie Consent Required</h2>
+              <p className="text-sm text-muted-foreground">
+                Before proceeding, please review our cookie policy.
               </p>
             </div>
           </div>
           
-          <div className="flex gap-2 w-full sm:w-auto">
+          <div className="bg-muted/50 rounded-md p-4 mb-6">
+            <p className="text-sm text-foreground leading-relaxed">
+              This survey uses local storage to track your session and prevent duplicate submissions. 
+              We do not use third-party cookies or tracking technologies. Your responses remain completely anonymous.
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3">
             <Button
               onClick={handleReject}
               variant="outline"
-              size="sm"
-              className="flex-1 sm:flex-initial"
+              size="lg"
+              className="flex-1"
             >
               Decline
             </Button>
             <Button
               onClick={handleAccept}
-              size="sm"
-              className="flex-1 sm:flex-initial"
+              size="lg"
+              className="flex-1"
             >
-              Accept
+              Accept & Continue
             </Button>
           </div>
+          
+          <p className="text-xs text-muted-foreground text-center mt-4">
+            You must accept or decline to proceed with the survey
+          </p>
         </div>
       </div>
-    </div>
+    </>
   );
 }
