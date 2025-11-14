@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeftIcon, ShieldCheckIcon } from "lucide-react";
 import { SurveyAnalyticsDashboard } from "@/components/SurveyAnalyticsDashboard";
-import { SurveyDashboardNew } from "@/components/SurveyDashboardNew";
+import DynamicSurveyDashboard from "@/components/DynamicSurveyDashboard";
 import { QuestionLevelAnalytics } from "@/components/QuestionLevelAnalytics";
 import buntingLogo from "@/assets/bunting-logo.png";
 import magnetLogo from "@/assets/magnet-applications-logo.png";
@@ -163,7 +163,7 @@ export const Admin = ({ onBack }: AdminProps) => {
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
-            <SurveyDashboardNew onBack={onBack} setCurrentView={() => {}} />
+            <DynamicSurveyDashboard onBack={onBack} />
           </TabsContent>
 
           <TabsContent value="comprehensive" className="space-y-6">
