@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeftIcon, DownloadIcon, FilterIcon, TrendingUp, Clock, BarChart3, PieChart as PieChartIcon, Calendar } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ArrowLeftIcon, DownloadIcon, FilterIcon, TrendingUp, Clock, BarChart3, PieChart as PieChartIcon, Calendar, ChevronDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Tooltip, Legend, Area, AreaChart } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -283,6 +284,23 @@ export const QuestionLevelAnalytics = ({
       fill: CHART_COLORS[index % CHART_COLORS.length]
     })).sort((a, b) => b.count - a.count);
   };
+
+  // Get low-score comments for a rating question
+  const getLowRatingComments = (questionId: string) => {
+    const responses = questionResponses.filter(r => 
+      r.question_id === questionId && 
+      r.question_type === 'rating' &&
+      r.answer_value?.rating <= 2 &&
+      r.answer_value?.feedback?.trim()
+    );
+    
+    return responses.map(r => ({
+      rating: r.answer_value.rating,
+      feedback: r.answer_value.feedback,
+      date: new Date(r.created_at).toLocaleDateString(),
+      response_id: r.response_id
+    }));
+  };
   if (loading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">Loading question-level analytics...</div>
@@ -336,7 +354,7 @@ export const QuestionLevelAnalytics = ({
                       <CardHeader>
                         <CardTitle>Rating Distribution</CardTitle>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="space-y-4">
                         <ResponsiveContainer width="100%" height={300}>
                           <BarChart data={getRatingDistribution(selectedQuestion)}>
                             <CartesianGrid strokeDasharray="3 3" />
@@ -346,6 +364,38 @@ export const QuestionLevelAnalytics = ({
                             <Bar dataKey="count" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
                           </BarChart>
                         </ResponsiveContainer>
+
+                        {/* Low Score Feedback Section */}
+                        {(() => {
+                          const lowRatingComments = getLowRatingComments(selectedQuestion);
+                          if (lowRatingComments.length === 0) return null;
+                          
+                          return (
+                            <Collapsible>
+                              <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium hover:underline w-full">
+                                <ChevronDown className="h-4 w-4" />
+                                Low Score Feedback (Ratings 1-2)
+                                <Badge variant="destructive" className="ml-2">{lowRatingComments.length}</Badge>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent className="space-y-2 mt-4">
+                                {lowRatingComments.map((comment, idx) => (
+                                  <Card key={idx} className="p-3 bg-muted/50 border-destructive/20">
+                                    <div className="flex items-start gap-3">
+                                      <span className="text-2xl">{RATING_EMOJIS[comment.rating]}</span>
+                                      <div className="flex-1 space-y-1">
+                                        <div className="flex items-center gap-2">
+                                          <Badge variant="outline" className="text-xs">Rating: {comment.rating}</Badge>
+                                          <span className="text-xs text-muted-foreground">{comment.date}</span>
+                                        </div>
+                                        <p className="text-sm text-foreground">{comment.feedback}</p>
+                                      </div>
+                                    </div>
+                                  </Card>
+                                ))}
+                              </CollapsibleContent>
+                            </Collapsible>
+                          );
+                        })()}
                       </CardContent>
                     </Card>
 

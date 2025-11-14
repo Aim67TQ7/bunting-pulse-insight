@@ -1149,14 +1149,34 @@ export function EmployeeSurvey({
         consent_timestamp: consentGiven ? new Date().toISOString() : null
       };
 
-      // Use upsert to update existing draft or insert new
-      const {
-        data: insertedResponse,
-        error
-      } = await supabase.from("employee_survey_responses").upsert(surveyData, {
-        onConflict: 'session_id'
-      }).select('id').single();
-      if (error) throw error;
+      // Check if there's an existing draft for this session
+      const { data: existingDraft } = await supabase
+        .from("employee_survey_responses")
+        .select('id')
+        .eq('session_id', sessionId)
+        .maybeSingle();
+
+      let insertedResponse;
+      if (existingDraft) {
+        // Update existing draft
+        const { data, error } = await supabase
+          .from("employee_survey_responses")
+          .update(surveyData)
+          .eq('id', existingDraft.id)
+          .select('id')
+          .single();
+        if (error) throw error;
+        insertedResponse = data;
+      } else {
+        // Insert new response
+        const { data, error } = await supabase
+          .from("employee_survey_responses")
+          .insert(surveyData)
+          .select('id')
+          .single();
+        if (error) throw error;
+        insertedResponse = data;
+      }
 
       // Track individual question responses for analytics
       if (insertedResponse?.id && allQuestions) {
