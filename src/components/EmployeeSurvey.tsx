@@ -892,8 +892,8 @@ export function EmployeeSurvey({
         setRedirectCountdown(prev => {
           if (prev === null || prev <= 1) {
             clearInterval(interval);
-            setCurrentSection("landing");
-            setIsComplete(false);
+            // Redirect to external URL
+            window.location.href = 'https://survey.buntinggpt.com';
             return null;
           }
           return prev - 1;
@@ -904,9 +904,8 @@ export function EmployeeSurvey({
   }, [isComplete]);
 
   const handleReturnNow = () => {
-    setCurrentSection("landing");
-    setIsComplete(false);
-    setRedirectCountdown(null);
+    // Redirect to external URL immediately
+    window.location.href = 'https://survey.buntinggpt.com';
   };
 
   const getTotalQuestions = () => {
