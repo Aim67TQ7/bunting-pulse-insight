@@ -35,6 +35,7 @@ export interface SurveyQuestion {
   };
   display_order: number;
   is_required: boolean;
+  allow_na?: boolean;
 }
 
 export const useSurveyQuestions = (configurationId?: string) => {
