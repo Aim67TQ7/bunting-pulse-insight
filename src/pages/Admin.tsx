@@ -150,11 +150,11 @@ export const Admin = ({
           </TabsContent>
 
           <TabsContent value="comprehensive" className="space-y-6">
-            <SurveyAnalyticsDashboard onBack={onBack} />
+            <SurveyAnalyticsDashboard />
           </TabsContent>
 
           <TabsContent value="question-level" className="space-y-6">
-            <QuestionLevelAnalytics onBack={onBack} className="my-0" />
+            <QuestionLevelAnalytics onBack={onBack} />
           </TabsContent>
         </Tabs>
       </main>
