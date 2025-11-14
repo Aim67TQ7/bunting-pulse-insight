@@ -946,6 +946,7 @@ export type Database = {
           performance_awareness: number | null
           pride_in_work: number | null
           recommend_company: number | null
+          responses_jsonb: Json | null
           role: string | null
           safety_reporting_comfort: number | null
           session_id: string
@@ -991,6 +992,7 @@ export type Database = {
           performance_awareness?: number | null
           pride_in_work?: number | null
           recommend_company?: number | null
+          responses_jsonb?: Json | null
           role?: string | null
           safety_reporting_comfort?: number | null
           session_id: string
@@ -1036,6 +1038,7 @@ export type Database = {
           performance_awareness?: number | null
           pride_in_work?: number | null
           recommend_company?: number | null
+          responses_jsonb?: Json | null
           role?: string | null
           safety_reporting_comfort?: number | null
           session_id?: string
