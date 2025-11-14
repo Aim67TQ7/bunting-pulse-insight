@@ -52,10 +52,11 @@ const SurveyAnalyticsDashboard = ({ configurationId }: AnalyticsDashboardProps) 
   const loadResponses = async () => {
     setLoading(true);
     try {
+      // Remove is_draft filter to match QuestionLevelAnalytics behavior
       const { data: metadata, error: metaError } = await supabase
         .from('employee_survey_responses')
         .select('id, continent, division, role, submitted_at, completion_time_seconds')
-        .eq('is_draft', false);
+        .order('submitted_at', { ascending: false });
       if (metaError) throw metaError;
 
       const { data: responseData, error: respError } = await supabase
@@ -118,6 +119,61 @@ const SurveyAnalyticsDashboard = ({ configurationId }: AnalyticsDashboardProps) 
       </TabsList>
 
       <TabsContent value="overview" className="space-y-6">
+        {/* Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filters
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Continent</label>
+                <Select value={filterContinent} onValueChange={setFilterContinent}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Continents" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Continents</SelectItem>
+                    {Array.from(new Set(responses.map(r => r.continent).filter(Boolean))).map(c => (
+                      <SelectItem key={c} value={c!}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Division</label>
+                <Select value={filterDivision} onValueChange={setFilterDivision}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Divisions" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Divisions</SelectItem>
+                    {Array.from(new Set(responses.map(r => r.division).filter(Boolean))).map(d => (
+                      <SelectItem key={d} value={d!}>{d}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Role</label>
+                <Select value={filterRole} onValueChange={setFilterRole}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Roles" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Roles</SelectItem>
+                    {Array.from(new Set(responses.map(r => r.role).filter(Boolean))).map(r => (
+                      <SelectItem key={r} value={r!}>{r}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         <div className="grid gap-4 md:grid-cols-4">
           <Card><CardHeader><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" />Responses</CardTitle></CardHeader><CardContent><div className="text-4xl font-bold">{filteredResponses.length}</div></CardContent></Card>
           <Card><CardHeader><CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5" />Engagement</CardTitle></CardHeader><CardContent><div className="text-4xl font-bold">{overallAvg.toFixed(1)}</div></CardContent></Card>
@@ -132,7 +188,7 @@ const SurveyAnalyticsDashboard = ({ configurationId }: AnalyticsDashboardProps) 
         </div>
       </TabsContent>
 
-      <TabsContent value="comments"><CommentsSection responses={filteredResponses} /></TabsContent>
+      <TabsContent value="comments"><CommentsSection configurationId={configurationId} /></TabsContent>
       <TabsContent value="ai-analysis"><AIAnalysisSection responses={filteredResponses} /></TabsContent>
     </Tabs>
   );
