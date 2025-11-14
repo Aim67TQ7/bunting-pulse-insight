@@ -11,20 +11,24 @@ import { useSurveyQuestions } from "@/hooks/useSurveyQuestions";
 import { GDPRPrivacyPolicy } from "@/components/GDPRPrivacyPolicy";
 import { DataRightsManager } from "@/components/DataRightsManager";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
-
 const Index = () => {
   const [currentView, setCurrentView] = useState<"landing" | "survey" | "dashboard" | "admin">("landing");
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showDataRights, setShowDataRights] = useState(false);
-  const { toast } = useToast();
-  const { data: allQuestions } = useSurveyQuestions();
+  const {
+    toast
+  } = useToast();
+  const {
+    data: allQuestions
+  } = useSurveyQuestions();
 
   // Debug: Log state changes
-  console.log('Dialog states:', { showPrivacyPolicy, showDataRights });
-  
+  console.log('Dialog states:', {
+    showPrivacyPolicy,
+    showDataRights
+  });
   const totalQuestions = allQuestions?.length || 0;
-
   useEffect(() => {
     const submissionCount = parseInt(localStorage.getItem("survey-submissions") || "0");
     setHasSubmitted(submissionCount > 0);
@@ -36,20 +40,16 @@ const Index = () => {
     setHasSubmitted(false);
     toast({
       title: "Survey data reset",
-      description: "You can now take the survey again.",
+      description: "You can now take the survey again."
     });
   };
-
   if (currentView === "survey") {
     return <EmployeeSurvey onViewResults={() => setCurrentView("landing")} />;
   }
-
   if (currentView === "admin") {
     return <Admin onBack={() => setCurrentView("landing")} />;
   }
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Cookie Consent Banner */}
       <CookieConsentBanner />
       
@@ -59,20 +59,13 @@ const Index = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-foreground">Bunting Employee Survey</h1>
-              <p className="text-muted-foreground">Anonymous feedback platform</p>
+              
             </div>
             <div className="flex items-center gap-4">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setCurrentView("admin")}
-                className="text-xs"
-              >
+              <Button variant="outline" size="sm" onClick={() => setCurrentView("admin")} className="text-xs">
                 🔑 Admin Access
               </Button>
-              <Badge variant="outline" className="text-sm">
-                Confidential
-              </Badge>
+              
             </div>
           </div>
         </div>
@@ -101,20 +94,10 @@ const Index = () => {
                 <Badge variant="secondary">{totalQuestions} questions</Badge>
               </div>
               <div className="flex gap-2">
-                <Button 
-                  onClick={() => !hasSubmitted && setCurrentView("survey")}
-                  disabled={hasSubmitted}
-                  className={`flex-1 ${hasSubmitted ? 'cursor-not-allowed' : 'group-hover:scale-[1.02] transition-transform'}`}
-                  variant={hasSubmitted ? "outline" : "default"}
-                >
+                <Button onClick={() => !hasSubmitted && setCurrentView("survey")} disabled={hasSubmitted} className={`flex-1 ${hasSubmitted ? 'cursor-not-allowed' : 'group-hover:scale-[1.02] transition-transform'}`} variant={hasSubmitted ? "outline" : "default"}>
                   {hasSubmitted ? '✓ Survey Completed' : 'Start Survey'}
                 </Button>
-                <Button 
-                  variant="destructive" 
-                  size="default"
-                  onClick={resetSurveyData}
-                  className="px-4 font-medium border-2"
-                >
+                <Button variant="destructive" size="default" onClick={resetSurveyData} className="px-4 font-medium border-2">
                   🔄 Admin Reset
                 </Button>
               </div>
@@ -123,37 +106,7 @@ const Index = () => {
         </div>
 
         {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="text-center">
-            <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto mb-4">
-              <ShieldCheckIcon className="h-8 w-8 text-primary" />
-            </div>
-            <h3 className="font-semibold mb-2">Anonymous & Secure</h3>
-            <p className="text-sm text-muted-foreground">
-              Your responses are completely anonymous and no information is collected. We cannot trace or identify individual responses.
-            </p>
-          </div>
-          
-          <div className="text-center">
-            <div className="p-3 bg-success/10 rounded-full w-fit mx-auto mb-4">
-              <UsersIcon className="h-8 w-8 text-success" />
-            </div>
-            <h3 className="font-semibold mb-2">For Everyone</h3>
-            <p className="text-sm text-muted-foreground">
-              Designed for all Bunting employees across different divisions, roles, and locations.
-            </p>
-          </div>
-          
-          <div className="text-center">
-            <div className="p-3 bg-warning/10 rounded-full w-fit mx-auto mb-4">
-              <BarChart3Icon className="h-8 w-8 text-warning" />
-            </div>
-            <h3 className="font-semibold mb-2">Actionable Insights</h3>
-            <p className="text-sm text-muted-foreground">
-              Your feedback drives real changes. Results are analyzed to improve workplace satisfaction.
-            </p>
-          </div>
-        </div>
+        
 
         {/* Info Box */}
         <Card className="bg-muted/50 border-dashed">
@@ -169,25 +122,17 @@ const Index = () => {
 
         {/* GDPR Links */}
         <div className="flex gap-3 justify-center mt-8">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              console.log('Privacy Policy button clicked');
-              setShowPrivacyPolicy(true);
-            }}
-          >
+          <Button variant="outline" size="sm" onClick={() => {
+          console.log('Privacy Policy button clicked');
+          setShowPrivacyPolicy(true);
+        }}>
             <ShieldIcon className="h-4 w-4 mr-2" />
             Privacy Policy
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              console.log('Manage My Data button clicked');
-              setShowDataRights(true);
-            }}
-          >
+          <Button variant="outline" size="sm" onClick={() => {
+          console.log('Manage My Data button clicked');
+          setShowDataRights(true);
+        }}>
             <ShieldIcon className="h-4 w-4 mr-2" />
             Manage My Data
           </Button>
@@ -197,8 +142,6 @@ const Index = () => {
       {/* GDPR Dialogs */}
       <GDPRPrivacyPolicy open={showPrivacyPolicy} onOpenChange={setShowPrivacyPolicy} />
       <DataRightsManager open={showDataRights} onOpenChange={setShowDataRights} />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
