@@ -10,46 +10,22 @@ import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from 'react-markdown';
 import jsPDF from 'jspdf';
 
-interface SurveyResponse {
+interface DynamicSurveyResponse {
   id: string;
   continent: string;
   division: string;
   role: string;
-  // Engagement & Job Satisfaction
-  job_satisfaction: number;
-  recommend_company: number;
-  strategic_confidence: number;
-  // Leadership & Communication
-  leadership_openness: number;
-  performance_awareness: number;
-  communication_clarity: number;
-  manager_alignment: number;
-  // Training & Development
-  training_satisfaction: number;
-  advancement_opportunities: number;
-  // Teamwork & Culture
-  cross_functional_collaboration: number;
-  team_morale: number;
-  pride_in_work: number;
-  // Safety & Work Environment
-  workplace_safety: number;
-  safety_reporting_comfort: number;
-  // Scheduling & Workload
-  workload_manageability: number;
-  work_life_balance: number;
-  // Tools, Equipment & Processes
-  tools_equipment_quality: number;
-  manual_processes_focus: number;
-  company_value_alignment: number;
-  comfortable_suggesting_improvements: number;
-  // Other fields
-  additional_comments: string;
-  collaboration_feedback: string;
   submitted_at: string;
+  completion_time_seconds: number;
+  responses: {
+    question_id: string;
+    question_type: string;
+    answer_value: any;
+  }[];
 }
 
 interface AIAnalysisSectionProps {
-  responses: SurveyResponse[];
+  responses: DynamicSurveyResponse[];
 }
 
 interface AnalysisResult {

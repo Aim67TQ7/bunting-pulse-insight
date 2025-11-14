@@ -28,46 +28,19 @@ const CHART_COLORS = [
   'hsl(var(--chart-octonary))',
 ];
 
-interface SurveyResponse {
+interface DynamicSurveyResponse {
   id: string;
   continent: string;
   division: string;
   role: string;
-  // Engagement & Job Satisfaction
-  job_satisfaction: number;
-  recommend_company: number;
-  strategic_confidence: number;
-  // Leadership & Communication
-  leadership_openness: number;
-  performance_awareness: number;
-  communication_clarity: number;
-  manager_alignment: number;
-  // Training & Development
-  training_satisfaction: number;
-  advancement_opportunities: number;
-  // Teamwork & Culture
-  cross_functional_collaboration: number;
-  team_morale: number;
-  pride_in_work: number;
-  // Safety & Work Environment
-  workplace_safety: number;
-  safety_reporting_comfort: number;
-  // Scheduling & Workload
-  workload_manageability: number;
-  work_life_balance: number;
-  // Tools, Equipment & Processes
-  tools_equipment_quality: number;
-  manual_processes_focus: number;
-  company_value_alignment: number;
-  comfortable_suggesting_improvements: number;
-  // Other fields
-  additional_comments: string;
-  collaboration_feedback: string;
   submitted_at: string;
   completion_time_seconds: number;
-  information_preferences: string[];
-  communication_preferences: string[];
-  motivation_factors: string[];
+  responses: {
+    question_id: string;
+    question_type: string;
+    answer_value: any;
+    question_labels?: { en: string; es: string };
+  }[];
 }
 
 interface AnalyticsDashboardProps {
@@ -128,8 +101,8 @@ const getScoreBadge = (score: number): { label: string; variant: "default" | "se
 };
 
 export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) => {
-  const [responses, setResponses] = useState<SurveyResponse[]>([]);
-  const [filteredResponses, setFilteredResponses] = useState<SurveyResponse[]>([]);
+  const [responses, setResponses] = useState<DynamicSurveyResponse[]>([]);
+  const [filteredResponses, setFilteredResponses] = useState<DynamicSurveyResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     continent: "all",
@@ -150,17 +123,53 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
 
   const loadResponses = async () => {
     try {
-      const { data, error } = await supabase
+      // Load metadata from employee_survey_responses
+      const { data: metadata, error: metaError } = await supabase
         .from('employee_survey_responses')
-        .select('*')
+        .select('id, continent, division, role, submitted_at, completion_time_seconds, is_draft')
+        .eq('is_draft', false)
         .order('submitted_at', { ascending: false });
 
-      if (error) throw error;
+      if (metaError) throw metaError;
+
+      // Load all question responses
+      const { data: questionResponses, error: responsesError } = await supabase
+        .from('survey_question_responses')
+        .select(`
+          response_id,
+          question_id,
+          question_type,
+          answer_value,
+          survey_question_config!inner(
+            question_labels
+          )
+        `);
+
+      if (responsesError) throw responsesError;
+
+      // Combine metadata with responses
+      const combinedData: DynamicSurveyResponse[] = (metadata || []).map(meta => ({
+        id: meta.id,
+        continent: meta.continent || '',
+        division: meta.division || '',
+        role: meta.role || '',
+        submitted_at: meta.submitted_at,
+        completion_time_seconds: meta.completion_time_seconds || 0,
+        responses: (questionResponses || [])
+          .filter((qr: any) => qr.response_id === meta.id)
+          .map((qr: any) => ({
+            question_id: qr.question_id,
+            question_type: qr.question_type,
+            answer_value: qr.answer_value,
+            question_labels: qr.survey_question_config?.question_labels
+          }))
+      }));
+
       console.log('✅ Survey data loaded successfully:', {
-        totalResponses: data?.length || 0,
-        sampleResponse: data?.[0]
+        totalResponses: combinedData.length,
+        sampleResponse: combinedData[0]
       });
-      setResponses(data || []);
+      setResponses(combinedData);
     } catch (error: any) {
       console.error('❌ Error loading survey data:', error);
       toast({
@@ -210,20 +219,22 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
     });
   };
 
-  // Calculation utilities
-  const calculateAverage = (field: keyof SurveyResponse) => {
+  // Calculation utilities - now works with dynamic responses
+  const calculateAverage = (questionId: string) => {
     if (filteredResponses.length === 0) return 0;
     
-    // Filter out null/undefined values
-    const validResponses = filteredResponses.filter(r => {
-      const value = r[field];
-      return value !== null && value !== undefined && typeof value === 'number';
+    let sum = 0;
+    let count = 0;
+    
+    filteredResponses.forEach(r => {
+      const response = r.responses.find(resp => resp.question_id === questionId);
+      if (response?.answer_value?.rating) {
+        sum += response.answer_value.rating;
+        count++;
+      }
     });
     
-    if (validResponses.length === 0) return 0;
-    
-    const sum = validResponses.reduce((acc, r) => acc + (Number(r[field]) || 0), 0);
-    return sum / validResponses.length;
+    return count > 0 ? sum / count : 0;
   };
 
   const getAveragesByQuestion = () => {
@@ -255,7 +266,7 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
     return results;
   };
 
-  const getDemographicBreakdown = (field: keyof Pick<SurveyResponse, 'continent' | 'division' | 'role'>) => {
+  const getDemographicBreakdown = (field: 'continent' | 'division' | 'role') => {
     const counts = filteredResponses.reduce((acc, r) => {
       const value = r[field];
       acc[value] = (acc[value] || 0) + 1;
@@ -294,15 +305,24 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
       }
       acc[date].responses.push(response);
       return acc;
-    }, {} as Record<string, { date: string; responses: SurveyResponse[] }>);
+    }, {} as Record<string, { date: string; responses: DynamicSurveyResponse[] }>);
 
     return Object.values(groupedByDate)
-      .map(item => ({
-        date: item.date,
-        satisfaction: item.responses.reduce((sum, r) => sum + (r.job_satisfaction || 0), 0) / item.responses.length,
-        engagement: item.responses.reduce((sum, r) => sum + (r.recommend_company || 0), 0) / item.responses.length,
-        training: item.responses.reduce((sum, r) => sum + (r.training_satisfaction || 0), 0) / item.responses.length,
-      }))
+      .map(item => {
+        const getAvgForQuestion = (qId: string) => {
+          const values = item.responses.map(r => 
+            r.responses.find(resp => resp.question_id === qId)?.answer_value?.rating
+          ).filter(v => v !== undefined);
+          return values.length > 0 ? values.reduce((a, b) => a! + b!, 0)! / values.length : 0;
+        };
+        
+        return {
+          date: item.date,
+          satisfaction: getAvgForQuestion('job_satisfaction'),
+          engagement: getAvgForQuestion('recommend_company'),
+          training: getAvgForQuestion('training_satisfaction'),
+        };
+      })
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   };
 
@@ -406,7 +426,7 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
           <TabsTrigger value="overview">Overview & Analytics</TabsTrigger>
           <TabsTrigger value="comments">
             <MessageSquare className="h-4 w-4 mr-2" />
-            Comments ({filteredResponses.filter(r => r.additional_comments || r.collaboration_feedback).length})
+            Comments
           </TabsTrigger>
           <TabsTrigger value="ai-analysis">
             <BrainCircuit className="h-4 w-4 mr-2" />
@@ -611,10 +631,10 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {filteredResponses.filter(r => r.additional_comments || r.collaboration_feedback).length}
+                    {filteredResponses.filter(r => r.responses.some(resp => resp.question_type === 'text' && resp.answer_value?.text)).length}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {((filteredResponses.filter(r => r.additional_comments || r.collaboration_feedback).length / filteredResponses.length) * 100).toFixed(0)}% response rate
+                    {((filteredResponses.filter(r => r.responses.some(resp => resp.question_type === 'text' && resp.answer_value?.text)).length / filteredResponses.length) * 100).toFixed(0)}% response rate
                   </p>
                 </CardContent>
               </Card>
@@ -849,7 +869,7 @@ export const SurveyAnalyticsDashboard = ({ onBack }: AnalyticsDashboardProps) =>
         </TabsContent>
 
         <TabsContent value="comments">
-          <CommentsSection responses={filteredResponses} />
+          <CommentsSection configurationId={undefined} />
         </TabsContent>
 
         <TabsContent value="ai-analysis">
