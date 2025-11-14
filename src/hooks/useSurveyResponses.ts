@@ -41,7 +41,7 @@ export function useSurveyResponses(configurationId?: string) {
             const questionIds = [...new Set(result.data?.map((r: any) => r.question_id))];
             const { data: configs } = await supabase
               .from("survey_question_config")
-              .select("question_id, question_type, question_key, section")
+              .select("question_id, question_type, section")
               .in("question_id", questionIds);
             
             // Attach config to each response
@@ -105,15 +105,14 @@ export function useSurveyResponses(configurationId?: string) {
 
           const questionId = qr.survey_question_config?.question_id || qr.question_id;
           const questionType = qr.survey_question_config?.question_type || qr.question_type;
-          const questionKey = qr.survey_question_config?.question_key;
 
           // Categorize by question type
           if (questionType === "rating") {
-            aggregated[qr.response_id].ratings[questionKey || questionId] = qr.answer_value;
+            aggregated[qr.response_id].ratings[questionId] = qr.answer_value;
           } else if (questionType === "multiselect") {
-            aggregated[qr.response_id].multiselect[questionKey || questionId] = qr.answer_value || [];
+            aggregated[qr.response_id].multiselect[questionId] = qr.answer_value || [];
           } else if (questionType === "text" || questionType === "demographic") {
-            aggregated[qr.response_id].text_responses[questionKey || questionId] = qr.answer_value;
+            aggregated[qr.response_id].text_responses[questionId] = qr.answer_value;
           }
         });
 
