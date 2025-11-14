@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,135 +10,148 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { SearchIcon, DownloadIcon, FilterIcon } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-interface SurveyResponse {
-  id: string;
-  continent: string;
-  division: string;
-  role: string;
-  additional_comments?: string;
-  collaboration_feedback?: string;
-  follow_up_responses?: Record<string, string>;
-  submitted_at: string;
-  // All score fields
-  job_satisfaction?: number;
-  work_life_balance?: number;
-  workplace_safety?: number;
-  tools_equipment_quality?: number;
-  training_satisfaction?: number;
-  advancement_opportunities?: number;
-  communication_clarity?: number;
-  workload_manageability?: number;
-  performance_awareness?: number;
-  leadership_openness?: number;
-  company_value_alignment?: number;
-  manager_alignment?: number;
-  team_morale?: number;
-  pride_in_work?: number;
-  recommend_company?: number;
-  strategic_confidence?: number;
-  comfortable_suggesting_improvements?: number;
-  safety_reporting_comfort?: number;
-  manual_processes_focus?: number;
-  cross_functional_collaboration?: number;
-}
-
 interface CommentsSectionProps {
-  responses: SurveyResponse[];
+  configurationId?: string;
 }
 
-export const CommentsSection = ({ responses }: CommentsSectionProps) => {
+export const CommentsSection = ({ configurationId }: CommentsSectionProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [commentTypeFilter, setCommentTypeFilter] = useState("all");
   const [continentFilter, setContinentFilter] = useState("all");
   const [divisionFilter, setDivisionFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [allComments, setAllComments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Flatten all comments including follow-ups
-  const allComments = responses.flatMap(r => {
-    const comments = [];
-    
-    // Add additional comments
-    if (r.additional_comments) {
-      comments.push({
-        ...r,
-        comment_type: 'Additional Comments',
-        comment_text: r.additional_comments,
-      });
-    }
-    
-    // Add collaboration feedback
-    if (r.collaboration_feedback) {
-      comments.push({
-        ...r,
-        comment_type: 'Collaboration Feedback',
-        comment_text: r.collaboration_feedback,
-      });
-    }
-    
-    // Add follow-up responses ONLY for actual low scores (1-3)
-    if (r.follow_up_responses && typeof r.follow_up_responses === 'object') {
-      Object.entries(r.follow_up_responses).forEach(([key, value]) => {
-        if (value) {
-          // Check if the actual score for this question is low (1-3)
-          const scoreValue = r[key as keyof SurveyResponse] as number | undefined;
-          
-          // Only include if the score is 1, 2, or 3 (low scores)
-          if (scoreValue !== undefined && scoreValue <= 3) {
-            const questionLabels: Record<string, string> = {
-              job_satisfaction: 'Job Satisfaction',
-              work_life_balance: 'Work-Life Balance',
-              workplace_safety: 'Workplace Safety',
-              tools_equipment_quality: 'Tools & Equipment Quality',
-              training_satisfaction: 'Training Satisfaction',
-              advancement_opportunities: 'Advancement Opportunities',
-              communication_clarity: 'Communication Clarity',
-              workload_manageability: 'Workload Manageability',
-              performance_awareness: 'Performance Awareness',
-              leadership_openness: 'Leadership Openness',
-              company_value_alignment: 'Company Value Alignment',
-              manager_alignment: 'Manager Alignment',
-              team_morale: 'Team Morale',
-              pride_in_work: 'Pride in Work',
-              recommend_company: 'Recommend Company',
-              strategic_confidence: 'Strategic Confidence',
-              comfortable_suggesting_improvements: 'Comfortable Suggesting Improvements',
-              safety_reporting_comfort: 'Safety Reporting Comfort',
-              manual_processes_focus: 'Manual Processes Focus',
-              cross_functional_collaboration: 'Cross-Functional Collaboration',
-            };
-            
+  // Load text responses dynamically from database
+  useEffect(() => {
+    const loadTextResponses = async () => {
+      setLoading(true);
+      
+      // Get all text-type question responses with metadata
+      const { data: textResponses, error: textError } = await supabase
+        .from('survey_question_responses')
+        .select(`
+          id,
+          response_id,
+          question_id,
+          answer_value,
+          created_at,
+          survey_question_config!inner(
+            question_labels,
+            question_type
+          ),
+          employee_survey_responses!inner(
+            continent,
+            division,
+            role,
+            is_draft
+          )
+        `)
+        .eq('survey_question_config.question_type', 'text')
+        .eq('employee_survey_responses.is_draft', false);
+
+      if (textError) {
+        console.error('Error loading text responses:', textError);
+        setLoading(false);
+        return;
+      }
+
+      // Also get rating responses with follow-ups (low scores 1-3)
+      const { data: ratingResponses, error: ratingError } = await supabase
+        .from('survey_question_responses')
+        .select(`
+          id,
+          response_id,
+          question_id,
+          answer_value,
+          created_at,
+          survey_question_config!inner(
+            question_labels,
+            question_type
+          ),
+          employee_survey_responses!inner(
+            continent,
+            division,
+            role,
+            is_draft
+          )
+        `)
+        .eq('survey_question_config.question_type', 'rating')
+        .eq('employee_survey_responses.is_draft', false);
+
+      if (ratingError) {
+        console.error('Error loading rating responses:', ratingError);
+      }
+
+      const comments: any[] = [];
+
+      // Process text responses
+      if (textResponses) {
+        textResponses.forEach((response: any) => {
+          const textValue = response.answer_value?.text;
+          if (textValue && textValue.trim()) {
             comments.push({
-              ...r,
-              comment_type: `Low Score Follow-up: ${questionLabels[key] || key} (${scoreValue}/5)`,
-              comment_text: value,
+              id: response.id,
+              response_id: response.response_id,
+              comment_type: response.survey_question_config.question_labels?.en || 'Text Response',
+              comment_text: textValue,
+              created_at: response.created_at,
+              continent: response.employee_survey_responses.continent,
+              division: response.employee_survey_responses.division,
+              role: response.employee_survey_responses.role,
             });
           }
-        }
-      });
-    }
-    
-    return comments;
-  });
+        });
+      }
 
-  const responsesWithComments = allComments;
+      // Process rating responses with follow-ups
+      if (ratingResponses) {
+        ratingResponses.forEach((response: any) => {
+          const followUp = response.answer_value?.follow_up;
+          const rating = response.answer_value?.rating;
+          if (followUp && followUp.trim()) {
+            // Only include follow-ups if rating is 1-3 (low score)
+            if (rating && rating <= 3) {
+              comments.push({
+                id: response.id,
+                response_id: response.response_id,
+                comment_type: `Low Score Follow-up: ${response.survey_question_config.question_labels?.en || 'Rating Question'}`,
+                comment_text: followUp,
+                score: rating,
+                created_at: response.created_at,
+                continent: response.employee_survey_responses.continent,
+                division: response.employee_survey_responses.division,
+                role: response.employee_survey_responses.role,
+              });
+            }
+          }
+        });
+      }
 
-  // Apply filters
-  const filteredComments = responsesWithComments.filter((response: any) => {
+      setAllComments(comments);
+      setLoading(false);
+    };
+
+    loadTextResponses();
+  }, [configurationId]);
+
+  // Filter comments based on search and filters
+  const filteredComments = allComments.filter((comment: any) => {
     const searchLower = searchTerm.toLowerCase();
     const matchesSearch = !searchTerm || 
-      response.comment_text?.toLowerCase().includes(searchLower) ||
-      response.continent.toLowerCase().includes(searchLower) ||
-      response.division.toLowerCase().includes(searchLower) ||
-      response.role.toLowerCase().includes(searchLower);
+      comment.comment_text?.toLowerCase().includes(searchLower) ||
+      comment.continent?.toLowerCase().includes(searchLower) ||
+      comment.division?.toLowerCase().includes(searchLower) ||
+      comment.role?.toLowerCase().includes(searchLower);
     
     const matchesCommentType = commentTypeFilter === 'all' || 
-      (commentTypeFilter === 'additional' && response.comment_type === 'Additional Comments') ||
-      (commentTypeFilter === 'collaboration' && response.comment_type === 'Collaboration Feedback') ||
-      (commentTypeFilter === 'followup' && response.comment_type.startsWith('Low Score Follow-up'));
+      comment.comment_type === commentTypeFilter ||
+      (commentTypeFilter === 'followup' && comment.comment_type?.startsWith('Low Score Follow-up'));
     
-    const matchesContinent = continentFilter === 'all' || response.continent === continentFilter;
-    const matchesDivision = divisionFilter === 'all' || response.division === divisionFilter;
-    const matchesRole = roleFilter === 'all' || response.role === roleFilter;
+    const matchesContinent = continentFilter === 'all' || comment.continent === continentFilter;
+    const matchesDivision = divisionFilter === 'all' || comment.division === divisionFilter;
+    const matchesRole = roleFilter === 'all' || comment.role === roleFilter;
     
     return matchesSearch && matchesCommentType && matchesContinent && matchesDivision && matchesRole;
   });
@@ -151,74 +165,72 @@ export const CommentsSection = ({ responses }: CommentsSectionProps) => {
   };
 
   const exportComments = () => {
-    const csvContent = [
-      // Header
-      ['ID', 'Date', 'Continent', 'Division', 'Role', 'Job Satisfaction', 'Comment Type', 'Comment Text'],
-      // Data rows
-      ...filteredComments.map((response: any) => [
-        response.id,
-        new Date(response.submitted_at).toLocaleDateString(),
-        response.continent,
-        response.division,
-        response.role,
-        response.job_satisfaction?.toString() || 'N/A',
-        response.comment_type,
-        response.comment_text
+    const csv = [
+      ['Date', 'Type', 'Continent', 'Division', 'Role', 'Score', 'Comment'],
+      ...filteredComments.map((c: any) => [
+        new Date(c.created_at).toLocaleDateString(),
+        c.comment_type,
+        c.continent || '',
+        c.division || '',
+        c.role || '',
+        c.score || '',
+        `"${c.comment_text?.replace(/"/g, '""') || ''}"`
       ])
-    ].map(row => row.map(cell => `"${cell?.replace(/"/g, '""') || ''}"`).join(','))
-     .join('\n');
+    ].map(row => row.join(',')).join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'survey-comments.csv';
-    document.body.appendChild(a);
+    a.download = `survey-comments-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  };
+
+  // Get unique values for filters
+  const uniqueCommentTypes = [...new Set(allComments.map((c: any) => c.comment_type))];
+  const uniqueContinents = [...new Set(allComments.map((c: any) => c.continent).filter(Boolean))];
+  const uniqueDivisions = [...new Set(allComments.map((c: any) => c.division).filter(Boolean))];
+  const uniqueRoles = [...new Set(allComments.map((c: any) => c.role).filter(Boolean))];
+
+  const commentTypeCounts = {
+    total: allComments.length,
+    text: allComments.filter((c: any) => !c.comment_type.startsWith('Low Score Follow-up')).length,
+    followup: allComments.filter((c: any) => c.comment_type.startsWith('Low Score Follow-up')).length,
   };
 
   return (
-    <Card className="mb-8">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            Comments & Feedback
-            <Badge variant="secondary">{filteredComments.length} comments</Badge>
-          </CardTitle>
-          <Button onClick={exportComments} variant="outline" size="sm">
-            <DownloadIcon className="h-4 w-4 mr-2" />
-            Export CSV
-          </Button>
+    <Card className="w-full">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Survey Comments & Feedback</CardTitle>
+          <p className="text-muted-foreground text-sm mt-1">
+            Showing {filteredComments.length} of {allComments.length} comments
+          </p>
         </div>
+        <Button onClick={exportComments} variant="outline" size="sm">
+          <DownloadIcon className="h-4 w-4 mr-2" />
+          Export CSV
+        </Button>
       </CardHeader>
       <CardContent>
-        {/* Filters */}
+        {/* Filters Section */}
         <div className="space-y-4 mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <FilterIcon className="h-4 w-4" />
-            <span className="text-sm font-medium">Filters</span>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {/* Search */}
-            <div className="lg:col-span-2">
-              <Label htmlFor="search">Search Comments</Label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="search">Search</Label>
               <div className="relative">
-                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="search"
-                  placeholder="Search in comments..."
+                  placeholder="Search comments..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-8"
                 />
               </div>
             </div>
 
-            {/* Comment Type */}
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="commentType">Comment Type</Label>
               <Select value={commentTypeFilter} onValueChange={setCommentTypeFilter}>
                 <SelectTrigger>
@@ -226,152 +238,150 @@ export const CommentsSection = ({ responses }: CommentsSectionProps) => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="additional">Additional Comments</SelectItem>
-                  <SelectItem value="collaboration">Collaboration Feedback</SelectItem>
+                  {uniqueCommentTypes.map((type) => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
                   <SelectItem value="followup">Low Score Follow-ups</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Continent */}
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="continent">Continent</Label>
               <Select value={continentFilter} onValueChange={setContinentFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="All" />
+                  <SelectValue placeholder="All Continents" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="North America">North America</SelectItem>
-                  <SelectItem value="Europe">Europe</SelectItem>
+                  <SelectItem value="all">All Continents</SelectItem>
+                  {uniqueContinents.map((continent) => (
+                    <SelectItem key={continent} value={continent as string}>{continent}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
-            {/* Division */}
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
               <Label htmlFor="division">Division</Label>
               <Select value={divisionFilter} onValueChange={setDivisionFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="All" />
+                  <SelectValue placeholder="All Divisions" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="Equipment">Equipment</SelectItem>
-                  <SelectItem value="Magnets">Magnets</SelectItem>
-                  <SelectItem value="Both">Both</SelectItem>
+                  <SelectItem value="all">All Divisions</SelectItem>
+                  {uniqueDivisions.map((division) => (
+                    <SelectItem key={division} value={division as string}>{division}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Clear Filters */}
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Roles" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  {uniqueRoles.map((role) => (
+                    <SelectItem key={role} value={role as string}>{role}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="flex items-end">
-              <Button variant="outline" onClick={clearFilters} size="sm">
+              <Button onClick={clearFilters} variant="outline" className="w-full">
+                <FilterIcon className="h-4 w-4 mr-2" />
                 Clear Filters
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Comments Table */}
-        <div className="border rounded-lg">
-          <ScrollArea className="h-[600px]">
-            <Table>
-              <TableHeader className="sticky top-0 bg-background">
-                <TableRow>
-                  <TableHead className="w-[100px]">Date</TableHead>
-                  <TableHead className="w-[120px]">Demographics</TableHead>
-                  <TableHead className="w-[80px]">Satisfaction</TableHead>
-                  <TableHead>Comment</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredComments.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                      No comments found matching your filters.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  <TableBody>
-                    {filteredComments.map((response: any, idx: number) => (
-                      <TableRow key={`${response.id}-${idx}`}>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {new Date(response.submitted_at).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          <div className="space-y-1">
-                            <div>{response.continent}</div>
-                            <div className="text-muted-foreground">{response.division}</div>
-                            <div className="text-muted-foreground">{response.role}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {response.job_satisfaction ? (
-                            <Badge variant={
-                              response.job_satisfaction >= 4 ? "default" : 
-                              response.job_satisfaction >= 3 ? "secondary" : 
-                              "destructive"
-                            }>
-                              {response.job_satisfaction}/5
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground">N/A</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <Badge 
-                              variant={response.comment_type.startsWith('Low Score') ? "destructive" : "outline"} 
-                              className="mb-1"
-                            >
-                              {response.comment_type}
-                            </Badge>
-                            <p className="text-sm">{response.comment_text}</p>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                )}
-              </TableBody>
-            </Table>
-          </ScrollArea>
-        </div>
-
-        {/* Summary Statistics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Card>
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-primary">{filteredComments.length}</div>
+              <div className="text-2xl font-bold">{commentTypeCounts.total}</div>
               <p className="text-sm text-muted-foreground">Total Comments</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-primary">
-                {filteredComments.filter((r: any) => r.comment_type === 'Additional Comments').length}
-              </div>
-              <p className="text-sm text-muted-foreground">Additional Comments</p>
+              <div className="text-2xl font-bold">{commentTypeCounts.text}</div>
+              <p className="text-sm text-muted-foreground">Text Responses</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-primary">
-                {filteredComments.filter((r: any) => r.comment_type === 'Collaboration Feedback').length}
-              </div>
-              <p className="text-sm text-muted-foreground">Collaboration Feedback</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-2xl font-bold text-primary">
-                {filteredComments.filter((r: any) => r.comment_type.startsWith('Low Score Follow-up')).length}
-              </div>
+              <div className="text-2xl font-bold">{commentTypeCounts.followup}</div>
               <p className="text-sm text-muted-foreground">Low Score Follow-ups</p>
             </CardContent>
           </Card>
         </div>
+
+        {/* Comments Table */}
+        <ScrollArea className="h-[600px] rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[120px]">Date</TableHead>
+                <TableHead className="w-[250px]">Demographics</TableHead>
+                <TableHead className="w-[100px]">Score</TableHead>
+                <TableHead>Comment</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8">
+                    Loading comments...
+                  </TableCell>
+                </TableRow>
+              ) : filteredComments.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                    No comments match your filters
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredComments.map((comment: any, index: number) => (
+                  <TableRow key={comment.id || index}>
+                    <TableCell className="text-sm">
+                      {new Date(comment.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <Badge variant="outline" className="mr-1">
+                          {comment.comment_type}
+                        </Badge>
+                        <div className="text-xs text-muted-foreground">
+                          {comment.continent && <div>{comment.continent}</div>}
+                          {comment.division && <div>{comment.division}</div>}
+                          {comment.role && <div>{comment.role}</div>}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {comment.score && (
+                        <Badge variant={comment.score <= 2 ? "destructive" : "secondary"}>
+                          {comment.score}/5
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="max-w-md">
+                      <p className="text-sm whitespace-pre-wrap">{comment.comment_text}</p>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
