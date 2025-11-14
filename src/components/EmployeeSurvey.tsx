@@ -892,11 +892,6 @@ export function EmployeeSurvey({
     }
     setIsSubmitting(true);
     try {
-      // Get display order for all questions
-      const displayOrderMap = new Map(
-        allQuestions.map(q => [q.question_id, q.display_order])
-      );
-
       // Build question responses array for responses_jsonb
       const questionResponses = [];
       
@@ -910,7 +905,7 @@ export function EmployeeSurvey({
             answer_value: {
               value: responses[question.id]
             },
-            display_order: displayOrderMap.get(question.id)
+            display_order: question.display_order
           });
         }
       }
@@ -927,7 +922,7 @@ export function EmployeeSurvey({
               feedback: feedbackResponses[question.id] || null,
               na: naResponses[question.id] || false
             },
-            display_order: displayOrderMap.get(question.id)
+            display_order: question.display_order
           });
         }
       }
@@ -942,7 +937,7 @@ export function EmployeeSurvey({
             answer_value: {
               selected: multiSelectResponses[question.id]
             },
-            display_order: displayOrderMap.get(question.id)
+            display_order: question.display_order
           });
         }
       }
@@ -957,7 +952,7 @@ export function EmployeeSurvey({
             answer_value: {
               text: textResponses[question.id]
             },
-            display_order: displayOrderMap.get(question.id)
+            display_order: question.display_order
           });
         }
       }
