@@ -9,6 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieCha
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSurveyQuestions } from "@/hooks/useSurveyQuestions";
+import { SurveyQuestionManager } from "./SurveyQuestionManager";
 const CHART_COLORS = ['hsl(var(--chart-primary))', 'hsl(var(--chart-secondary))', 'hsl(var(--chart-tertiary))', 'hsl(var(--chart-quaternary))', 'hsl(var(--chart-quinary))', 'hsl(var(--chart-senary))', 'hsl(var(--chart-septenary))', 'hsl(var(--chart-octonary))'];
 const RATING_EMOJIS: Record<number, string> = {
   1: "😞",
@@ -295,88 +296,13 @@ export const QuestionLevelAnalytics = ({
         {/* Header */}
         
 
-        <Tabs defaultValue="overview" className="space-y-6 mx-0">
+        <Tabs defaultValue="questions" className="space-y-6 mx-0">
           <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="questions">Question Analysis</TabsTrigger>
             <TabsTrigger value="trends">Trends</TabsTrigger>
             <TabsTrigger value="completion">Completion Times</TabsTrigger>
+            <TabsTrigger value="controls">Survey Controls</TabsTrigger>
           </TabsList>
-
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            {/* Key Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Total Surveys
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">{surveyMetadata.length}</div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Total Questions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">{questionStats.length}</div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Avg Completion Time
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">{completionStats.average} min</div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Response Rate
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">
-                    {surveyMetadata.length > 0 ? (questionResponses.length / (questionStats.length * surveyMetadata.length) * 100).toFixed(0) : 0}%
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Question Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Question Response Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {questionStats.map(stat => <div key={stat.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1">
-                        <p className="font-medium">{stat.label}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline">{stat.type}</Badge>
-                          <span className="text-sm text-muted-foreground">{stat.count} responses</span>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedQuestion(stat.id)}>
-                        View Details
-                      </Button>
-                    </div>)}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Question Analysis Tab */}
           <TabsContent value="questions" className="space-y-6">
@@ -558,6 +484,11 @@ export const QuestionLevelAnalytics = ({
                 </ResponsiveContainer>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Survey Controls Tab */}
+          <TabsContent value="controls" className="space-y-6">
+            <SurveyQuestionManager />
           </TabsContent>
         </Tabs>
       </div>

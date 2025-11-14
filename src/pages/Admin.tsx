@@ -6,10 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeftIcon, ShieldCheckIcon } from "lucide-react";
-import { SurveyAnalyticsDashboard } from "@/components/SurveyAnalyticsDashboard";
 import DynamicSurveyDashboard from "@/components/DynamicSurveyDashboard";
 import { QuestionLevelAnalytics } from "@/components/QuestionLevelAnalytics";
-import { SurveyQuestionManager } from "@/components/SurveyQuestionManager";
+import { AIAnalysisSectionWrapper } from "@/components/AIAnalysisSectionWrapper";
 import buntingLogo from "@/assets/bunting-logo.png";
 import magnetLogo from "@/assets/magnet-applications-logo.png";
 interface AdminProps {
@@ -141,20 +140,20 @@ export const Admin = ({
         <Tabs defaultValue="dashboard" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="comprehensive">Comprehensive View</TabsTrigger>
             <TabsTrigger value="question-level">Question-Level Analytics</TabsTrigger>
+            <TabsTrigger value="ai-analysis">AI Analysis</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
             <DynamicSurveyDashboard onBack={onBack} />
           </TabsContent>
 
-          <TabsContent value="comprehensive" className="space-y-6">
-            <SurveyAnalyticsDashboard />
-          </TabsContent>
-
           <TabsContent value="question-level" className="space-y-6">
             <QuestionLevelAnalytics onBack={onBack} />
+          </TabsContent>
+
+          <TabsContent value="ai-analysis" className="space-y-6">
+            <AIAnalysisSectionWrapper />
           </TabsContent>
         </Tabs>
       </main>
