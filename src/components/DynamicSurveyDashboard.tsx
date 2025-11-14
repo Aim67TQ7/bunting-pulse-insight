@@ -13,18 +13,7 @@ import { useSurveyQuestions } from "@/hooks/useSurveyQuestions";
 import { cn } from "@/lib/utils";
 import buntingLogo from "@/assets/bunting-logo-2.png";
 import magnetApplicationsLogo from "@/assets/magnet-applications-logo-2.png";
-
-const CHART_COLORS = [
-  'hsl(var(--chart-primary))',
-  'hsl(var(--chart-secondary))',  
-  'hsl(var(--chart-tertiary))',
-  'hsl(var(--chart-quaternary))',
-  'hsl(var(--chart-quinary))',
-  'hsl(var(--chart-senary))',
-  'hsl(var(--chart-septenary))',
-  'hsl(var(--chart-octonary))',
-];
-
+const CHART_COLORS = ['hsl(var(--chart-primary))', 'hsl(var(--chart-secondary))', 'hsl(var(--chart-tertiary))', 'hsl(var(--chart-quaternary))', 'hsl(var(--chart-quinary))', 'hsl(var(--chart-senary))', 'hsl(var(--chart-septenary))', 'hsl(var(--chart-octonary))'];
 interface QuestionResponse {
   id: string;
   response_id: string;
@@ -34,163 +23,149 @@ interface QuestionResponse {
   display_order: number;
   created_at: string;
 }
-
 interface GroupedResponse {
   response_id: string;
   created_at: string;
   answers: Map<string, QuestionResponse>;
 }
-
-export default function DynamicSurveyDashboard({ onBack }: { onBack?: () => void }) {
+export default function DynamicSurveyDashboard({
+  onBack
+}: {
+  onBack?: () => void;
+}) {
   const [language, setLanguage] = useState<string>("en");
   const [responses, setResponses] = useState<GroupedResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
-  const { toast } = useToast();
-  const { data: questions = [], isLoading: questionsLoading } = useSurveyQuestions();
-
+  const {
+    toast
+  } = useToast();
+  const {
+    data: questions = [],
+    isLoading: questionsLoading
+  } = useSurveyQuestions();
   useEffect(() => {
     loadResponses();
   }, []);
-
   const loadResponses = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("survey_question_responses")
-        .select("*")
-        .order("created_at", { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase.from("survey_question_responses").select("*").order("created_at", {
+        ascending: false
+      });
       if (error) throw error;
 
       // Group responses by response_id
       const grouped = new Map<string, GroupedResponse>();
-      
       (data || []).forEach((response: QuestionResponse) => {
         if (!grouped.has(response.response_id)) {
           grouped.set(response.response_id, {
             response_id: response.response_id,
             created_at: response.created_at,
-            answers: new Map(),
+            answers: new Map()
           });
         }
         grouped.get(response.response_id)!.answers.set(response.question_id, response);
       });
-
       setResponses(Array.from(grouped.values()));
     } catch (error: any) {
       toast({
         title: "Error loading responses",
         description: error.message,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const getQuestionLabel = (questionId: string): string => {
     const question = questions.find(q => q.question_id === questionId);
     return question?.labels[language] || questionId;
   };
-
   const getRatingQuestions = () => {
     return questions.filter(q => q.question_type === "rating");
   };
-
   const getDemographicQuestions = () => {
     return questions.filter(q => q.question_type === "demographic");
   };
-
   const getMultiselectQuestions = () => {
     return questions.filter(q => q.question_type === "multiselect");
   };
-
   const getTextQuestions = () => {
     return questions.filter(q => q.question_type === "text");
   };
-
   const calculateRatingStats = (questionId: string) => {
-    const ratings = responses
-      .map(r => r.answers.get(questionId)?.answer_value?.rating)
-      .filter(r => r !== undefined && r !== null);
-
-    if (ratings.length === 0) return { average: 0, distribution: [] };
-
+    const ratings = responses.map(r => r.answers.get(questionId)?.answer_value?.rating).filter(r => r !== undefined && r !== null);
+    if (ratings.length === 0) return {
+      average: 0,
+      distribution: []
+    };
     const average = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
-    
     const distribution = [1, 2, 3, 4, 5].map(rating => ({
       rating: rating.toString(),
-      count: ratings.filter(r => r === rating).length,
+      count: ratings.filter(r => r === rating).length
     }));
-
-    return { average, distribution };
+    return {
+      average,
+      distribution
+    };
   };
-
   const calculateDemographicBreakdown = (questionId: string) => {
-    const values = responses
-      .map(r => r.answers.get(questionId)?.answer_value?.value)
-      .filter(v => v !== undefined && v !== null);
-
+    const values = responses.map(r => r.answers.get(questionId)?.answer_value?.value).filter(v => v !== undefined && v !== null);
     const counts = values.reduce((acc, val) => {
       acc[val] = (acc[val] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-
-    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+    return Object.entries(counts).map(([name, value]) => ({
+      name,
+      value
+    }));
   };
-
   const calculateMultiselectBreakdown = (questionId: string) => {
     const allSelections: string[] = [];
-    
     responses.forEach(r => {
       const answer = r.answers.get(questionId)?.answer_value?.selected;
       if (Array.isArray(answer)) {
         allSelections.push(...answer);
       }
     });
-
     const counts = allSelections.reduce((acc, val) => {
       acc[val] = (acc[val] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-
-    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+    return Object.entries(counts).map(([name, value]) => ({
+      name,
+      value
+    }));
   };
-
   const getTextResponses = (questionId: string) => {
-    return responses
-      .map(r => ({
-        text: r.answers.get(questionId)?.answer_value?.text,
-        date: r.created_at
-      }))
-      .filter(r => r.text && r.text.trim() !== '');
+    return responses.map(r => ({
+      text: r.answers.get(questionId)?.answer_value?.text,
+      date: r.created_at
+    })).filter(r => r.text && r.text.trim() !== '');
   };
-
   const getSectionQuestions = (section: string) => {
     return questions.filter(q => q.section === section);
   };
-
   const calculateSectionAverage = (section: string) => {
     const sectionQuestions = getSectionQuestions(section).filter(q => q.question_type === "rating");
     if (sectionQuestions.length === 0) return 0;
-
     const averages = sectionQuestions.map(q => calculateRatingStats(q.question_id).average);
     return averages.reduce((sum, avg) => sum + avg, 0) / averages.length;
   };
-
   const getUniqueSection = () => {
     const sections = new Set(questions.map(q => q.section).filter(s => s));
     return Array.from(sections);
   };
-
   const getStatusColor = (average: number): string => {
     if (average >= 4.5) return "hsl(var(--success))";
     if (average >= 4) return "hsl(var(--chart-primary))";
     if (average >= 3) return "hsl(var(--warning))";
     return "hsl(var(--destructive))";
   };
-
   const getStatusLabel = (average: number): string => {
     if (average >= 4.5) return "Excellent";
     if (average >= 4) return "Good";
@@ -198,36 +173,31 @@ export default function DynamicSurveyDashboard({ onBack }: { onBack?: () => void
     if (average >= 2) return "Poor";
     return "Critical";
   };
-
   const toggleSection = (section: string) => {
-    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+    setOpenSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
   };
-
   if (loading || questionsLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+    return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          
           <p className="text-muted-foreground">Loading dashboard...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (responses.length === 0) {
-    return (
-      <div className="min-h-screen bg-background p-8">
+    return <div className="min-h-screen bg-background p-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <div className="flex gap-4 items-center">
               <img src={buntingLogo} alt="Bunting" className="h-12" />
               <img src={magnetApplicationsLogo} alt="Magnet Applications" className="h-12" />
             </div>
-            {onBack && (
-              <Button onClick={onBack} variant="outline">
+            {onBack && <Button onClick={onBack} variant="outline">
                 Back to Survey
-              </Button>
-            )}
+              </Button>}
           </div>
           <Card>
             <CardContent className="pt-6 text-center">
@@ -239,24 +209,18 @@ export default function DynamicSurveyDashboard({ onBack }: { onBack?: () => void
             </CardContent>
           </Card>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   const totalResponses = responses.length;
   const ratingQuestions = getRatingQuestions();
-  const overallAverage = ratingQuestions.length > 0
-    ? ratingQuestions.reduce((sum, q) => sum + calculateRatingStats(q.question_id).average, 0) / ratingQuestions.length
-    : 0;
-
-  return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
+  const overallAverage = ratingQuestions.length > 0 ? ratingQuestions.reduce((sum, q) => sum + calculateRatingStats(q.question_id).average, 0) / ratingQuestions.length : 0;
+  return <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="flex gap-4 items-center">
-            <img src={buntingLogo} alt="Bunting" className="h-12" />
-            <img src={magnetApplicationsLogo} alt="Magnet Applications" className="h-12" />
+            
+            
           </div>
           <div className="flex gap-4 items-center">
             <Select value={language} onValueChange={setLanguage}>
@@ -271,11 +235,9 @@ export default function DynamicSurveyDashboard({ onBack }: { onBack?: () => void
                 <SelectItem value="it">Italiano</SelectItem>
               </SelectContent>
             </Select>
-            {onBack && (
-              <Button onClick={onBack} variant="outline">
+            {onBack && <Button onClick={onBack} variant="outline">
                 Back to Survey
-              </Button>
-            )}
+              </Button>}
           </div>
         </div>
 
@@ -304,11 +266,13 @@ export default function DynamicSurveyDashboard({ onBack }: { onBack?: () => void
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-3xl font-bold">{overallAverage.toFixed(1)}</div>
-                <Badge style={{ backgroundColor: getStatusColor(overallAverage) }}>
+                <Badge style={{
+                backgroundColor: getStatusColor(overallAverage)
+              }}>
                   {getStatusLabel(overallAverage)}
                 </Badge>
               </div>
-              <Progress value={(overallAverage / 5) * 100} className="mt-2" />
+              <Progress value={overallAverage / 5 * 100} className="mt-2" />
             </CardContent>
           </Card>
 
@@ -342,23 +306,18 @@ export default function DynamicSurveyDashboard({ onBack }: { onBack?: () => void
         </div>
 
         {/* Rating Questions by Section */}
-        {getUniqueSection().map((section) => {
-          const sectionQuestions = getSectionQuestions(section).filter(q => q.question_type === "rating");
-          if (sectionQuestions.length === 0) return null;
-
-          const sectionAverage = calculateSectionAverage(section);
-          const isOpen = openSections[section] !== false;
-
-          return (
-            <Card key={section} className="mb-6">
+        {getUniqueSection().map(section => {
+        const sectionQuestions = getSectionQuestions(section).filter(q => q.question_type === "rating");
+        if (sectionQuestions.length === 0) return null;
+        const sectionAverage = calculateSectionAverage(section);
+        const isOpen = openSections[section] !== false;
+        return <Card key={section} className="mb-6">
               <Collapsible open={isOpen} onOpenChange={() => toggleSection(section)}>
                 <CollapsibleTrigger className="w-full">
                   <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <ChevronDownIcon
-                          className={`h-5 w-5 transition-transform ${isOpen ? "" : "-rotate-90"}`}
-                        />
+                        <ChevronDownIcon className={`h-5 w-5 transition-transform ${isOpen ? "" : "-rotate-90"}`} />
                         <div className="text-left">
                           <CardTitle>{section || "General"}</CardTitle>
                           <p className="text-sm text-muted-foreground mt-1">
@@ -366,7 +325,9 @@ export default function DynamicSurveyDashboard({ onBack }: { onBack?: () => void
                           </p>
                         </div>
                       </div>
-                      <Badge style={{ backgroundColor: getStatusColor(sectionAverage) }}>
+                      <Badge style={{
+                    backgroundColor: getStatusColor(sectionAverage)
+                  }}>
                         {getStatusLabel(sectionAverage)}
                       </Badge>
                     </div>
@@ -374,10 +335,9 @@ export default function DynamicSurveyDashboard({ onBack }: { onBack?: () => void
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <CardContent className="space-y-6">
-                    {sectionQuestions.map((question) => {
-                      const stats = calculateRatingStats(question.question_id);
-                      return (
-                        <div key={question.id} className="space-y-2">
+                    {sectionQuestions.map(question => {
+                  const stats = calculateRatingStats(question.question_id);
+                  return <div key={question.id} className="space-y-2">
                           <div className="flex items-center justify-between">
                             <h4 className="font-medium">{getQuestionLabel(question.question_id)}</h4>
                             <div className="flex items-center gap-2">
@@ -394,67 +354,51 @@ export default function DynamicSurveyDashboard({ onBack }: { onBack?: () => void
                               <Bar dataKey="count" fill={CHART_COLORS[0]} />
                             </BarChart>
                           </ResponsiveContainer>
-                        </div>
-                      );
-                    })}
+                        </div>;
+                })}
                   </CardContent>
                 </CollapsibleContent>
               </Collapsible>
-            </Card>
-          );
-        })}
+            </Card>;
+      })}
 
         {/* Demographics */}
-        {getDemographicQuestions().length > 0 && (
-          <Card className="mb-6">
+        {getDemographicQuestions().length > 0 && <Card className="mb-6">
             <CardHeader>
               <CardTitle>Demographics Breakdown</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {getDemographicQuestions().map((question) => {
-                  const data = calculateDemographicBreakdown(question.question_id);
-                  return (
-                    <div key={question.id}>
+                {getDemographicQuestions().map(question => {
+              const data = calculateDemographicBreakdown(question.question_id);
+              return <div key={question.id}>
                       <h4 className="font-medium mb-4 text-center">{getQuestionLabel(question.question_id)}</h4>
                       <ResponsiveContainer width="100%" height={250}>
                         <PieChart>
-                          <Pie
-                            data={data}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                            outerRadius={80}
-                            fill="#8884d8"
-                            dataKey="value"
-                          >
-                            {data.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                            ))}
+                          <Pie data={data} cx="50%" cy="50%" labelLine={false} label={({
+                      name,
+                      percent
+                    }) => `${name}: ${(percent * 100).toFixed(0)}%`} outerRadius={80} fill="#8884d8" dataKey="value">
+                            {data.map((entry, index) => <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />)}
                           </Pie>
                           <Tooltip />
                         </PieChart>
                       </ResponsiveContainer>
-                    </div>
-                  );
-                })}
+                    </div>;
+            })}
               </div>
             </CardContent>
-          </Card>
-        )}
+          </Card>}
 
         {/* Multiselect Questions */}
-        {getMultiselectQuestions().length > 0 && (
-          <Card>
+        {getMultiselectQuestions().length > 0 && <Card>
             <CardHeader>
               <CardTitle>Multiple Choice Insights</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {getMultiselectQuestions().map((question) => {
-                const data = calculateMultiselectBreakdown(question.question_id);
-                return (
-                  <div key={question.id}>
+              {getMultiselectQuestions().map(question => {
+            const data = calculateMultiselectBreakdown(question.question_id);
+            return <div key={question.id}>
                     <h4 className="font-medium mb-4">{getQuestionLabel(question.question_id)}</h4>
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={data} layout="vertical">
@@ -465,59 +409,46 @@ export default function DynamicSurveyDashboard({ onBack }: { onBack?: () => void
                         <Bar dataKey="value" fill={CHART_COLORS[1]} />
                       </BarChart>
                     </ResponsiveContainer>
-                  </div>
-                );
-              })}
+                  </div>;
+          })}
             </CardContent>
-          </Card>
-        )}
+          </Card>}
 
         {/* Text Question Responses */}
-        {getTextQuestions().length > 0 && (
-          <Card className="col-span-full">
+        {getTextQuestions().length > 0 && <Card className="col-span-full">
             <CardHeader>
               <CardTitle>Open-Ended Responses</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {getTextQuestions().map((question) => {
-                const textResponses = getTextResponses(question.question_id);
-                return (
-                  <Collapsible
-                    key={question.question_id}
-                    open={openSections[`text-${question.question_id}`]}
-                    onOpenChange={(open) => setOpenSections(prev => ({ ...prev, [`text-${question.question_id}`]: open }))}
-                  >
+              {getTextQuestions().map(question => {
+            const textResponses = getTextResponses(question.question_id);
+            return <Collapsible key={question.question_id} open={openSections[`text-${question.question_id}`]} onOpenChange={open => setOpenSections(prev => ({
+              ...prev,
+              [`text-${question.question_id}`]: open
+            }))}>
                     <div className="space-y-4">
                       <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
                         <div className="flex items-center gap-3">
                           <h3 className="font-medium text-left">{getQuestionLabel(question.question_id)}</h3>
                           <Badge variant="secondary">{textResponses.length} responses</Badge>
                         </div>
-                        <ChevronDownIcon className={cn(
-                          "h-5 w-5 transition-transform",
-                          openSections[`text-${question.question_id}`] && "rotate-180"
-                        )} />
+                        <ChevronDownIcon className={cn("h-5 w-5 transition-transform", openSections[`text-${question.question_id}`] && "rotate-180")} />
                       </CollapsibleTrigger>
                       <CollapsibleContent className="space-y-3 pt-2">
-                        {textResponses.map((response, idx) => (
-                          <Card key={idx} className="bg-card/50">
+                        {textResponses.map((response, idx) => <Card key={idx} className="bg-card/50">
                             <CardContent className="pt-4">
                               <p className="text-sm whitespace-pre-wrap">{response.text}</p>
                               <p className="text-xs text-muted-foreground mt-2">
                                 {new Date(response.date).toLocaleDateString()}
                               </p>
                             </CardContent>
-                          </Card>
-                        ))}
+                          </Card>)}
                       </CollapsibleContent>
                     </div>
-                  </Collapsible>
-                );
-              })}
+                  </Collapsible>;
+          })}
             </CardContent>
-          </Card>
-        )}
+          </Card>}
       </div>
-    </div>
-  );
+    </div>;
 }
