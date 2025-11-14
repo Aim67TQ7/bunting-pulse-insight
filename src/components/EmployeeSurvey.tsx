@@ -485,7 +485,7 @@ const ratingEmojis = {
   2: "😕",
   3: "😐",
   4: "😊",
-  5: "😍"
+  5: "😄"
 };
 const getRatingLabels = (language: string, answerSet?: any) => {
   // Always use answer set from database
