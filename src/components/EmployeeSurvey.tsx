@@ -433,6 +433,14 @@ interface MultiSelectQuestion {
   display_order: number;
 }
 
+interface TextQuestion {
+  id: string;
+  text: string;
+  section: string;
+  display_order: number;
+  is_required: boolean;
+}
+
 const getRatingQuestions = (dbQuestions: any[] | undefined, language: string): RatingQuestion[] => {
   if (!dbQuestions) return [];
   return dbQuestions
@@ -473,6 +481,19 @@ const getDemographicQuestions = (dbQuestions: any[] | undefined, language: strin
     });
 };
 
+const getTextQuestions = (dbQuestions: any[] | undefined, language: string): TextQuestion[] => {
+  if (!dbQuestions) return [];
+  return dbQuestions
+    .filter(q => q.question_type === 'text')
+    .map(q => ({
+      id: q.question_id,
+      text: q.labels[language] || q.labels.en,
+      section: q.section || "Feedback",
+      display_order: q.display_order || 0,
+      is_required: q.is_required || false
+    }));
+};
+
 // Emojis for 1-5 scale (matching document requirements)
 const ratingEmojis = {
   1: "😞",
@@ -509,6 +530,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   const [feedbackResponses, setFeedbackResponses] = useState<Record<string, string>>({});
   const [multiSelectResponses, setMultiSelectResponses] = useState<Record<string, string[]>>({});
   const [naResponses, setNaResponses] = useState<Record<string, boolean>>({});
+  const [textResponses, setTextResponses] = useState<Record<string, string>>({});
   const [collaborationFeedback, setCollaborationFeedback] = useState("");
   const [additionalComments, setAdditionalComments] = useState("");
   const [isComplete, setIsComplete] = useState(false);
@@ -917,12 +939,18 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   }, []);
 
   const getTotalQuestions = () => {
+    const textQuestions = getTextQuestions(allQuestions, language);
+    const requiredTextQuestions = textQuestions.filter(q => q.is_required).length;
     return getDemographicQuestions(allQuestions, language).length + 
            getRatingQuestions(allQuestions, language).length + 
-           getMultiSelectQuestions(allQuestions, language).length;
+           getMultiSelectQuestions(allQuestions, language).length +
+           requiredTextQuestions;
   };
 
-  const progress = ((Object.keys(responses).length + Object.keys(ratingResponses).length + Object.keys(multiSelectResponses).length) / getTotalQuestions()) * 100;
+  const progress = ((Object.keys(responses).length + Object.keys(ratingResponses).length + Object.keys(multiSelectResponses).length + Object.keys(textResponses).filter(key => {
+    const question = getTextQuestions(allQuestions, language).find(q => q.id === key);
+    return question?.is_required;
+  }).length) / getTotalQuestions()) * 100;
 
   const handleDemographicResponse = (questionId: string, value: string) => {
     setResponses(prev => ({
@@ -965,6 +993,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     const demographicQuestions = getDemographicQuestions(allQuestions, language);
     const ratingQuestions = getRatingQuestions(allQuestions, language);
     const multiSelectQuestions = getMultiSelectQuestions(allQuestions, language);
+    const textQuestions = getTextQuestions(allQuestions, language);
     
     // Check demographics - all required
     const unansweredDemographics = demographicQuestions.filter(q => {
@@ -998,6 +1027,14 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     });
     const allMultiSelectAnswered = unansweredMultiSelect.length === 0;
     
+    // Check text questions - only required ones need answers
+    const unansweredTextQuestions = textQuestions.filter(q => {
+      if (!q.is_required) return false;
+      const answer = textResponses[q.id];
+      return !answer || answer.trim() === '';
+    });
+    const allTextQuestionsAnswered = unansweredTextQuestions.length === 0;
+    
     // Debug logging
     console.log('Survey Completion Check:', {
       allDemographicsAnswered,
@@ -1007,10 +1044,12 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
       allLowRatingsFeedbackProvided,
       lowRatingsWithoutFeedback: lowRatingsWithoutFeedback.map(q => q.id),
       allMultiSelectAnswered,
-      unansweredMultiSelect: unansweredMultiSelect.map(q => q.id)
+      unansweredMultiSelect: unansweredMultiSelect.map(q => q.id),
+      allTextQuestionsAnswered,
+      unansweredTextQuestions: unansweredTextQuestions.map(q => q.id)
     });
     
-    return allDemographicsAnswered && allRatingsAnswered && allLowRatingsFeedbackProvided && allMultiSelectAnswered;
+    return allDemographicsAnswered && allRatingsAnswered && allLowRatingsFeedbackProvided && allMultiSelectAnswered && allTextQuestionsAnswered;
   };
 
   // Helper function to map frontend values to database-expected values
@@ -1211,6 +1250,20 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
               question_id: question.id,
               question_type: 'multiselect',
               answer_value: { selected: multiSelectResponses[question.id] },
+              display_order: displayOrderMap.get(question.id)
+            });
+          }
+        }
+
+        // Track text questions
+        const textQuestions = getTextQuestions(allQuestions, language);
+        for (const question of textQuestions) {
+          if (textResponses[question.id]) {
+            questionResponses.push({
+              response_id: insertedResponse.id,
+              question_id: question.id,
+              question_type: 'text',
+              answer_value: { text: textResponses[question.id] },
               display_order: displayOrderMap.get(question.id)
             });
           }
@@ -1721,6 +1774,35 @@ function OnPageSurvey({
           </Card>
         );
       })}
+
+      {/* Text Questions Section */}
+      {textQuestions.length > 0 && textQuestions.map((question) => (
+        <Card key={question.id} data-question-id={question.id}>
+          <CardHeader>
+            <CardTitle>
+              {question.text}
+              {question.is_required && <span className="text-destructive ml-1">*</span>}
+            </CardTitle>
+            {question.is_required && !textResponses[question.id] && (
+              <p className="text-xs text-destructive mt-2">⚠️ This question is required</p>
+            )}
+          </CardHeader>
+          <CardContent>
+            <Textarea
+              value={textResponses[question.id] || ''}
+              onChange={(e) => onTextChange(question.id, e.target.value)}
+              placeholder={
+                language === 'en' ? "Share your thoughts..." : 
+                language === 'es' ? "Comparte tus pensamientos..." :
+                language === 'fr' ? "Partagez vos réflexions..." :
+                "Condividi i tuoi pensieri..."
+              }
+              rows={5}
+              className="w-full"
+            />
+          </CardContent>
+        </Card>
+      ))}
 
       {/* Additional Comments Section */}
       <Card>

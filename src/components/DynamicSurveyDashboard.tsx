@@ -105,6 +105,10 @@ export default function DynamicSurveyDashboard({ onBack }: { onBack?: () => void
     return questions.filter(q => q.question_type === "multiselect");
   };
 
+  const getTextQuestions = () => {
+    return questions.filter(q => q.question_type === "text");
+  };
+
   const calculateRatingStats = (questionId: string) => {
     const ratings = responses
       .map(r => r.answers.get(questionId)?.answer_value?.rating)
