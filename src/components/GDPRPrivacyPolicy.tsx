@@ -18,11 +18,9 @@ export function GDPRPrivacyPolicy({ open, onOpenChange }: GDPRPrivacyPolicyProps
             <ShieldCheckIcon className="h-6 w-6 text-primary" />
             Privacy Policy & Data Protection Notice
           </DialogTitle>
-          <DialogDescription>
-            Last updated: {new Date().toLocaleDateString()}
-          </DialogDescription>
+          <DialogDescription>Last updated: {new Date().toLocaleDateString()}</DialogDescription>
         </DialogHeader>
-        
+
         <ScrollArea className="h-[70vh] pr-4">
           <div className="space-y-6 text-sm">
             {/* Data Controller */}
@@ -32,10 +30,19 @@ export function GDPRPrivacyPolicy({ open, onOpenChange }: GDPRPrivacyPolicyProps
                 1. Data Controller & Contact Information
               </h3>
               <div className="space-y-2 text-muted-foreground">
-                <p><strong>Data Controller:</strong> Robert Clausing</p>
-                <p><strong>Address:</strong> 500 Spencer Road, Newton, KS 67114, United States</p>
-                <p><strong>Data Protection Officer (DPO):</strong> Robert Clausing</p>
-                <p><strong>Contact:</strong> For any questions about your data or to exercise your rights, please contact the DPO at the address above.</p>
+                <p>
+                  <strong>Data Controller:</strong> April Ahlers (USA) / Stephanie Ince (UK)
+                </p>
+                <p>
+                  <strong>Address:</strong> 500 Spencer Road, Newton, KS 67114, United States
+                </p>
+                <p>
+                  <strong>Data Protection Officer (DPO):</strong> April Ahlers (USA) / Stephanie Ince (UK)
+                </p>
+                <p>
+                  <strong>Contact:</strong> For any questions about your data or to exercise your rights, please contact
+                  the DPO at the address above.
+                </p>
               </div>
             </section>
 
@@ -50,11 +57,18 @@ export function GDPRPrivacyPolicy({ open, onOpenChange }: GDPRPrivacyPolicyProps
               <div className="space-y-3 text-muted-foreground">
                 <div>
                   <p className="font-medium text-foreground mb-1">Purpose:</p>
-                  <p>We collect and process your survey responses to measure employee engagement, improve workplace culture, and inform business decisions.</p>
+                  <p>
+                    We collect and process your survey responses to measure employee engagement, improve workplace
+                    culture, and inform business decisions.
+                  </p>
                 </div>
                 <div>
                   <p className="font-medium text-foreground mb-1">Legal Basis (Article 6 GDPR):</p>
-                  <p><strong>Consent (Article 6(1)(a)):</strong> This survey is entirely voluntary. By providing explicit consent, you agree to participate. You may withdraw consent at any time without negative consequences.</p>
+                  <p>
+                    <strong>Consent (Article 6(1)(a)):</strong> This survey is entirely voluntary. By providing explicit
+                    consent, you agree to participate. You may withdraw consent at any time without negative
+                    consequences.
+                  </p>
                 </div>
               </div>
             </section>
@@ -68,21 +82,34 @@ export function GDPRPrivacyPolicy({ open, onOpenChange }: GDPRPrivacyPolicyProps
                 3. Data We Collect
               </h3>
               <div className="space-y-2 text-muted-foreground">
-                <p>This survey is <strong>anonymous</strong>. We do NOT collect:</p>
+                <p>
+                  This survey is <strong>anonymous</strong>. We do NOT collect:
+                </p>
                 <ul className="list-disc pl-5 space-y-1">
                   <li>Your name or employee ID</li>
                   <li>Email addresses</li>
                   <li>IP addresses</li>
                   <li>Device identifiers</li>
                 </ul>
-                
+
                 <p className="mt-3">We DO collect:</p>
                 <ul className="list-disc pl-5 space-y-1">
-                  <li><strong>Demographic information:</strong> Continent, division, role level (aggregated for analysis)</li>
-                  <li><strong>Survey responses:</strong> Rating scores (1-5), text feedback, multi-select answers</li>
-                  <li><strong>Session data:</strong> Random session ID (for preventing duplicate submissions), completion time</li>
-                  <li><strong>Technical data:</strong> Browser language preference, timestamps</li>
-                  <li><strong>Consent records:</strong> Timestamp and version of consent given</li>
+                  <li>
+                    <strong>Demographic information:</strong> Continent, division, role level (aggregated for analysis)
+                  </li>
+                  <li>
+                    <strong>Survey responses:</strong> Rating scores (1-5), text feedback, multi-select answers
+                  </li>
+                  <li>
+                    <strong>Session data:</strong> Random session ID (for preventing duplicate submissions), completion
+                    time
+                  </li>
+                  <li>
+                    <strong>Technical data:</strong> Browser language preference, timestamps
+                  </li>
+                  <li>
+                    <strong>Consent records:</strong> Timestamp and version of consent given
+                  </li>
                 </ul>
 
                 <div className="bg-accent/20 border border-accent/30 rounded-lg p-3 mt-3">
@@ -105,7 +132,8 @@ export function GDPRPrivacyPolicy({ open, onOpenChange }: GDPRPrivacyPolicyProps
               <h3 className="font-semibold text-base mb-3">4. International Data Transfers</h3>
               <div className="space-y-2 text-muted-foreground">
                 <p>
-                  Your survey data is stored on servers operated by Supabase (PostgreSQL database) which may be located outside the European Economic Area (EEA).
+                  Your survey data is stored on servers operated by Supabase (PostgreSQL database) which may be located
+                  outside the European Economic Area (EEA).
                 </p>
                 <p>
                   <strong>Safeguards:</strong> Data transfers comply with GDPR Article 46 through:
@@ -129,11 +157,15 @@ export function GDPRPrivacyPolicy({ open, onOpenChange }: GDPRPrivacyPolicyProps
               <div className="space-y-2 text-muted-foreground">
                 <div>
                   <p className="font-medium text-foreground">Completed Survey Responses:</p>
-                  <p>Retained for <strong>12 months</strong> from submission date, then automatically deleted.</p>
+                  <p>
+                    Retained for <strong>12 months</strong> from submission date, then automatically deleted.
+                  </p>
                 </div>
                 <div>
                   <p className="font-medium text-foreground">Draft Responses:</p>
-                  <p>Auto-deleted after <strong>30 days</strong> of inactivity if not submitted.</p>
+                  <p>
+                    Auto-deleted after <strong>30 days</strong> of inactivity if not submitted.
+                  </p>
                 </div>
                 <div>
                   <p className="font-medium text-foreground">Consent Records:</p>
@@ -152,14 +184,16 @@ export function GDPRPrivacyPolicy({ open, onOpenChange }: GDPRPrivacyPolicyProps
               </h3>
               <div className="space-y-3 text-muted-foreground">
                 <p>Under GDPR, you have the following rights:</p>
-                
+
                 <div>
                   <p className="font-medium text-foreground">• Right to Access (Article 15)</p>
                   <p>Request a copy of your survey responses using your session ID.</p>
                 </div>
 
                 <div>
-                  <p className="font-medium text-foreground">• Right to Erasure / "Right to be Forgotten" (Article 17)</p>
+                  <p className="font-medium text-foreground">
+                    • Right to Erasure / "Right to be Forgotten" (Article 17)
+                  </p>
                   <p>Request deletion of your survey responses at any time using your session ID.</p>
                 </div>
 
@@ -170,7 +204,9 @@ export function GDPRPrivacyPolicy({ open, onOpenChange }: GDPRPrivacyPolicyProps
 
                 <div>
                   <p className="font-medium text-foreground">• Right to Withdraw Consent (Article 7(3))</p>
-                  <p>You may withdraw consent at any time. This will not affect data processing done before withdrawal.</p>
+                  <p>
+                    You may withdraw consent at any time. This will not affect data processing done before withdrawal.
+                  </p>
                 </div>
 
                 <div>
@@ -180,14 +216,18 @@ export function GDPRPrivacyPolicy({ open, onOpenChange }: GDPRPrivacyPolicyProps
 
                 <div>
                   <p className="font-medium text-foreground">• Right to Lodge a Complaint</p>
-                  <p>You have the right to lodge a complaint with your local data protection authority if you believe your data has been mishandled.</p>
+                  <p>
+                    You have the right to lodge a complaint with your local data protection authority if you believe
+                    your data has been mishandled.
+                  </p>
                 </div>
 
                 <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 mt-3">
                   <p className="font-medium text-foreground text-sm">How to Exercise Your Rights:</p>
                   <p className="text-xs mt-1">
-                    After completing the survey, you'll receive a <strong>Session ID</strong>. Save this ID to access, download, or delete your data.
-                    You can also use the "Manage My Data" option at the bottom of the survey page.
+                    After completing the survey, you'll receive a <strong>Session ID</strong>. Save this ID to access,
+                    download, or delete your data. You can also use the "Manage My Data" option at the bottom of the
+                    survey page.
                   </p>
                 </div>
               </div>
@@ -222,10 +262,17 @@ export function GDPRPrivacyPolicy({ open, onOpenChange }: GDPRPrivacyPolicyProps
               <div className="space-y-2 text-muted-foreground">
                 <p>Your survey data is shared only with:</p>
                 <ul className="list-disc pl-5 space-y-1">
-                  <li><strong>Internal use only:</strong> Management and HR for employee engagement analysis</li>
-                  <li><strong>Service providers:</strong> Supabase (database hosting) - operates under data processing agreement</li>
+                  <li>
+                    <strong>Internal use only:</strong> Management and HR for employee engagement analysis
+                  </li>
+                  <li>
+                    <strong>Service providers:</strong> Supabase (database hosting) - operates under data processing
+                    agreement
+                  </li>
                 </ul>
-                <p className="mt-2">We do NOT sell, rent, or share your data with third parties for marketing purposes.</p>
+                <p className="mt-2">
+                  We do NOT sell, rent, or share your data with third parties for marketing purposes.
+                </p>
               </div>
             </section>
 
@@ -236,8 +283,8 @@ export function GDPRPrivacyPolicy({ open, onOpenChange }: GDPRPrivacyPolicyProps
               <h3 className="font-semibold text-base mb-3">9. Automated Decision-Making</h3>
               <div className="text-muted-foreground">
                 <p>
-                  There is <strong>no automated decision-making or profiling</strong> (Article 22 GDPR) performed on your survey responses. 
-                  All data is used for aggregate statistical analysis only.
+                  There is <strong>no automated decision-making or profiling</strong> (Article 22 GDPR) performed on
+                  your survey responses. All data is used for aggregate statistical analysis only.
                 </p>
               </div>
             </section>
@@ -249,8 +296,9 @@ export function GDPRPrivacyPolicy({ open, onOpenChange }: GDPRPrivacyPolicyProps
               <h3 className="font-semibold text-base mb-3">10. Changes to This Policy</h3>
               <div className="text-muted-foreground">
                 <p>
-                  We may update this privacy policy from time to time. When we do, we'll update the "Last updated" date at the top of this policy.
-                  Continued participation after changes indicates acceptance of the updated policy.
+                  We may update this privacy policy from time to time. When we do, we'll update the "Last updated" date
+                  at the top of this policy. Continued participation after changes indicates acceptance of the updated
+                  policy.
                 </p>
               </div>
             </section>
@@ -266,7 +314,7 @@ export function GDPRPrivacyPolicy({ open, onOpenChange }: GDPRPrivacyPolicyProps
               <div className="text-muted-foreground space-y-2">
                 <p>If you have any questions about this privacy policy or how we handle your data, please contact:</p>
                 <div className="font-medium text-foreground">
-                  <p>Robert Clausing (Data Protection Officer)</p>
+                  <p>April Ahlers (USA) / Stephanie Ince (UK) (Data Protection Officer)</p>
                   <p>500 Spencer Road, Newton, KS 67114</p>
                 </div>
               </div>
@@ -275,9 +323,7 @@ export function GDPRPrivacyPolicy({ open, onOpenChange }: GDPRPrivacyPolicyProps
         </ScrollArea>
 
         <div className="flex justify-end pt-4 border-t">
-          <Button onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
+          <Button onClick={() => onOpenChange(false)}>Close</Button>
         </div>
       </DialogContent>
     </Dialog>
