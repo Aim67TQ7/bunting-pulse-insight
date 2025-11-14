@@ -12,50 +12,44 @@ import { QuestionLevelAnalytics } from "@/components/QuestionLevelAnalytics";
 import { SurveyQuestionManager } from "@/components/SurveyQuestionManager";
 import buntingLogo from "@/assets/bunting-logo.png";
 import magnetLogo from "@/assets/magnet-applications-logo.png";
-
 interface AdminProps {
   onBack: () => void;
 }
-
-export const Admin = ({ onBack }: AdminProps) => {
+export const Admin = ({
+  onBack
+}: AdminProps) => {
   const [passcode, setPasscode] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const handleAuth = () => {
     if (passcode === "4155") {
       setIsAuthenticated(true);
       toast({
         title: "Access granted",
-        description: "Welcome to the admin panel",
+        description: "Welcome to the admin panel"
       });
     } else {
       toast({
         title: "Access denied",
         description: "Invalid passcode",
-        variant: "destructive",
+        variant: "destructive"
       });
       setPasscode("");
     }
   };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       handleAuth();
     }
   };
-
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background">
+    return <div className="min-h-screen bg-background">
         <header className="border-b bg-card">
           <div className="max-w-6xl mx-auto px-4 py-6">
             <div className="flex items-center justify-between">
-              <Button 
-                variant="ghost" 
-                onClick={onBack}
-                className="flex items-center gap-2"
-              >
+              <Button variant="ghost" onClick={onBack} className="flex items-center gap-2">
                 <ArrowLeftIcon className="h-4 w-4" />
                 Back to Dashboard
               </Button>
@@ -75,15 +69,7 @@ export const Admin = ({ onBack }: AdminProps) => {
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="passcode">Enter Passcode</Label>
-                <Input
-                  id="passcode"
-                  type="password"
-                  value={passcode}
-                  onChange={(e) => setPasscode(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Enter admin passcode"
-                  className="mt-1"
-                />
+                <Input id="passcode" type="password" value={passcode} onChange={e => setPasscode(e.target.value)} onKeyPress={handleKeyPress} placeholder="Enter admin passcode" className="mt-1" />
               </div>
               <Button onClick={handleAuth} className="w-full">
                 Access Admin Panel
@@ -91,12 +77,9 @@ export const Admin = ({ onBack }: AdminProps) => {
             </CardContent>
           </Card>
         </main>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
@@ -106,47 +89,46 @@ export const Admin = ({ onBack }: AdminProps) => {
             </div>
             <h1 className="text-2xl font-bold text-foreground">Admin Panel</h1>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline"
-                onClick={async () => {
-                  const { jsPDF } = await import('jspdf');
-                  const QRCode = (await import('qrcode')).default;
-                  
-                  const doc = new jsPDF();
-                  const surveyUrl = 'https://survey.buntinggpt.com';
-                  
-                  // Add title
-                  doc.setFontSize(20);
-                  doc.setFont('helvetica', 'bold');
-                  doc.text('Bunting Magnetics', 105, 30, { align: 'center' });
-                  doc.text('Employee Survey', 105, 40, { align: 'center' });
-                  
-                  // Generate QR code
-                  const qrDataUrl = await QRCode.toDataURL(surveyUrl, {
-                    width: 200,
-                    margin: 2,
-                  });
-                  
-                  // Add QR code to PDF (centered)
-                  doc.addImage(qrDataUrl, 'PNG', 55, 60, 100, 100);
-                  
-                  // Add instruction text
-                  doc.setFontSize(12);
-                  doc.setFont('helvetica', 'normal');
-                  doc.text('Scan to access the employee survey', 105, 175, { align: 'center' });
-                  
-                  // Save PDF
-                  doc.save('bunting-survey-qr.pdf');
-                }}
-                className="flex items-center gap-2"
-              >
+              <Button variant="outline" onClick={async () => {
+              const {
+                jsPDF
+              } = await import('jspdf');
+              const QRCode = (await import('qrcode')).default;
+              const doc = new jsPDF();
+              const surveyUrl = 'https://survey.buntinggpt.com';
+
+              // Add title
+              doc.setFontSize(20);
+              doc.setFont('helvetica', 'bold');
+              doc.text('Bunting Magnetics', 105, 30, {
+                align: 'center'
+              });
+              doc.text('Employee Survey', 105, 40, {
+                align: 'center'
+              });
+
+              // Generate QR code
+              const qrDataUrl = await QRCode.toDataURL(surveyUrl, {
+                width: 200,
+                margin: 2
+              });
+
+              // Add QR code to PDF (centered)
+              doc.addImage(qrDataUrl, 'PNG', 55, 60, 100, 100);
+
+              // Add instruction text
+              doc.setFontSize(12);
+              doc.setFont('helvetica', 'normal');
+              doc.text('Scan to access the employee survey', 105, 175, {
+                align: 'center'
+              });
+
+              // Save PDF
+              doc.save('bunting-survey-qr.pdf');
+            }} className="flex items-center gap-2">
                 Download QR Code
               </Button>
-              <Button 
-                variant="ghost" 
-                onClick={onBack}
-                className="flex items-center gap-2"
-              >
+              <Button variant="ghost" onClick={onBack} className="flex items-center gap-2">
                 <ArrowLeftIcon className="h-4 w-4" />
                 Back to Survey
               </Button>
@@ -172,12 +154,10 @@ export const Admin = ({ onBack }: AdminProps) => {
           </TabsContent>
 
           <TabsContent value="question-level" className="space-y-6">
-            <QuestionLevelAnalytics onBack={onBack} />
+            <QuestionLevelAnalytics onBack={onBack} className="my-0" />
           </TabsContent>
         </Tabs>
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default Admin;
