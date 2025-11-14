@@ -9,6 +9,7 @@ import { ArrowLeftIcon, ShieldCheckIcon } from "lucide-react";
 import { SurveyAnalyticsDashboard } from "@/components/SurveyAnalyticsDashboard";
 import DynamicSurveyDashboard from "@/components/DynamicSurveyDashboard";
 import { QuestionLevelAnalytics } from "@/components/QuestionLevelAnalytics";
+import { SurveyQuestionManager } from "@/components/SurveyQuestionManager";
 import buntingLogo from "@/assets/bunting-logo.png";
 import magnetLogo from "@/assets/magnet-applications-logo.png";
 

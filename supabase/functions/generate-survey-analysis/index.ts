@@ -1,283 +1,78 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const corsHeaders = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    if (!OPENAI_API_KEY) {
-      throw new Error('OpenAI API key not found');
-    }
+    if (!OPENAI_API_KEY) throw new Error('OpenAI API key not configured');
 
     const { surveyData } = await req.json();
+    if (!surveyData?.length) throw new Error('No survey data');
+
+    const validResponses = surveyData.filter((r: any) => r.responses?.length > 0);
+    const ratingQuestions = new Map<string, { label: string; ratings: number[] }>();
     
-    if (!surveyData || !Array.isArray(surveyData) || surveyData.length === 0) {
-      throw new Error('No survey data provided');
-    }
-
-    console.log(`Analyzing ${surveyData.length} survey responses`);
-
-    // Enhanced data processing with null handling and comprehensive metrics
-    const validResponses = surveyData.filter(r => r.continent && r.division && r.role);
-    const responseRate = (validResponses.length / surveyData.length) * 100;
+    validResponses.forEach((r: any) => {
+      r.responses.filter((resp: any) => resp.question_type === 'rating').forEach((resp: any) => {
+        if (!ratingQuestions.has(resp.question_id)) {
+          ratingQuestions.set(resp.question_id, { label: resp.question_labels?.en || resp.question_id, ratings: [] });
+        }
+        if (resp.answer_value?.rating) ratingQuestions.get(resp.question_id)!.ratings.push(resp.answer_value.rating);
+      });
+    });
     
-    const calculateAverage = (field: string) => {
-      const validValues = surveyData.filter(r => r[field] !== null && r[field] !== undefined).map(r => r[field]);
-      return validValues.length > 0 ? validValues.reduce((sum, val) => sum + val, 0) / validValues.length : null;
-    };
+    const questionAverages = Array.from(ratingQuestions.entries()).map(([id, data]) => ({
+      question_id: id,
+      label: data.label,
+      average: data.ratings.reduce((s, r) => s + r, 0) / data.ratings.length,
+      count: data.ratings.length
+    }));
+    
+    const textResponses = validResponses.flatMap((r: any) => 
+      r.responses.filter((resp: any) => resp.question_type === 'text' && resp.answer_value?.text)
+        .map((resp: any) => ({ text: resp.answer_value.text, division: r.division }))
+    );
 
-    const getResponseCount = (field: string) => {
-      return surveyData.filter(r => r[field] !== null && r[field] !== undefined).length;
-    };
+    const prompt = `Analyze this employee survey data:
 
-    const dataSummary = {
-      totalResponses: surveyData.length,
-      validResponses: validResponses.length,
-      responseRate: responseRate,
-      continents: [...new Set(surveyData.map(r => r.continent).filter(Boolean))],
-      divisions: [...new Set(surveyData.map(r => r.division).filter(Boolean))],
-      roles: [...new Set(surveyData.map(r => r.role).filter(Boolean))],
-      averageScores: {
-        job_satisfaction: calculateAverage('job_satisfaction'),
-        work_life_balance: calculateAverage('work_life_balance'),
-        communication_clarity: calculateAverage('communication_clarity'),
-        leadership_openness: calculateAverage('leadership_openness'),
-        us_uk_collaboration: calculateAverage('us_uk_collaboration'),
-        training_satisfaction: calculateAverage('training_satisfaction'),
-        advancement_opportunities: calculateAverage('advancement_opportunities'),
-        recommend_company: calculateAverage('recommend_company'),
-      },
-      responseCounts: {
-        job_satisfaction: getResponseCount('job_satisfaction'),
-        work_life_balance: getResponseCount('work_life_balance'),
-        communication_clarity: getResponseCount('communication_clarity'),
-        leadership_openness: getResponseCount('leadership_openness'),
-        us_uk_collaboration: getResponseCount('us_uk_collaboration'),
-        training_satisfaction: getResponseCount('training_satisfaction'),
-        advancement_opportunities: getResponseCount('advancement_opportunities'),
-        recommend_company: getResponseCount('recommend_company'),
-      },
-      comments: surveyData
-        .filter(r => (r.additional_comments && r.additional_comments.trim() !== '') || 
-                    (r.collaboration_feedback && r.collaboration_feedback.trim() !== ''))
-        .map(r => ({
-          continent: r.continent,
-          division: r.division,
-          role: r.role,
-          additional_comments: r.additional_comments,
-          collaboration_feedback: r.collaboration_feedback
-        })),
-      communicationPreferences: surveyData
-        .filter(r => r.communication_preferences && r.communication_preferences.length > 0)
-        .flatMap(r => r.communication_preferences),
-      informationPreferences: surveyData
-        .filter(r => r.information_preferences && r.information_preferences.length > 0)
-        .flatMap(r => r.information_preferences),
-      motivationFactors: surveyData
-        .filter(r => r.motivation_factors && r.motivation_factors.length > 0)
-        .flatMap(r => r.motivation_factors)
-    };
+Total: ${surveyData.length} responses
+Questions (1-5 scale):
+${questionAverages.map(q => `- ${q.label}: ${q.average.toFixed(2)}`).join('\n')}
 
-    // Enhanced prompt for comprehensive analysis with SWOT section
-    const prompt = `You are an expert HR analyst tasked with analyzing employee survey results. Provide a thorough, professional analysis with high creative insight and detailed observations. Be transparent about data limitations while still providing valuable insights.
+Top 5 Strengths:
+${[...questionAverages].sort((a, b) => b.average - a.average).slice(0, 5).map(q => `- ${q.label}: ${q.average.toFixed(2)}`).join('\n')}
 
-SURVEY DATA SUMMARY:
-- Total Responses: ${dataSummary.totalResponses}
-- Valid Complete Responses: ${dataSummary.validResponses} (${dataSummary.responseRate.toFixed(1)}% response quality)
-- Continents Represented: ${dataSummary.continents.join(', ')}
-- Divisions Represented: ${dataSummary.divisions.join(', ')} 
-- Role Types: ${dataSummary.roles.join(', ')}
+Top 5 Concerns:
+${[...questionAverages].sort((a, b) => a.average - b.average).slice(0, 5).map(q => `- ${q.label}: ${q.average.toFixed(2)}`).join('\n')}
 
-AVERAGE SCORES (1-5 scale) with Response Counts:
-${Object.entries(dataSummary.averageScores).map(([key, value]) => 
-  `- ${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}: ${value ? value.toFixed(2) : 'No responses'} (${dataSummary.responseCounts[key]} responses)`
-).join('\n')}
+Sample Comments:
+${textResponses.slice(0, 15).map(c => `- ${c.text.substring(0, 100)}`).join('\n')}
 
-DEMOGRAPHIC BREAKDOWN:
-- Communication Preferences: ${JSON.stringify(dataSummary.communicationPreferences)}
-- Information Preferences: ${JSON.stringify(dataSummary.informationPreferences)}  
-- Motivation Factors: ${JSON.stringify(dataSummary.motivationFactors)}
+Provide: Executive Summary, SWOT Analysis (Strengths/Weaknesses/Opportunities/Threats), Key Recommendations, Priority Actions`;
 
-EMPLOYEE COMMENTS (${dataSummary.comments.length} total):
-${JSON.stringify(dataSummary.comments)}
-
-ANALYSIS REQUIREMENTS:
-Please provide a comprehensive analysis in the following structured format. Address data limitations transparently while extracting maximum insights:
-
-**EXECUTIVE SUMMARY** (2-3 paragraphs)
-- Key findings and overall employee sentiment
-- Statistical significance notes given sample size
-- Primary areas of strength and concern
-
-**DETAILED INSIGHTS**
-
-*Regional Analysis*
-- Compare performance across represented continents
-- Identify geographic patterns and cultural considerations
-- Note any regional strengths or challenges
-
-*Division Analysis*  
-- Compare performance across business divisions
-- Identify division-specific trends and operational insights
-- Highlight cross-division collaboration effectiveness
-
-*Role-Based Analysis*
-- Analyze patterns across different job functions
-- Compare leadership vs operational perspectives
-- Assess cross-functional collaboration
-
-*Score Pattern Analysis*
-- Identify highest and lowest scoring metrics
-- Analyze correlations between different areas
-- Highlight notable patterns or outliers
-- Address statistical confidence given sample size
-
-*Comment Sentiment Analysis*
-- Extract key themes from written feedback
-- Identify positive vs concerning sentiment patterns
-- Provide specific quotes that illustrate trends
-- Analyze feedback by demographic segments
-
-**SWOT ANALYSIS**
-
-*Organizational Strengths*
-- Overall: Identify top organizational strengths from highest-scoring metrics
-- By Region (${dataSummary.continents.join(', ')}): Region-specific strengths with supporting data
-- By Division (${dataSummary.divisions.join(', ')}): Division-specific strengths with examples
-- Comment Highlights: Specific positive feedback quotes by group
-
-*Organizational Weaknesses*
-- Overall: Identify key weaknesses from lowest-scoring metrics
-- By Region: Region-specific challenges and concerns
-- By Division: Division-specific areas for improvement
-- Comment Concerns: Specific concerning feedback quotes by group
-
-*Opportunities for Growth*
-- Improvement Areas: Based on low scores and employee suggestions
-- Cross-Regional Learning: What regions/divisions can learn from each other
-- Innovation Potential: Employee ideas and suggestions from comments
-- Cultural Development: Areas to strengthen company culture
-
-*Threats and Risks*
-- Retention Risks: Low engagement or recommendation scores by group
-- Regional Disparities: Significant gaps between regions that could cause issues
-- Division Silos: Collaboration barriers identified in comments
-- Communication Gaps: Unclear messaging or alignment issues
-
-**STRATEGIC RECOMMENDATIONS**
-
-*Immediate Priority Actions* (Top 3)
-1. [Specific, actionable recommendation with rationale]
-2. [Specific, actionable recommendation with rationale]  
-3. [Specific, actionable recommendation with rationale]
-
-*Long-term Strategic Initiatives*
-- Targeted improvements for each geographic region
-- Division-specific enhancement strategies
-- Role-based development programs
-- Communication and collaboration improvements
-
-*Data Collection Recommendations*
-- Suggest additional metrics to track
-- Recommend survey frequency and timing
-- Identify areas needing deeper investigation
-
-**CONFIDENCE AND LIMITATIONS**
-- Assess statistical confidence of findings given sample size
-- Note areas where additional data would strengthen insights
-- Provide guidance on interpreting results responsibly
-
-Format your response as clear, well-structured text with headers and bullet points. Focus on actionable insights while being honest about what the current data can and cannot tell us.`;
-
-    console.log('Calling OpenAI API for survey analysis...');
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          {
-            role: 'system',
-            content: 'You are an expert HR analyst specializing in employee survey analysis. Provide thorough, data-driven insights with creative interpretation and actionable recommendations. Be transparent about statistical limitations while maximizing insights from available data.'
-          },
-          {
-            role: 'user', 
-            content: prompt
-          }
+          { role: 'system', content: 'You are an expert HR analyst. Provide clear, actionable insights.' },
+          { role: 'user', content: prompt }
         ],
-        max_tokens: 4000,
-        temperature: 0.8, // High temperature for creative and insightful analysis
-      }),
+        max_tokens: 2000,
+        temperature: 0.7
+      })
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
+    if (!openAIResponse.ok) throw new Error('OpenAI API error');
+    const data = await openAIResponse.json();
     const analysis = data.choices[0].message.content;
 
-    // Enhanced validation for analysis quality
-    if (!analysis || analysis.trim().length < 100) {
-      console.error('Analysis too short or empty:', analysis);
-      throw new Error('Generated analysis is too short or empty. Please try again.');
-    }
-
-    // Check for common error patterns
-    if (analysis.toLowerCase().includes('i cannot') || 
-        analysis.toLowerCase().includes('i\'m unable') ||
-        analysis.toLowerCase().includes('error')) {
-      console.error('Analysis contains error indicators:', analysis);
-      throw new Error('Analysis generation encountered issues. Please try again.');
-    }
-
-    console.log('Analysis generated successfully, length:', analysis.length);
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        analysis: analysis,
-        metadata: {
-          totalResponses: dataSummary.totalResponses,
-          validResponses: dataSummary.validResponses,
-          responseRate: dataSummary.responseRate,
-          commentsCount: dataSummary.comments.length,
-          generatedAt: new Date().toISOString(),
-          model: 'gpt-4o',
-          analysisLength: analysis.length
-        }
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
-
+    return new Response(JSON.stringify({ success: true, analysis }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (error) {
-    console.error('Error in generate-survey-analysis:', error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
+    return new Response(JSON.stringify({ success: false, error: error.message }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 });
   }
 });
