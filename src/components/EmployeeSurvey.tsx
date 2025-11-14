@@ -385,6 +385,7 @@ interface RatingQuestion {
   feedbackPrompt: string;
   answerSet?: any;
   display_order: number;
+  allow_na?: boolean;
 }
 interface DemographicQuestion {
   id: string;
@@ -443,7 +444,8 @@ const getRatingQuestions = (dbQuestions: any[] | undefined, language: string): R
     section: q.section || "Other",
     feedbackPrompt: q.follow_up_rules?.prompts?.[language] || q.follow_up_rules?.prompts?.en || "",
     answerSet: q.answer_set,
-    display_order: q.display_order || 0
+    display_order: q.display_order || 0,
+    allow_na: q.allow_na ?? false
   }));
 };
 const getDemographicQuestions = (dbQuestions: any[] | undefined, language: string): DemographicQuestion[] => {
@@ -1645,6 +1647,7 @@ function RatingQuestion({
   const isRequired = true; // All rating questions are required
   const requiresFeedback = response !== undefined && response <= 2;
   const feedbackError = requiresFeedback && !feedback?.trim();
+  const showNa = question.allow_na ?? false;
 
   // Get rating options from answerSet, or default to [1, 2, 3, 4, 5]
   const ratingOptions = question.answerSet?.answer_options ? question.answerSet.answer_options.map((opt: any) => opt.metadata?.numeric_value || parseInt(opt.option_key)).filter((val: number) => !isNaN(val)).sort((a: number, b: number) => a - b) : [1, 2, 3, 4, 5];
@@ -1655,18 +1658,20 @@ function RatingQuestion({
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </h3>
         
-        {/* N/A Toggle */}
-        <div className="flex items-center gap-2 shrink-0">
-          <Label htmlFor={`na-${question.id}`} className="text-sm text-muted-foreground cursor-pointer">
-            N/A
-          </Label>
-          <Checkbox id={`na-${question.id}`} checked={isNa || false} onCheckedChange={checked => onNaChange(checked === true)} />
-        </div>
+        {/* N/A Toggle - Only show if allow_na is true */}
+        {showNa && (
+          <div className="flex items-center gap-2 shrink-0">
+            <Label htmlFor={`na-${question.id}`} className="text-sm text-muted-foreground cursor-pointer">
+              N/A
+            </Label>
+            <Checkbox id={`na-${question.id}`} checked={isNa || false} onCheckedChange={checked => onNaChange(checked === true)} />
+          </div>
+        )}
       </div>
       
       {/* Show warning if unanswered and not N/A */}
       {!isNa && response === undefined && <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
-          <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">⚠️ Please rate this question or select N/A to continue</p>
+          <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">⚠️ Please rate this question{showNa ? ' or select N/A' : ''} to continue</p>
         </div>}
       
       {/* Rating Scale with Emojis - Hidden when N/A is selected */}
