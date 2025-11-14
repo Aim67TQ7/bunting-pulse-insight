@@ -1564,10 +1564,12 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
             demographicQuestions={getDemographicQuestions(allQuestions, language)}
             ratingQuestions={getRatingQuestions(allQuestions, language)}
             multiSelectQuestions={getMultiSelectQuestions(allQuestions, language)}
+            textQuestions={getTextQuestions(allQuestions, language)}
             demographicResponses={responses}
             ratingResponses={ratingResponses}
             feedbackResponses={feedbackResponses}
             multiSelectResponses={multiSelectResponses}
+            textResponses={textResponses}
             naResponses={naResponses}
             collaborationFeedback={collaborationFeedback}
             additionalComments={additionalComments}
@@ -1576,6 +1578,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
             onFeedbackChange={handleFeedbackResponse}
             onNaChange={handleNaResponse}
             onMultiSelectChange={handleMultiSelectResponse}
+            onTextChange={(questionId, value) => setTextResponses(prev => ({ ...prev, [questionId]: value }))}
             onCollaborationFeedbackChange={setCollaborationFeedback}
             onAdditionalCommentsChange={setAdditionalComments}
             onSubmit={handleSubmit}
@@ -1594,10 +1597,12 @@ interface OnPageSurveyProps {
   demographicQuestions: DemographicQuestion[];
   ratingQuestions: RatingQuestion[];
   multiSelectQuestions: MultiSelectQuestion[];
+  textQuestions: TextQuestion[];
   demographicResponses: Record<string, string>;
   ratingResponses: Record<string, number>;
   feedbackResponses: Record<string, string>;
   multiSelectResponses: Record<string, string[]>;
+  textResponses: Record<string, string>;
   naResponses: Record<string, boolean>;
   collaborationFeedback: string;
   additionalComments: string;
@@ -1606,6 +1611,7 @@ interface OnPageSurveyProps {
   onFeedbackChange: (questionId: string, feedback: string) => void;
   onNaChange: (questionId: string, isNa: boolean) => void;
   onMultiSelectChange: (questionId: string, selectedOptions: string[]) => void;
+  onTextChange: (questionId: string, value: string) => void;
   onCollaborationFeedbackChange: (feedback: string) => void;
   onAdditionalCommentsChange: (comments: string) => void;
   onSubmit: () => void;
@@ -1618,10 +1624,12 @@ function OnPageSurvey({
   demographicQuestions,
   ratingQuestions,
   multiSelectQuestions,
+  textQuestions,
   demographicResponses,
   ratingResponses,
   feedbackResponses,
   multiSelectResponses,
+  textResponses,
   naResponses,
   collaborationFeedback,
   additionalComments,
@@ -1630,6 +1638,7 @@ function OnPageSurvey({
   onFeedbackChange,
   onNaChange,
   onMultiSelectChange,
+  onTextChange,
   onCollaborationFeedbackChange,
   onAdditionalCommentsChange,
   onSubmit,
