@@ -9,12 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SearchIcon, DownloadIcon, FilterIcon } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
 interface CommentsSectionProps {
   configurationId?: string;
 }
-
-export const CommentsSection = ({ configurationId }: CommentsSectionProps) => {
+export const CommentsSection = ({
+  configurationId
+}: CommentsSectionProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [commentTypeFilter, setCommentTypeFilter] = useState("all");
   const [continentFilter, setContinentFilter] = useState("all");
@@ -27,25 +27,22 @@ export const CommentsSection = ({ configurationId }: CommentsSectionProps) => {
   useEffect(() => {
     const loadTextResponses = async () => {
       setLoading(true);
-      
-      // Get all surveys from single table
-      const { data: surveys, error } = await supabase
-        .from('employee_survey_responses')
-        .select('id, responses_jsonb, continent, division, role, submitted_at')
-        .eq('is_draft', false);
 
+      // Get all surveys from single table
+      const {
+        data: surveys,
+        error
+      } = await supabase.from('employee_survey_responses').select('id, responses_jsonb, continent, division, role, submitted_at').eq('is_draft', false);
       if (error) {
         console.error('Error loading survey responses:', error);
         setLoading(false);
         return;
       }
-
       const comments: any[] = [];
 
       // Process each survey's responses_jsonb
       (surveys || []).forEach((survey: any) => {
         const responses = survey.responses_jsonb as any[] || [];
-        
         responses.forEach((answer: any) => {
           // Process text questions
           if (answer.question_type === 'text') {
@@ -59,11 +56,11 @@ export const CommentsSection = ({ configurationId }: CommentsSectionProps) => {
                 created_at: survey.submitted_at,
                 continent: survey.continent,
                 division: survey.division,
-                role: survey.role,
+                role: survey.role
               });
             }
           }
-          
+
           // Process rating questions with feedback
           if (answer.question_type === 'rating') {
             const feedback = answer.answer_value?.feedback;
@@ -78,20 +75,17 @@ export const CommentsSection = ({ configurationId }: CommentsSectionProps) => {
                 created_at: survey.submitted_at,
                 continent: survey.continent,
                 division: survey.division,
-                role: survey.role,
+                role: survey.role
               });
             }
           }
         });
       });
-
       setAllComments(comments);
       setLoading(false);
     };
-
     loadTextResponses();
   }, [configurationId]);
-  
   const getQuestionLabel = (questionId: string): string => {
     const labels: Record<string, string> = {
       'additional-comments': 'Additional Comments',
@@ -123,23 +117,13 @@ export const CommentsSection = ({ configurationId }: CommentsSectionProps) => {
   // Filter comments based on search and filters
   const filteredComments = allComments.filter((comment: any) => {
     const searchLower = searchTerm.toLowerCase();
-    const matchesSearch = !searchTerm || 
-      comment.comment_text?.toLowerCase().includes(searchLower) ||
-      comment.continent?.toLowerCase().includes(searchLower) ||
-      comment.division?.toLowerCase().includes(searchLower) ||
-      comment.role?.toLowerCase().includes(searchLower);
-    
-    const matchesCommentType = commentTypeFilter === 'all' || 
-      comment.comment_type === commentTypeFilter ||
-      (commentTypeFilter === 'followup' && comment.comment_type?.startsWith('Low Score Follow-up'));
-    
+    const matchesSearch = !searchTerm || comment.comment_text?.toLowerCase().includes(searchLower) || comment.continent?.toLowerCase().includes(searchLower) || comment.division?.toLowerCase().includes(searchLower) || comment.role?.toLowerCase().includes(searchLower);
+    const matchesCommentType = commentTypeFilter === 'all' || comment.comment_type === commentTypeFilter || commentTypeFilter === 'followup' && comment.comment_type?.startsWith('Low Score Follow-up');
     const matchesContinent = continentFilter === 'all' || comment.continent === continentFilter;
     const matchesDivision = divisionFilter === 'all' || comment.division === divisionFilter;
     const matchesRole = roleFilter === 'all' || comment.role === roleFilter;
-    
     return matchesSearch && matchesCommentType && matchesContinent && matchesDivision && matchesRole;
   });
-
   const clearFilters = () => {
     setSearchTerm("");
     setCommentTypeFilter("all");
@@ -147,22 +131,11 @@ export const CommentsSection = ({ configurationId }: CommentsSectionProps) => {
     setDivisionFilter("all");
     setRoleFilter("all");
   };
-
   const exportComments = () => {
-    const csv = [
-      ['Date', 'Type', 'Continent', 'Division', 'Role', 'Score', 'Comment'],
-      ...filteredComments.map((c: any) => [
-        new Date(c.created_at).toLocaleDateString(),
-        c.comment_type,
-        c.continent || '',
-        c.division || '',
-        c.role || '',
-        c.score || '',
-        `"${c.comment_text?.replace(/"/g, '""') || ''}"`
-      ])
-    ].map(row => row.join(',')).join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const csv = [['Date', 'Type', 'Continent', 'Division', 'Role', 'Score', 'Comment'], ...filteredComments.map((c: any) => [new Date(c.created_at).toLocaleDateString(), c.comment_type, c.continent || '', c.division || '', c.role || '', c.score || '', `"${c.comment_text?.replace(/"/g, '""') || ''}"`])].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csv], {
+      type: 'text/csv'
+    });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -175,15 +148,12 @@ export const CommentsSection = ({ configurationId }: CommentsSectionProps) => {
   const uniqueContinents = [...new Set(allComments.map((c: any) => c.continent).filter(Boolean))];
   const uniqueDivisions = [...new Set(allComments.map((c: any) => c.division).filter(Boolean))];
   const uniqueRoles = [...new Set(allComments.map((c: any) => c.role).filter(Boolean))];
-
   const commentTypeCounts = {
     total: allComments.length,
     text: allComments.filter((c: any) => !c.comment_type.startsWith('Low Score Follow-up')).length,
-    followup: allComments.filter((c: any) => c.comment_type.startsWith('Low Score Follow-up')).length,
+    followup: allComments.filter((c: any) => c.comment_type.startsWith('Low Score Follow-up')).length
   };
-
-  return (
-    <Card className="w-full">
+  return <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Survey Comments & Feedback</CardTitle>
@@ -199,91 +169,9 @@ export const CommentsSection = ({ configurationId }: CommentsSectionProps) => {
       <CardContent>
         {/* Filters Section */}
         <div className="space-y-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="search">Search</Label>
-              <div className="relative">
-                <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="search"
-                  placeholder="Search comments..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8"
-                />
-              </div>
-            </div>
+          
 
-            <div className="space-y-2">
-              <Label htmlFor="commentType">Comment Type</Label>
-              <Select value={commentTypeFilter} onValueChange={setCommentTypeFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  {uniqueCommentTypes.map((type) => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
-                  ))}
-                  <SelectItem value="followup">Low Score Follow-ups</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="continent">Continent</Label>
-              <Select value={continentFilter} onValueChange={setContinentFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Continents" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Continents</SelectItem>
-                  {uniqueContinents.map((continent) => (
-                    <SelectItem key={continent} value={continent as string}>{continent}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="division">Division</Label>
-              <Select value={divisionFilter} onValueChange={setDivisionFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Divisions" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Divisions</SelectItem>
-                  {uniqueDivisions.map((division) => (
-                    <SelectItem key={division} value={division as string}>{division}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Roles" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
-                  {uniqueRoles.map((role) => (
-                    <SelectItem key={role} value={role as string}>{role}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-end">
-              <Button onClick={clearFilters} variant="outline" className="w-full">
-                <FilterIcon className="h-4 w-4 mr-2" />
-                Clear Filters
-              </Button>
-            </div>
-          </div>
+          
         </div>
 
         {/* Summary Cards */}
@@ -320,21 +208,15 @@ export const CommentsSection = ({ configurationId }: CommentsSectionProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
-                <TableRow>
+              {loading ? <TableRow>
                   <TableCell colSpan={4} className="text-center py-8">
                     Loading comments...
                   </TableCell>
-                </TableRow>
-              ) : filteredComments.length === 0 ? (
-                <TableRow>
+                </TableRow> : filteredComments.length === 0 ? <TableRow>
                   <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                     No comments match your filters
                   </TableCell>
-                </TableRow>
-              ) : (
-                filteredComments.map((comment: any, index: number) => (
-                  <TableRow key={comment.id || index}>
+                </TableRow> : filteredComments.map((comment: any, index: number) => <TableRow key={comment.id || index}>
                     <TableCell className="text-sm">
                       {new Date(comment.created_at).toLocaleDateString()}
                     </TableCell>
@@ -351,22 +233,17 @@ export const CommentsSection = ({ configurationId }: CommentsSectionProps) => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {comment.score && (
-                        <Badge variant={comment.score <= 2 ? "destructive" : "secondary"}>
+                      {comment.score && <Badge variant={comment.score <= 2 ? "destructive" : "secondary"}>
                           {comment.score}/5
-                        </Badge>
-                      )}
+                        </Badge>}
                     </TableCell>
                     <TableCell className="max-w-md">
                       <p className="text-sm whitespace-pre-wrap">{comment.comment_text}</p>
                     </TableCell>
-                  </TableRow>
-                ))
-              )}
+                  </TableRow>)}
             </TableBody>
           </Table>
         </ScrollArea>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
