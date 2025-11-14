@@ -1,0 +1,463 @@
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Globe, UsersIcon, TrendingUpIcon, ChevronDownIcon } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useSurveyQuestions } from "@/hooks/useSurveyQuestions";
+import buntingLogo from "@/assets/bunting-logo-2.png";
+import magnetApplicationsLogo from "@/assets/magnet-applications-logo-2.png";
+
+const CHART_COLORS = [
+  'hsl(var(--chart-primary))',
+  'hsl(var(--chart-secondary))',  
+  'hsl(var(--chart-tertiary))',
+  'hsl(var(--chart-quaternary))',
+  'hsl(var(--chart-quinary))',
+  'hsl(var(--chart-senary))',
+  'hsl(var(--chart-septenary))',
+  'hsl(var(--chart-octonary))',
+];
+
+interface QuestionResponse {
+  id: string;
+  response_id: string;
+  question_id: string;
+  question_type: string;
+  answer_value: any;
+  display_order: number;
+  created_at: string;
+}
+
+interface GroupedResponse {
+  response_id: string;
+  created_at: string;
+  answers: Map<string, QuestionResponse>;
+}
+
+export default function DynamicSurveyDashboard({ onBack }: { onBack?: () => void }) {
+  const [language, setLanguage] = useState<string>("en");
+  const [responses, setResponses] = useState<GroupedResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const { toast } = useToast();
+  const { data: questions = [], isLoading: questionsLoading } = useSurveyQuestions();
+
+  useEffect(() => {
+    loadResponses();
+  }, []);
+
+  const loadResponses = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("survey_question_responses")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      // Group responses by response_id
+      const grouped = new Map<string, GroupedResponse>();
+      
+      (data || []).forEach((response: QuestionResponse) => {
+        if (!grouped.has(response.response_id)) {
+          grouped.set(response.response_id, {
+            response_id: response.response_id,
+            created_at: response.created_at,
+            answers: new Map(),
+          });
+        }
+        grouped.get(response.response_id)!.answers.set(response.question_id, response);
+      });
+
+      setResponses(Array.from(grouped.values()));
+    } catch (error: any) {
+      toast({
+        title: "Error loading responses",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getQuestionLabel = (questionId: string): string => {
+    const question = questions.find(q => q.question_id === questionId);
+    return question?.labels[language] || questionId;
+  };
+
+  const getRatingQuestions = () => {
+    return questions.filter(q => q.question_type === "rating");
+  };
+
+  const getDemographicQuestions = () => {
+    return questions.filter(q => q.question_type === "demographic");
+  };
+
+  const getMultiselectQuestions = () => {
+    return questions.filter(q => q.question_type === "multiselect");
+  };
+
+  const calculateRatingStats = (questionId: string) => {
+    const ratings = responses
+      .map(r => r.answers.get(questionId)?.answer_value?.rating)
+      .filter(r => r !== undefined && r !== null);
+
+    if (ratings.length === 0) return { average: 0, distribution: [] };
+
+    const average = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
+    
+    const distribution = [1, 2, 3, 4, 5].map(rating => ({
+      rating: rating.toString(),
+      count: ratings.filter(r => r === rating).length,
+    }));
+
+    return { average, distribution };
+  };
+
+  const calculateDemographicBreakdown = (questionId: string) => {
+    const values = responses
+      .map(r => r.answers.get(questionId)?.answer_value?.value)
+      .filter(v => v !== undefined && v !== null);
+
+    const counts = values.reduce((acc, val) => {
+      acc[val] = (acc[val] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+  };
+
+  const calculateMultiselectBreakdown = (questionId: string) => {
+    const allSelections: string[] = [];
+    
+    responses.forEach(r => {
+      const answer = r.answers.get(questionId)?.answer_value?.selected;
+      if (Array.isArray(answer)) {
+        allSelections.push(...answer);
+      }
+    });
+
+    const counts = allSelections.reduce((acc, val) => {
+      acc[val] = (acc[val] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+  };
+
+  const getSectionQuestions = (section: string) => {
+    return questions.filter(q => q.section === section);
+  };
+
+  const calculateSectionAverage = (section: string) => {
+    const sectionQuestions = getSectionQuestions(section).filter(q => q.question_type === "rating");
+    if (sectionQuestions.length === 0) return 0;
+
+    const averages = sectionQuestions.map(q => calculateRatingStats(q.question_id).average);
+    return averages.reduce((sum, avg) => sum + avg, 0) / averages.length;
+  };
+
+  const getUniqueSection = () => {
+    const sections = new Set(questions.map(q => q.section).filter(s => s));
+    return Array.from(sections);
+  };
+
+  const getStatusColor = (average: number): string => {
+    if (average >= 4.5) return "hsl(var(--success))";
+    if (average >= 4) return "hsl(var(--chart-primary))";
+    if (average >= 3) return "hsl(var(--warning))";
+    return "hsl(var(--destructive))";
+  };
+
+  const getStatusLabel = (average: number): string => {
+    if (average >= 4.5) return "Excellent";
+    if (average >= 4) return "Good";
+    if (average >= 3) return "Neutral";
+    if (average >= 2) return "Poor";
+    return "Critical";
+  };
+
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  if (loading || questionsLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (responses.length === 0) {
+    return (
+      <div className="min-h-screen bg-background p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-8">
+            <div className="flex gap-4 items-center">
+              <img src={buntingLogo} alt="Bunting" className="h-12" />
+              <img src={magnetApplicationsLogo} alt="Magnet Applications" className="h-12" />
+            </div>
+            {onBack && (
+              <Button onClick={onBack} variant="outline">
+                Back to Survey
+              </Button>
+            )}
+          </div>
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <UsersIcon className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-xl font-semibold mb-2">No Survey Data</h3>
+              <p className="text-muted-foreground">
+                No survey responses have been submitted yet. Complete the survey to see analytics.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  const totalResponses = responses.length;
+  const ratingQuestions = getRatingQuestions();
+  const overallAverage = ratingQuestions.length > 0
+    ? ratingQuestions.reduce((sum, q) => sum + calculateRatingStats(q.question_id).average, 0) / ratingQuestions.length
+    : 0;
+
+  return (
+    <div className="min-h-screen bg-background p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div className="flex gap-4 items-center">
+            <img src={buntingLogo} alt="Bunting" className="h-12" />
+            <img src={magnetApplicationsLogo} alt="Magnet Applications" className="h-12" />
+          </div>
+          <div className="flex gap-4 items-center">
+            <Select value={language} onValueChange={setLanguage}>
+              <SelectTrigger className="w-[180px]">
+                <Globe className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="es">Español</SelectItem>
+                <SelectItem value="fr">Français</SelectItem>
+                <SelectItem value="it">Italiano</SelectItem>
+              </SelectContent>
+            </Select>
+            {onBack && (
+              <Button onClick={onBack} variant="outline">
+                Back to Survey
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Responses
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold">{totalResponses}</div>
+                <UsersIcon className="h-8 w-8 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Overall Average
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold">{overallAverage.toFixed(1)}</div>
+                <Badge style={{ backgroundColor: getStatusColor(overallAverage) }}>
+                  {getStatusLabel(overallAverage)}
+                </Badge>
+              </div>
+              <Progress value={(overallAverage / 5) * 100} className="mt-2" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Rating Questions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold">{ratingQuestions.length}</div>
+                <TrendingUpIcon className="h-8 w-8 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Response Rate
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold">100%</div>
+              </div>
+              <Progress value={100} className="mt-2" />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Rating Questions by Section */}
+        {getUniqueSection().map((section) => {
+          const sectionQuestions = getSectionQuestions(section).filter(q => q.question_type === "rating");
+          if (sectionQuestions.length === 0) return null;
+
+          const sectionAverage = calculateSectionAverage(section);
+          const isOpen = openSections[section] !== false;
+
+          return (
+            <Card key={section} className="mb-6">
+              <Collapsible open={isOpen} onOpenChange={() => toggleSection(section)}>
+                <CollapsibleTrigger className="w-full">
+                  <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <ChevronDownIcon
+                          className={`h-5 w-5 transition-transform ${isOpen ? "" : "-rotate-90"}`}
+                        />
+                        <div className="text-left">
+                          <CardTitle>{section || "General"}</CardTitle>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Average: {sectionAverage.toFixed(1)} / 5.0
+                          </p>
+                        </div>
+                      </div>
+                      <Badge style={{ backgroundColor: getStatusColor(sectionAverage) }}>
+                        {getStatusLabel(sectionAverage)}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent className="space-y-6">
+                    {sectionQuestions.map((question) => {
+                      const stats = calculateRatingStats(question.question_id);
+                      return (
+                        <div key={question.id} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium">{getQuestionLabel(question.question_id)}</h4>
+                            <div className="flex items-center gap-2">
+                              <span className="text-2xl font-bold">{stats.average.toFixed(1)}</span>
+                              <span className="text-muted-foreground">/ 5.0</span>
+                            </div>
+                          </div>
+                          <ResponsiveContainer width="100%" height={150}>
+                            <BarChart data={stats.distribution}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="rating" />
+                              <YAxis />
+                              <Tooltip />
+                              <Bar dataKey="count" fill={CHART_COLORS[0]} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      );
+                    })}
+                  </CardContent>
+                </CollapsibleContent>
+              </Collapsible>
+            </Card>
+          );
+        })}
+
+        {/* Demographics */}
+        {getDemographicQuestions().length > 0 && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Demographics Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {getDemographicQuestions().map((question) => {
+                  const data = calculateDemographicBreakdown(question.question_id);
+                  return (
+                    <div key={question.id}>
+                      <h4 className="font-medium mb-4 text-center">{getQuestionLabel(question.question_id)}</h4>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <PieChart>
+                          <Pie
+                            data={data}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {data.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Multiselect Questions */}
+        {getMultiselectQuestions().length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Multiple Choice Insights</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {getMultiselectQuestions().map((question) => {
+                const data = calculateMultiselectBreakdown(question.question_id);
+                return (
+                  <div key={question.id}>
+                    <h4 className="font-medium mb-4">{getQuestionLabel(question.question_id)}</h4>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={data} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" />
+                        <YAxis dataKey="name" type="category" width={150} />
+                        <Tooltip />
+                        <Bar dataKey="value" fill={CHART_COLORS[1]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+}
