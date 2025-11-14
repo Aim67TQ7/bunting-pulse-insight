@@ -217,29 +217,7 @@ export default function DynamicSurveyDashboard({
   return <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div className="flex gap-4 items-center">
-            
-            
-          </div>
-          <div className="flex gap-4 items-center">
-            <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger className="w-[180px]">
-                <Globe className="h-4 w-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="es">Español</SelectItem>
-                <SelectItem value="fr">Français</SelectItem>
-                <SelectItem value="it">Italiano</SelectItem>
-              </SelectContent>
-            </Select>
-            {onBack && <Button onClick={onBack} variant="outline">
-                Back to Survey
-              </Button>}
-          </div>
-        </div>
+        
 
         {/* Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
