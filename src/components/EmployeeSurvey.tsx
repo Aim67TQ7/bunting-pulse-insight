@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckIcon, AlertTriangleIcon, LoaderIcon, Globe, Download, SaveIcon, ShieldIcon, XIcon } from "lucide-react";
+import { CheckIcon, AlertTriangleIcon, LoaderIcon, Globe, Download, ShieldIcon, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -535,11 +535,6 @@ export function EmployeeSurvey({
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showDataRights, setShowDataRights] = useState(false);
 
-  // Auto-save state
-  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [draftId, setDraftId] = useState<string | null>(null);
-  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastSavedDataRef = useRef<string>('');
   const {
     toast
   } = useToast();
@@ -554,203 +549,6 @@ export function EmployeeSurvey({
     setSubmissionCount(count);
   }, []);
 
-  // Auto-save function with debounce
-  const autoSaveSurvey = useCallback(async () => {
-    // Only auto-save if survey is in progress
-    if (currentSection !== 'survey') return;
-
-    // Create current data snapshot
-    const currentData = JSON.stringify({
-      responses,
-      ratingResponses,
-      feedbackResponses,
-      multiSelectResponses,
-      naResponses,
-      collaborationFeedback,
-      additionalComments,
-      elapsedTime
-    });
-
-    // Skip if data hasn't changed since last save
-    if (currentData === lastSavedDataRef.current) {
-      return;
-    }
-    setAutoSaveStatus('saving');
-    try {
-      const surveyData = {
-        continent: mapDemographicValues(responses.continent, 'continent') || null,
-        division: mapDemographicValues(responses.division, 'division') || null,
-        role: mapDemographicValues(responses.role, 'role') || null,
-        session_id: sessionId,
-        completion_time_seconds: elapsedTime,
-        is_draft: true,
-        last_autosave_at: new Date().toISOString(),
-        // Engagement & Job Satisfaction
-        job_satisfaction: ratingResponses["job-satisfaction"] || null,
-        recommend_company: ratingResponses["company-satisfaction"] || null,
-        strategic_confidence: ratingResponses["future-view"] || null,
-        // Leadership & Communication
-        leadership_openness: ratingResponses["expectations"] || null,
-        performance_awareness: ratingResponses["performance-awareness"] || null,
-        communication_clarity: ratingResponses["relaying-information"] || null,
-        manager_alignment: ratingResponses["management-feedback"] || null,
-        // Training & Development
-        training_satisfaction: ratingResponses["training"] || null,
-        advancement_opportunities: ratingResponses["opportunities"] || null,
-        // Teamwork & Culture
-        cross_functional_collaboration: ratingResponses["cooperation"] || null,
-        team_morale: ratingResponses["morale"] || null,
-        pride_in_work: ratingResponses["pride"] || null,
-        // Safety & Work Environment
-        workplace_safety: ratingResponses["safety-focus"] || null,
-        safety_reporting_comfort: ratingResponses["safety-reporting"] || null,
-        // Scheduling & Workload
-        workload_manageability: ratingResponses["workload"] || null,
-        work_life_balance: ratingResponses["work-life-balance"] || null,
-        // Tools, Equipment & Processes
-        tools_equipment_quality: ratingResponses["tools"] || null,
-        manual_processes_focus: ratingResponses["processes"] || null,
-        company_value_alignment: ratingResponses["company-value"] || null,
-        comfortable_suggesting_improvements: ratingResponses["change"] || null,
-        // Multi-select arrays
-        communication_preferences: multiSelectResponses["communication-preferences"] || [],
-        information_preferences: multiSelectResponses["information-preferences"] || [],
-        motivation_factors: multiSelectResponses["motivation-factors"] || [],
-        // Text feedback
-        collaboration_feedback: collaborationFeedback || "",
-        additional_comments: additionalComments || "",
-        // Store ALL feedback responses in JSONB (including low-rating feedback)
-        follow_up_responses: {
-          ...feedbackResponses,
-          language: language,
-          na_responses: naResponses
-        },
-        // GDPR consent fields
-        consent_given: consentGiven,
-        consent_timestamp: consentGiven ? new Date().toISOString() : null
-      };
-      const {
-        data,
-        error
-      } = await supabase.from("employee_survey_responses").upsert(surveyData, {
-        onConflict: 'session_id'
-      }).select('id').single();
-      if (error) throw error;
-      if (data?.id) {
-        setDraftId(data.id);
-        lastSavedDataRef.current = currentData;
-        setAutoSaveStatus('saved');
-
-        // Reset to idle after 2 seconds
-        setTimeout(() => setAutoSaveStatus('idle'), 2000);
-      }
-    } catch (error) {
-      console.error("Auto-save error:", error);
-      setAutoSaveStatus('error');
-      // Reset to idle after showing error
-      setTimeout(() => setAutoSaveStatus('idle'), 3000);
-    }
-  }, [currentSection, responses, ratingResponses, feedbackResponses, multiSelectResponses, collaborationFeedback, additionalComments, sessionId, elapsedTime, language]);
-
-  // Debounced auto-save trigger
-  const triggerAutoSave = useCallback(() => {
-    // Clear existing timeout
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
-    }
-
-    // Set new timeout
-    autoSaveTimeoutRef.current = setTimeout(() => {
-      autoSaveSurvey();
-    }, 1000); // 1 second debounce
-  }, [autoSaveSurvey]);
-
-  // Load draft on mount
-  useEffect(() => {
-    const loadDraft = async () => {
-      try {
-        const {
-          data,
-          error
-        } = await supabase.from("employee_survey_responses").select('*').eq('session_id', sessionId).eq('is_draft', true).maybeSingle();
-        if (error) throw error;
-        if (data) {
-          // Restore demographic responses
-          const restoredResponses: Record<string, string> = {};
-          if (data.continent) restoredResponses.continent = data.continent.toLowerCase().replace(' ', '-');
-          if (data.division) restoredResponses.division = data.division.toLowerCase();
-          if (data.role) restoredResponses.role = data.role.toLowerCase().replace(/\//g, '-').replace(' ', '-');
-          setResponses(restoredResponses);
-
-          // Restore rating responses
-          const restoredRatings: Record<string, number> = {};
-          if (data.job_satisfaction) restoredRatings["job-satisfaction"] = data.job_satisfaction;
-          if (data.recommend_company) restoredRatings["company-satisfaction"] = data.recommend_company;
-          if (data.strategic_confidence) restoredRatings["future-view"] = data.strategic_confidence;
-          if (data.leadership_openness) restoredRatings["expectations"] = data.leadership_openness;
-          if (data.performance_awareness) restoredRatings["performance-awareness"] = data.performance_awareness;
-          if (data.communication_clarity) restoredRatings["relaying-information"] = data.communication_clarity;
-          if (data.manager_alignment) restoredRatings["management-feedback"] = data.manager_alignment;
-          if (data.training_satisfaction) restoredRatings["training"] = data.training_satisfaction;
-          if (data.advancement_opportunities) restoredRatings["opportunities"] = data.advancement_opportunities;
-          if (data.cross_functional_collaboration) restoredRatings["cooperation"] = data.cross_functional_collaboration;
-          if (data.team_morale) restoredRatings["morale"] = data.team_morale;
-          if (data.pride_in_work) restoredRatings["pride"] = data.pride_in_work;
-          if (data.workplace_safety) restoredRatings["safety-focus"] = data.workplace_safety;
-          if (data.safety_reporting_comfort) restoredRatings["safety-reporting"] = data.safety_reporting_comfort;
-          if (data.workload_manageability) restoredRatings["workload"] = data.workload_manageability;
-          if (data.work_life_balance) restoredRatings["work-life-balance"] = data.work_life_balance;
-          if (data.tools_equipment_quality) restoredRatings["tools"] = data.tools_equipment_quality;
-          if (data.manual_processes_focus) restoredRatings["processes"] = data.manual_processes_focus;
-          if (data.company_value_alignment) restoredRatings["company-value"] = data.company_value_alignment;
-          if (data.comfortable_suggesting_improvements) restoredRatings["change"] = data.comfortable_suggesting_improvements;
-          setRatingResponses(restoredRatings);
-
-          // Restore ALL feedback responses (including low-rating feedback)
-          const restoredFeedback: Record<string, string> = {};
-          if (data.follow_up_responses) {
-            const followUp = data.follow_up_responses as any;
-            // Restore all feedback except the 'language' property
-            Object.keys(followUp).forEach(key => {
-              if (key !== 'language' && followUp[key]) {
-                restoredFeedback[key] = followUp[key];
-              }
-            });
-          }
-          setFeedbackResponses(restoredFeedback);
-
-          // Restore multi-select responses
-          const restoredMultiSelect: Record<string, string[]> = {};
-          if (data.communication_preferences?.length) restoredMultiSelect["communication-preferences"] = data.communication_preferences;
-          if (data.information_preferences?.length) restoredMultiSelect["information-preferences"] = data.information_preferences;
-          if (data.motivation_factors?.length) restoredMultiSelect["motivation-factors"] = data.motivation_factors;
-          setMultiSelectResponses(restoredMultiSelect);
-
-          // Restore text fields
-          if (data.collaboration_feedback) setCollaborationFeedback(data.collaboration_feedback);
-          if (data.additional_comments) setAdditionalComments(data.additional_comments);
-          setDraftId(data.id);
-          setElapsedTime(data.completion_time_seconds || 0);
-          toast({
-            title: "Draft restored",
-            description: "Continuing your previous survey session."
-          });
-        }
-      } catch (error) {
-        console.error("Error loading draft:", error);
-      }
-    };
-    if (currentSection === 'survey') {
-      loadDraft();
-    }
-  }, [sessionId, currentSection, toast]);
-
-  // Trigger auto-save when responses change
-  useEffect(() => {
-    if (currentSection === 'survey' && startTime) {
-      triggerAutoSave();
-    }
-  }, [responses, ratingResponses, feedbackResponses, multiSelectResponses, collaborationFeedback, additionalComments, currentSection, startTime, triggerAutoSave]);
 
   // Timer effect
   useEffect(() => {
@@ -1149,34 +947,14 @@ export function EmployeeSurvey({
         consent_timestamp: consentGiven ? new Date().toISOString() : null
       };
 
-      // Check if there's an existing draft for this session
-      const { data: existingDraft } = await supabase
+      // Insert the survey response
+      const { data: insertedResponse, error: insertError } = await supabase
         .from("employee_survey_responses")
+        .insert(surveyData)
         .select('id')
-        .eq('session_id', sessionId)
-        .maybeSingle();
+        .single();
 
-      let insertedResponse;
-      if (existingDraft) {
-        // Update existing draft
-        const { data, error } = await supabase
-          .from("employee_survey_responses")
-          .update(surveyData)
-          .eq('id', existingDraft.id)
-          .select('id')
-          .single();
-        if (error) throw error;
-        insertedResponse = data;
-      } else {
-        // Insert new response
-        const { data, error } = await supabase
-          .from("employee_survey_responses")
-          .insert(surveyData)
-          .select('id')
-          .single();
-        if (error) throw error;
-        insertedResponse = data;
-      }
+      if (insertError) throw insertError;
 
       // Track individual question responses for analytics
       if (insertedResponse?.id && allQuestions) {
@@ -1407,12 +1185,6 @@ export function EmployeeSurvey({
             </div>
           </div>
           <div className="flex items-center gap-4">
-            {/* Auto-save indicator */}
-            {autoSaveStatus !== 'idle' && <Badge variant={autoSaveStatus === 'error' ? 'destructive' : 'outline'} className="text-sm px-3 py-1">
-                {autoSaveStatus === 'saving' && <><LoaderIcon className="w-3 h-3 mr-1 animate-spin inline" /> Saving...</>}
-                {autoSaveStatus === 'saved' && <><SaveIcon className="w-3 h-3 mr-1 inline" /> Saved</>}
-                {autoSaveStatus === 'error' && <><AlertTriangleIcon className="w-3 h-3 mr-1 inline" /> Save failed</>}
-              </Badge>}
             <div className="text-sm font-medium">
               Time: {formatTime(elapsedTime)}
             </div>
