@@ -527,6 +527,7 @@ export function EmployeeSurvey({
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showQRCode, setShowQRCode] = useState(false);
   const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
 
   // GDPR Consent state
   const [showConsentDialog, setShowConsentDialog] = useState(false);
@@ -882,6 +883,32 @@ export function EmployeeSurvey({
       delete (window as any).resetSurvey;
     };
   }, []);
+
+  // Auto-redirect countdown effect
+  useEffect(() => {
+    if (isComplete) {
+      setRedirectCountdown(5);
+      const interval = setInterval(() => {
+        setRedirectCountdown(prev => {
+          if (prev === null || prev <= 1) {
+            clearInterval(interval);
+            setCurrentSection("landing");
+            setIsComplete(false);
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isComplete]);
+
+  const handleReturnNow = () => {
+    setCurrentSection("landing");
+    setIsComplete(false);
+    setRedirectCountdown(null);
+  };
+
   const getTotalQuestions = () => {
     const textQuestions = getTextQuestions(allQuestions, language);
     const requiredTextQuestions = textQuestions.filter(q => q.is_required).length;
@@ -1255,34 +1282,6 @@ export function EmployeeSurvey({
         </div>
       </div>;
   }
-  // Auto-redirect countdown
-  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (isComplete) {
-      setRedirectCountdown(5);
-      const interval = setInterval(() => {
-        setRedirectCountdown(prev => {
-          if (prev === null || prev <= 1) {
-            clearInterval(interval);
-            // Reset to landing page
-            setCurrentSection("landing");
-            setIsComplete(false);
-            return null;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [isComplete]);
-
-  const handleReturnNow = () => {
-    setCurrentSection("landing");
-    setIsComplete(false);
-    setRedirectCountdown(null);
-  };
-
   if (isComplete) {
     return <div className="min-h-screen bg-background p-4">
         <div className="max-w-4xl mx-auto mt-12">
