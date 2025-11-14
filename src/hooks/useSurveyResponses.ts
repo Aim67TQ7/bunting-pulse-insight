@@ -30,24 +30,29 @@ export function useSurveyResponses(configurationId?: string) {
     queryFn: async () => {
       try {
         // Fetch all responses from new table
-        let query = supabase
+        const { data: questionResponses, error: qError } = await supabase
           .from("survey_question_responses")
-          .select(`
-            *,
-            survey_question_config (
-              question_id,
-              question_type,
-              question_key,
-              section
-            )
-          `)
-          .order("created_at", { ascending: false });
-
-        if (configurationId) {
-          query = query.eq("configuration_id", configurationId);
-        }
-
-        const { data: questionResponses, error: qError } = await query;
+          .select("*")
+          .order("created_at", { ascending: false })
+          .then(async (result) => {
+            if (result.error) return result;
+            
+            // Fetch question config separately to avoid deep type issues
+            const questionIds = [...new Set(result.data?.map((r: any) => r.question_id))];
+            const { data: configs } = await supabase
+              .from("survey_question_config")
+              .select("question_id, question_type, question_key, section")
+              .in("question_id", questionIds);
+            
+            // Attach config to each response
+            const configMap = new Map(configs?.map(c => [c.question_id, c]) || []);
+            const enriched = result.data?.map((r: any) => ({
+              ...r,
+              survey_question_config: configMap.get(r.question_id)
+            }));
+            
+            return { data: enriched, error: null };
+          });
         if (qError) throw qError;
 
         // Fetch survey metadata
@@ -90,8 +95,11 @@ export function useSurveyResponses(configurationId?: string) {
             };
             
             // Extract N/A responses from follow_up_responses if available
-            if (meta?.follow_up_responses?.na_responses) {
-              aggregated[qr.response_id].na_responses = meta.follow_up_responses.na_responses;
+            if (meta?.follow_up_responses && typeof meta.follow_up_responses === 'object') {
+              const followUp = meta.follow_up_responses as any;
+              if (followUp.na_responses) {
+                aggregated[qr.response_id].na_responses = followUp.na_responses;
+              }
             }
           }
 
@@ -125,7 +133,7 @@ export function useSurveyResponses(configurationId?: string) {
               ratings: {},
               multiselect: {},
               text_responses: {},
-              na_responses: meta.follow_up_responses?.na_responses || {}
+              na_responses: (meta.follow_up_responses && typeof meta.follow_up_responses === 'object' && (meta.follow_up_responses as any).na_responses) || {}
             };
           }
         });
