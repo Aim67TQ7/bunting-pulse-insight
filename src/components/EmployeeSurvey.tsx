@@ -21,13 +21,11 @@ import magnetApplicationsLogo from "@/assets/magnet-applications-logo-2.png";
 import northAmericaIcon from "@/assets/north-america-icon.png";
 import europeIcon from "@/assets/europe-icon.png";
 import { useSurveyQuestions } from "@/hooks/useSurveyQuestions";
-
 interface LanguageContent {
   [key: string]: {
     [key: string]: string;
   };
 }
-
 const languageContent: LanguageContent = {
   en: {
     title: "Employee Engagement Survey",
@@ -380,7 +378,6 @@ const languageContent: LanguageContent = {
     adminHR: "Amministrazione/HR/Finanza"
   }
 };
-
 interface RatingQuestion {
   id: string;
   text: string;
@@ -389,11 +386,13 @@ interface RatingQuestion {
   answerSet?: any;
   display_order: number;
 }
-
 interface DemographicQuestion {
   id: string;
   text: string;
-  options: { value: string; label: string }[];
+  options: {
+    value: string;
+    label: string;
+  }[];
   section: string;
   display_order: number;
 }
@@ -401,38 +400,34 @@ interface DemographicQuestion {
 // These functions now use database questions with answer sets
 const getMultiSelectQuestions = (dbQuestions: any[] | undefined, language: string) => {
   if (!dbQuestions) return [];
-  return dbQuestions
-    .filter(q => q.question_type === 'multiselect')
-    .map(q => {
-      // Use answer_set options if available, otherwise fall back to inline options
-      const options = q.answer_set?.answer_options 
-        ? q.answer_set.answer_options.map((opt: any) => ({
-            value: opt.option_key,
-            label: opt.labels[language] || opt.labels.en
-          }))
-        : (q.options || []).map((opt: any) => ({
-            value: opt.value,
-            label: opt.labels[language] || opt.labels.en
-          }));
-      
-      return {
-        id: q.question_id,
-        text: q.labels[language] || q.labels.en,
-        section: q.section || "Other",
-        options,
-        display_order: q.display_order || 0
-      };
-    });
+  return dbQuestions.filter(q => q.question_type === 'multiselect').map(q => {
+    // Use answer_set options if available, otherwise fall back to inline options
+    const options = q.answer_set?.answer_options ? q.answer_set.answer_options.map((opt: any) => ({
+      value: opt.option_key,
+      label: opt.labels[language] || opt.labels.en
+    })) : (q.options || []).map((opt: any) => ({
+      value: opt.value,
+      label: opt.labels[language] || opt.labels.en
+    }));
+    return {
+      id: q.question_id,
+      text: q.labels[language] || q.labels.en,
+      section: q.section || "Other",
+      options,
+      display_order: q.display_order || 0
+    };
+  });
 };
-
 interface MultiSelectQuestion {
   id: string;
   text: string;
   section: string;
-  options: { value: string; label: string }[];
+  options: {
+    value: string;
+    label: string;
+  }[];
   display_order: number;
 }
-
 interface TextQuestion {
   id: string;
   text: string;
@@ -440,69 +435,56 @@ interface TextQuestion {
   display_order: number;
   is_required: boolean;
 }
-
 const getRatingQuestions = (dbQuestions: any[] | undefined, language: string): RatingQuestion[] => {
   if (!dbQuestions) return [];
-  return dbQuestions
-    .filter(q => q.question_type === 'rating')
-    .map(q => ({
-      id: q.question_id,
-      text: q.labels[language] || q.labels.en,
-      section: q.section || "Other",
-      feedbackPrompt: q.follow_up_rules?.prompts?.[language] || q.follow_up_rules?.prompts?.en || "",
-      answerSet: q.answer_set,
-      display_order: q.display_order || 0
-    }));
+  return dbQuestions.filter(q => q.question_type === 'rating').map(q => ({
+    id: q.question_id,
+    text: q.labels[language] || q.labels.en,
+    section: q.section || "Other",
+    feedbackPrompt: q.follow_up_rules?.prompts?.[language] || q.follow_up_rules?.prompts?.en || "",
+    answerSet: q.answer_set,
+    display_order: q.display_order || 0
+  }));
 };
-
 const getDemographicQuestions = (dbQuestions: any[] | undefined, language: string): DemographicQuestion[] => {
   if (!dbQuestions) return [];
-  return dbQuestions
-    .filter(q => q.question_type === 'demographic')
-    .map(q => {
-      // Use answer_set options if available, otherwise fall back to inline options
-      const options = q.answer_set?.answer_options 
-        ? q.answer_set.answer_options.map((opt: any) => ({
-            value: opt.option_key,
-            label: opt.labels[language] || opt.labels.en
-          }))
-        : (q.options || []).map((opt: any) => ({
-            value: opt.value,
-            label: opt.labels[language] || opt.labels.en
-          }));
-      
-      return {
-        id: q.question_id,
-        text: q.labels[language] || q.labels.en,
-        options,
-        section: q.section || "Demographics",
-        display_order: q.display_order || 0
-      };
-    });
-};
-
-const getTextQuestions = (dbQuestions: any[] | undefined, language: string): TextQuestion[] => {
-  if (!dbQuestions) return [];
-  return dbQuestions
-    .filter(q => q.question_type === 'text')
-    .map(q => ({
+  return dbQuestions.filter(q => q.question_type === 'demographic').map(q => {
+    // Use answer_set options if available, otherwise fall back to inline options
+    const options = q.answer_set?.answer_options ? q.answer_set.answer_options.map((opt: any) => ({
+      value: opt.option_key,
+      label: opt.labels[language] || opt.labels.en
+    })) : (q.options || []).map((opt: any) => ({
+      value: opt.value,
+      label: opt.labels[language] || opt.labels.en
+    }));
+    return {
       id: q.question_id,
       text: q.labels[language] || q.labels.en,
-      section: q.section || "Feedback",
-      display_order: q.display_order || 0,
-      is_required: q.is_required || false
-    }));
+      options,
+      section: q.section || "Demographics",
+      display_order: q.display_order || 0
+    };
+  });
+};
+const getTextQuestions = (dbQuestions: any[] | undefined, language: string): TextQuestion[] => {
+  if (!dbQuestions) return [];
+  return dbQuestions.filter(q => q.question_type === 'text').map(q => ({
+    id: q.question_id,
+    text: q.labels[language] || q.labels.en,
+    section: q.section || "Feedback",
+    display_order: q.display_order || 0,
+    is_required: q.is_required || false
+  }));
 };
 
 // Emojis for 1-5 scale (matching document requirements)
 const ratingEmojis = {
   1: "😞",
-  2: "😕", 
+  2: "😕",
   3: "😐",
   4: "😊",
   5: "😍"
 };
-
 const getRatingLabels = (language: string, answerSet?: any) => {
   // Always use answer set from database
   if (answerSet?.answer_options) {
@@ -515,15 +497,17 @@ const getRatingLabels = (language: string, answerSet?: any) => {
     });
     return labels;
   }
-  
+
   // No fallback - return empty object if no answer set
   console.warn('No answer set found for rating question');
   return {};
 };
-
 type SurveySection = "landing" | "survey" | "complete";
-
-export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }) {
+export function EmployeeSurvey({
+  onViewResults
+}: {
+  onViewResults?: () => void;
+}) {
   const [currentSection, setCurrentSection] = useState<SurveySection>("landing");
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [ratingResponses, setRatingResponses] = useState<Record<string, number>>({});
@@ -541,24 +525,27 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showQRCode, setShowQRCode] = useState(false);
   const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
-  
+
   // GDPR Consent state
   const [showConsentDialog, setShowConsentDialog] = useState(false);
   const [consentGiven, setConsentGiven] = useState(false);
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showDataRights, setShowDataRights] = useState(false);
-  
+
   // Auto-save state
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [draftId, setDraftId] = useState<string | null>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedDataRef = useRef<string>('');
-  
-  const { toast } = useToast();
-  
-  // Load questions from database
-  const { data: allQuestions, isLoading: questionsLoading } = useSurveyQuestions();
+  const {
+    toast
+  } = useToast();
 
+  // Load questions from database
+  const {
+    data: allQuestions,
+    isLoading: questionsLoading
+  } = useSurveyQuestions();
   useEffect(() => {
     const count = parseInt(localStorage.getItem("survey-submissions") || "0");
     setSubmissionCount(count);
@@ -568,7 +555,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   const autoSaveSurvey = useCallback(async () => {
     // Only auto-save if survey is in progress
     if (currentSection !== 'survey') return;
-    
+
     // Create current data snapshot
     const currentData = JSON.stringify({
       responses,
@@ -580,14 +567,12 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
       additionalComments,
       elapsedTime
     });
-    
+
     // Skip if data hasn't changed since last save
     if (currentData === lastSavedDataRef.current) {
       return;
     }
-    
     setAutoSaveStatus('saving');
-    
     try {
       const surveyData = {
         continent: mapDemographicValues(responses.continent, 'continent') || null,
@@ -597,75 +582,62 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
         completion_time_seconds: elapsedTime,
         is_draft: true,
         last_autosave_at: new Date().toISOString(),
-        
         // Engagement & Job Satisfaction
         job_satisfaction: ratingResponses["job-satisfaction"] || null,
         recommend_company: ratingResponses["company-satisfaction"] || null,
         strategic_confidence: ratingResponses["future-view"] || null,
-        
         // Leadership & Communication
         leadership_openness: ratingResponses["expectations"] || null,
         performance_awareness: ratingResponses["performance-awareness"] || null,
         communication_clarity: ratingResponses["relaying-information"] || null,
         manager_alignment: ratingResponses["management-feedback"] || null,
-        
         // Training & Development
         training_satisfaction: ratingResponses["training"] || null,
         advancement_opportunities: ratingResponses["opportunities"] || null,
-        
         // Teamwork & Culture
         cross_functional_collaboration: ratingResponses["cooperation"] || null,
         team_morale: ratingResponses["morale"] || null,
         pride_in_work: ratingResponses["pride"] || null,
-        
         // Safety & Work Environment
         workplace_safety: ratingResponses["safety-focus"] || null,
         safety_reporting_comfort: ratingResponses["safety-reporting"] || null,
-        
         // Scheduling & Workload
         workload_manageability: ratingResponses["workload"] || null,
         work_life_balance: ratingResponses["work-life-balance"] || null,
-        
         // Tools, Equipment & Processes
         tools_equipment_quality: ratingResponses["tools"] || null,
         manual_processes_focus: ratingResponses["processes"] || null,
         company_value_alignment: ratingResponses["company-value"] || null,
         comfortable_suggesting_improvements: ratingResponses["change"] || null,
-        
         // Multi-select arrays
         communication_preferences: multiSelectResponses["communication-preferences"] || [],
         information_preferences: multiSelectResponses["information-preferences"] || [],
         motivation_factors: multiSelectResponses["motivation-factors"] || [],
-        
         // Text feedback
         collaboration_feedback: collaborationFeedback || "",
         additional_comments: additionalComments || "",
-        
         // Store ALL feedback responses in JSONB (including low-rating feedback)
         follow_up_responses: {
           ...feedbackResponses,
           language: language,
           na_responses: naResponses
         },
-        
         // GDPR consent fields
         consent_given: consentGiven,
         consent_timestamp: consentGiven ? new Date().toISOString() : null
       };
-
-      const { data, error } = await supabase
-        .from("employee_survey_responses")
-        .upsert(surveyData, { onConflict: 'session_id' })
-        .select('id')
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from("employee_survey_responses").upsert(surveyData, {
+        onConflict: 'session_id'
+      }).select('id').single();
       if (error) throw error;
-      
       if (data?.id) {
         setDraftId(data.id);
         lastSavedDataRef.current = currentData;
         setAutoSaveStatus('saved');
-        
+
         // Reset to idle after 2 seconds
         setTimeout(() => setAutoSaveStatus('idle'), 2000);
       }
@@ -675,18 +647,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
       // Reset to idle after showing error
       setTimeout(() => setAutoSaveStatus('idle'), 3000);
     }
-  }, [
-    currentSection, 
-    responses, 
-    ratingResponses, 
-    feedbackResponses, 
-    multiSelectResponses, 
-    collaborationFeedback, 
-    additionalComments, 
-    sessionId, 
-    elapsedTime,
-    language
-  ]);
+  }, [currentSection, responses, ratingResponses, feedbackResponses, multiSelectResponses, collaborationFeedback, additionalComments, sessionId, elapsedTime, language]);
 
   // Debounced auto-save trigger
   const triggerAutoSave = useCallback(() => {
@@ -694,7 +655,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     if (autoSaveTimeoutRef.current) {
       clearTimeout(autoSaveTimeoutRef.current);
     }
-    
+
     // Set new timeout
     autoSaveTimeoutRef.current = setTimeout(() => {
       autoSaveSurvey();
@@ -705,15 +666,11 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   useEffect(() => {
     const loadDraft = async () => {
       try {
-        const { data, error } = await supabase
-          .from("employee_survey_responses")
-          .select('*')
-          .eq('session_id', sessionId)
-          .eq('is_draft', true)
-          .maybeSingle();
-
+        const {
+          data,
+          error
+        } = await supabase.from("employee_survey_responses").select('*').eq('session_id', sessionId).eq('is_draft', true).maybeSingle();
         if (error) throw error;
-        
         if (data) {
           // Restore demographic responses
           const restoredResponses: Record<string, string> = {};
@@ -769,20 +726,17 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
           // Restore text fields
           if (data.collaboration_feedback) setCollaborationFeedback(data.collaboration_feedback);
           if (data.additional_comments) setAdditionalComments(data.additional_comments);
-          
           setDraftId(data.id);
           setElapsedTime(data.completion_time_seconds || 0);
-          
           toast({
             title: "Draft restored",
-            description: "Continuing your previous survey session.",
+            description: "Continuing your previous survey session."
           });
         }
       } catch (error) {
         console.error("Error loading draft:", error);
       }
     };
-
     if (currentSection === 'survey') {
       loadDraft();
     }
@@ -805,7 +759,6 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     }
     return () => clearInterval(interval);
   }, [startTime, isComplete]);
-
   const startSurvey = async () => {
     // Check if cookie consent has been given
     const cookieConsent = localStorage.getItem("cookie-consent");
@@ -813,14 +766,14 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
       toast({
         title: "Cookie Consent Required",
         description: "Please accept cookies to proceed with the survey",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-    
+
     // Auto-consent and proceed directly to survey
     setConsentGiven(true);
-    
+
     // Record consent in database
     try {
       await supabase.from("survey_consent_log").insert({
@@ -833,21 +786,19 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     } catch (error) {
       console.error("Error recording consent:", error);
     }
-    
+
     // Start the survey
     setStartTime(Date.now());
     setCurrentSection("survey");
-    
     toast({
       title: "Welcome",
-      description: "Let's begin the survey.",
+      description: "Let's begin the survey."
     });
   };
-
   const handleConsentGiven = async () => {
     setConsentGiven(true);
     setShowConsentDialog(false);
-    
+
     // Record consent in database
     try {
       await supabase.from("survey_consent_log").insert({
@@ -860,52 +811,44 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     } catch (error) {
       console.error("Error recording consent:", error);
     }
-    
+
     // Start the survey
     setStartTime(Date.now());
     setCurrentSection("survey");
-    
     toast({
       title: "Thank you",
-      description: "Your consent has been recorded. Let's begin the survey.",
+      description: "Your consent has been recorded. Let's begin the survey."
     });
   };
-
   const handleConsentDeclined = () => {
     setShowConsentDialog(false);
     toast({
       title: "Survey Cancelled",
-      description: "You chose not to participate. No data has been collected.",
+      description: "You chose not to participate. No data has been collected."
     });
   };
-
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-
   const downloadQRCode = () => {
     const svg = document.getElementById('survey-qr-code');
     if (!svg) return;
-    
     const svgData = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
-    
     img.onload = () => {
       canvas.width = img.width;
       canvas.height = img.height;
       ctx?.drawImage(img, 0, 0);
       const pngFile = canvas.toDataURL('image/png');
-      
       const downloadLink = document.createElement('a');
       downloadLink.download = 'survey-qr-code.png';
       downloadLink.href = pngFile;
       downloadLink.click();
     };
-    
     img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
   };
 
@@ -926,7 +869,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     setAdditionalComments("");
     toast({
       title: "Survey data reset",
-      description: "You can now take the survey again for testing.",
+      description: "You can now take the survey again for testing."
     });
   };
 
@@ -937,71 +880,76 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
       delete (window as any).resetSurvey;
     };
   }, []);
-
   const getTotalQuestions = () => {
     const textQuestions = getTextQuestions(allQuestions, language);
     const requiredTextQuestions = textQuestions.filter(q => q.is_required).length;
-    return getDemographicQuestions(allQuestions, language).length + 
-           getRatingQuestions(allQuestions, language).length + 
-           getMultiSelectQuestions(allQuestions, language).length +
-           requiredTextQuestions;
+    return getDemographicQuestions(allQuestions, language).length + getRatingQuestions(allQuestions, language).length + getMultiSelectQuestions(allQuestions, language).length + requiredTextQuestions;
   };
-
-  const progress = ((Object.keys(responses).length + Object.keys(ratingResponses).length + Object.keys(multiSelectResponses).length + Object.keys(textResponses).filter(key => {
+  const progress = (Object.keys(responses).length + Object.keys(ratingResponses).length + Object.keys(multiSelectResponses).length + Object.keys(textResponses).filter(key => {
     const question = getTextQuestions(allQuestions, language).find(q => q.id === key);
     return question?.is_required;
-  }).length) / getTotalQuestions()) * 100;
-
+  }).length) / getTotalQuestions() * 100;
   const handleDemographicResponse = (questionId: string, value: string) => {
     setResponses(prev => ({
       ...prev,
       [questionId]: value
     }));
   };
-
   const handleRatingResponse = (questionId: string, rating: number) => {
-    setRatingResponses(prev => ({ ...prev, [questionId]: rating }));
+    setRatingResponses(prev => ({
+      ...prev,
+      [questionId]: rating
+    }));
   };
-
   const handleFeedbackResponse = (questionId: string, feedback: string) => {
-    setFeedbackResponses(prev => ({ ...prev, [questionId]: feedback }));
+    setFeedbackResponses(prev => ({
+      ...prev,
+      [questionId]: feedback
+    }));
   };
-
   const handleMultiSelectResponse = (questionId: string, selectedOptions: string[]) => {
-    setMultiSelectResponses(prev => ({ ...prev, [questionId]: selectedOptions }));
+    setMultiSelectResponses(prev => ({
+      ...prev,
+      [questionId]: selectedOptions
+    }));
   };
-
   const handleNaResponse = (questionId: string, isNa: boolean) => {
-    setNaResponses(prev => ({ ...prev, [questionId]: isNa }));
+    setNaResponses(prev => ({
+      ...prev,
+      [questionId]: isNa
+    }));
     // Clear rating and feedback when N/A is selected
     if (isNa) {
       setRatingResponses(prev => {
-        const updated = { ...prev };
+        const updated = {
+          ...prev
+        };
         delete updated[questionId];
         return updated;
       });
       setFeedbackResponses(prev => {
-        const updated = { ...prev };
+        const updated = {
+          ...prev
+        };
         delete updated[questionId];
         return updated;
       });
     }
   };
-
   const isAllQuestionsAnswered = () => {
     // Get all questions
     const demographicQuestions = getDemographicQuestions(allQuestions, language);
     const ratingQuestions = getRatingQuestions(allQuestions, language);
     const multiSelectQuestions = getMultiSelectQuestions(allQuestions, language);
     const textQuestions = getTextQuestions(allQuestions, language);
-    
+
     // Check demographics - all required
     const unansweredDemographics = demographicQuestions.filter(q => {
       const answer = responses[q.id];
       return !answer || answer.trim() === '';
     });
     const allDemographicsAnswered = unansweredDemographics.length === 0;
-    
+
     // Check ratings - all required (unless marked N/A)
     const unansweredRatings = ratingQuestions.filter(q => {
       const isNa = naResponses[q.id];
@@ -1010,23 +958,21 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
       return rating === undefined || rating === null || rating < 1 || rating > 5;
     });
     const allRatingsAnswered = unansweredRatings.length === 0;
-    
+
     // Check low rating feedback - required for ratings 1 or 2 (not for N/A)
-    const lowRatingsWithoutFeedback = ratingQuestions
-      .filter(q => !naResponses[q.id] && ratingResponses[q.id] !== undefined && ratingResponses[q.id] <= 2)
-      .filter(q => {
-        const feedback = feedbackResponses[q.id];
-        return !feedback || feedback.trim() === '';
-      });
+    const lowRatingsWithoutFeedback = ratingQuestions.filter(q => !naResponses[q.id] && ratingResponses[q.id] !== undefined && ratingResponses[q.id] <= 2).filter(q => {
+      const feedback = feedbackResponses[q.id];
+      return !feedback || feedback.trim() === '';
+    });
     const allLowRatingsFeedbackProvided = lowRatingsWithoutFeedback.length === 0;
-    
+
     // Check multiselect - at least one option selected for each
     const unansweredMultiSelect = multiSelectQuestions.filter(q => {
       const selected = multiSelectResponses[q.id];
       return !selected || !Array.isArray(selected) || selected.length === 0;
     });
     const allMultiSelectAnswered = unansweredMultiSelect.length === 0;
-    
+
     // Check text questions - only required ones need answers
     const unansweredTextQuestions = textQuestions.filter(q => {
       if (!q.is_required) return false;
@@ -1034,7 +980,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
       return !answer || answer.trim() === '';
     });
     const allTextQuestionsAnswered = unansweredTextQuestions.length === 0;
-    
+
     // Debug logging
     console.log('Survey Completion Check:', {
       allDemographicsAnswered,
@@ -1048,7 +994,6 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
       allTextQuestionsAnswered,
       unansweredTextQuestions: unansweredTextQuestions.map(q => q.id)
     });
-    
     return allDemographicsAnswered && allRatingsAnswered && allLowRatingsFeedbackProvided && allMultiSelectAnswered && allTextQuestionsAnswered;
   };
 
@@ -1061,7 +1006,8 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
       },
       division: {
         'equipment': 'Equipment',
-        'magnetics': 'Magnets', // Note: database expects "Magnets" not "Magnetics"
+        'magnetics': 'Magnets',
+        // Note: database expects "Magnets" not "Magnetics"
         'both': 'Both'
       },
       role: {
@@ -1070,25 +1016,19 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
         'admin': 'Admin/HR/Finance'
       }
     };
-
     return mappings[field][value as keyof typeof mappings[typeof field]] || value;
   };
-
   const handleSubmit = async () => {
     if (!isAllQuestionsAnswered()) {
       // Provide specific feedback about what's missing
       const demographicQuestions = getDemographicQuestions(allQuestions, language);
       const ratingQuestions = getRatingQuestions(allQuestions, language);
       const multiSelectQuestions = getMultiSelectQuestions(allQuestions, language);
-      
       const missingDemographics = demographicQuestions.filter(q => !responses[q.id]?.trim());
       const missingRatings = ratingQuestions.filter(q => !naResponses[q.id] && ratingResponses[q.id] === undefined);
       const missingMultiSelect = multiSelectQuestions.filter(q => !multiSelectResponses[q.id]?.length);
-      const missingFeedback = ratingQuestions
-        .filter(q => !naResponses[q.id] && ratingResponses[q.id] <= 2 && !feedbackResponses[q.id]?.trim());
-      
+      const missingFeedback = ratingQuestions.filter(q => !naResponses[q.id] && ratingResponses[q.id] <= 2 && !feedbackResponses[q.id]?.trim());
       let errorMessage = "Please complete all required fields:\n";
-      
       if (missingDemographics.length > 0) {
         errorMessage += `\n• ${missingDemographics.length} demographic question(s)`;
       }
@@ -1104,28 +1044,27 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
       if (missingFeedback.length > 0) {
         errorMessage += `\n• ${missingFeedback.length} low rating(s) need explanation`;
       }
-      
       toast({
         title: "Survey Incomplete",
         description: errorMessage,
         variant: "destructive",
-        duration: 10000,
+        duration: 10000
       });
-      
+
       // Scroll to first missing question
       const firstMissing = missingDemographics[0] || missingRatings[0] || missingMultiSelect[0];
       if (firstMissing) {
         setTimeout(() => {
           const element = document.querySelector(`[data-question-id="${firstMissing.id}"]`);
-          element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
         }, 300);
       }
-      
       return;
     }
-
     setIsSubmitting(true);
-
     try {
       // Map survey responses to database schema with proper value mapping
       const surveyData = {
@@ -1134,71 +1073,61 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
         role: mapDemographicValues(responses.role, 'role'),
         session_id: sessionId,
         completion_time_seconds: elapsedTime,
-        is_draft: false,  // Mark as complete
+        is_draft: false,
+        // Mark as complete
         submitted_at: new Date().toISOString(),
-        
         // Engagement & Job Satisfaction
         job_satisfaction: ratingResponses["job-satisfaction"],
         recommend_company: ratingResponses["company-satisfaction"],
         strategic_confidence: ratingResponses["future-view"],
-        
         // Leadership & Communication
         leadership_openness: ratingResponses["expectations"],
         performance_awareness: ratingResponses["performance-awareness"],
         communication_clarity: ratingResponses["relaying-information"],
         manager_alignment: ratingResponses["management-feedback"],
-        
         // Training & Development
         training_satisfaction: ratingResponses["training"],
         advancement_opportunities: ratingResponses["opportunities"],
-        
         // Teamwork & Culture
         cross_functional_collaboration: ratingResponses["cooperation"],
         team_morale: ratingResponses["morale"],
         pride_in_work: ratingResponses["pride"],
-        
         // Safety & Work Environment
         workplace_safety: ratingResponses["safety-focus"],
         safety_reporting_comfort: ratingResponses["safety-reporting"],
-        
         // Scheduling & Workload
         workload_manageability: ratingResponses["workload"],
         work_life_balance: ratingResponses["work-life-balance"],
-        
         // Tools, Equipment & Processes
         tools_equipment_quality: ratingResponses["tools"],
         manual_processes_focus: ratingResponses["processes"],
         company_value_alignment: ratingResponses["company-value"],
         comfortable_suggesting_improvements: ratingResponses["change"],
-        
         // Multi-select arrays
         communication_preferences: multiSelectResponses["communication-preferences"] || [],
         information_preferences: multiSelectResponses["information-preferences"] || [],
         motivation_factors: multiSelectResponses["motivation-factors"] || [],
-        
         // Text feedback
         collaboration_feedback: collaborationFeedback || "",
         additional_comments: additionalComments || "",
-        
         // Store ALL feedback responses in JSONB (including low-rating feedback)
         follow_up_responses: {
           ...feedbackResponses,
           language: language,
           na_responses: naResponses
         },
-        
         // GDPR consent fields
         consent_given: consentGiven,
         consent_timestamp: consentGiven ? new Date().toISOString() : null
       };
 
       // Use upsert to update existing draft or insert new
-      const { data: insertedResponse, error } = await supabase
-        .from("employee_survey_responses")
-        .upsert(surveyData, { onConflict: 'session_id' })
-        .select('id')
-        .single();
-
+      const {
+        data: insertedResponse,
+        error
+      } = await supabase.from("employee_survey_responses").upsert(surveyData, {
+        onConflict: 'session_id'
+      }).select('id').single();
       if (error) throw error;
 
       // Track individual question responses for analytics
@@ -1206,9 +1135,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
         const questionResponses = [];
 
         // Create a lookup map for display_order from raw database questions
-        const displayOrderMap = new Map(
-          allQuestions.map(q => [q.question_id, q.display_order])
-        );
+        const displayOrderMap = new Map(allQuestions.map(q => [q.question_id, q.display_order]));
 
         // Track demographic questions
         const demographicQuestions = getDemographicQuestions(allQuestions, language);
@@ -1218,7 +1145,9 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
               response_id: insertedResponse.id,
               question_id: question.id,
               question_type: 'demographic',
-              answer_value: { value: responses[question.id] },
+              answer_value: {
+                value: responses[question.id]
+              },
               display_order: displayOrderMap.get(question.id)
             });
           }
@@ -1232,7 +1161,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
               response_id: insertedResponse.id,
               question_id: question.id,
               question_type: 'rating',
-              answer_value: { 
+              answer_value: {
                 rating: ratingResponses[question.id],
                 feedback: feedbackResponses[question.id] || null
               },
@@ -1249,7 +1178,9 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
               response_id: insertedResponse.id,
               question_id: question.id,
               question_type: 'multiselect',
-              answer_value: { selected: multiSelectResponses[question.id] },
+              answer_value: {
+                selected: multiSelectResponses[question.id]
+              },
               display_order: displayOrderMap.get(question.id)
             });
           }
@@ -1263,7 +1194,9 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
               response_id: insertedResponse.id,
               question_id: question.id,
               question_type: 'text',
-              answer_value: { text: textResponses[question.id] },
+              answer_value: {
+                text: textResponses[question.id]
+              },
               display_order: displayOrderMap.get(question.id)
             });
           }
@@ -1271,41 +1204,36 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
 
         // Insert all question responses
         if (questionResponses.length > 0) {
-          const { error: detailError } = await supabase
-            .from("survey_question_responses")
-            .insert(questionResponses);
-
+          const {
+            error: detailError
+          } = await supabase.from("survey_question_responses").insert(questionResponses);
           if (detailError) {
             console.error("Error saving question responses:", detailError);
             // Don't fail the whole submission if detail tracking fails
           }
         }
       }
-
       const currentCount = parseInt(localStorage.getItem("survey-submissions") || "0");
       localStorage.setItem("survey-submissions", String(currentCount + 1));
       setSubmissionCount(currentCount + 1);
       setIsComplete(true);
-
       toast({
         title: "Survey submitted!",
-        description: "Thank you for your feedback.",
+        description: "Thank you for your feedback."
       });
     } catch (error) {
       console.error("Error submitting survey:", error);
       toast({
         title: "Submission failed",
         description: "There was an error submitting your survey. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-
   if (currentSection === "landing") {
-    return (
-      <div className="min-h-screen bg-background p-4">
+    return <div className="min-h-screen bg-background p-4">
         <div className="max-w-4xl mx-auto mt-12">
           <Card className="text-center">
             <CardHeader>
@@ -1315,83 +1243,18 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Button 
-                onClick={startSurvey}
-                className="w-full max-w-md mx-auto"
-                size="lg"
-              >
+              <Button onClick={startSurvey} className="w-full max-w-md mx-auto" size="lg">
                 Start Survey
               </Button>
               
-              <div className="pt-8 border-t space-y-4">
-                <div className="flex gap-2 flex-wrap justify-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      console.log('Survey - Privacy Policy button clicked');
-                      setShowPrivacyPolicy(true);
-                    }}
-                  >
-                    <ShieldIcon className="h-4 w-4 mr-2" />
-                    Privacy Policy
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      console.log('Survey - Manage My Data button clicked');
-                      setShowDataRights(true);
-                    }}
-                  >
-                    <ShieldIcon className="h-4 w-4 mr-2" />
-                    Manage My Data
-                  </Button>
-                </div>
-                
-                <Button
-                  variant="outline"
-                  onClick={() => setShowQRCode(!showQRCode)}
-                  className="mb-4"
-                >
-                  {showQRCode ? 'Hide' : 'Show'} QR Code
-                </Button>
-                
-                {showQRCode && (
-                  <div className="space-y-4">
-                    <div className="flex justify-center">
-                      <QRCodeSVG 
-                        id="survey-qr-code"
-                        value="https://survey.buntinggpt.com"
-                        size={256}
-                        level="H"
-                        includeMargin={true}
-                      />
-                    </div>
-                    <Button
-                      variant="secondary"
-                      onClick={downloadQRCode}
-                      className="gap-2"
-                    >
-                      <Download className="h-4 w-4" />
-                      Download QR Code
-                    </Button>
-                    <p className="text-sm text-muted-foreground">
-                      Scan to access: https://survey.buntinggpt.com
-                    </p>
-                  </div>
-                )}
-              </div>
+              
             </CardContent>
           </Card>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (isComplete) {
-    return (
-      <div className="min-h-screen bg-background p-4">
+    return <div className="min-h-screen bg-background p-4">
         <div className="max-w-4xl mx-auto mt-12">
           <Card className="text-center">
             <CardHeader>
@@ -1435,11 +1298,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
                 </div>
               </div>
               
-              <Button 
-                variant="outline"
-                onClick={() => setShowDataRights(true)}
-                className="gap-2"
-              >
+              <Button variant="outline" onClick={() => setShowDataRights(true)} className="gap-2">
                 <ShieldIcon className="h-4 w-4" />
                 Manage My Data (Access, Download, or Delete)
               </Button>
@@ -1449,90 +1308,50 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
         
         {/* Data Rights Manager Dialog */}
         <DataRightsManager open={showDataRights} onOpenChange={setShowDataRights} />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-background p-4 touch-pan-y">
+  return <div className="min-h-screen bg-background p-4 touch-pan-y">
       {/* GDPR Components */}
       <CookieConsentBanner />
       <GDPRPrivacyPolicy open={showPrivacyPolicy} onOpenChange={setShowPrivacyPolicy} />
-      <SurveyConsentDialog 
-        open={showConsentDialog}
-        onConsent={handleConsentGiven}
-        onDecline={handleConsentDeclined}
-        onViewPrivacyPolicy={() => setShowPrivacyPolicy(true)}
-      />
+      <SurveyConsentDialog open={showConsentDialog} onConsent={handleConsentGiven} onDecline={handleConsentDeclined} onViewPrivacyPolicy={() => setShowPrivacyPolicy(true)} />
       <DataRightsManager open={showDataRights} onOpenChange={setShowDataRights} />
       
-      <div className="max-w-4xl mx-auto"
-           style={{ 
-             WebkitTouchCallout: 'none',
-             WebkitUserSelect: 'none',
-             userSelect: 'none'
-           }}>
+      <div className="max-w-4xl mx-auto" style={{
+      WebkitTouchCallout: 'none',
+      WebkitUserSelect: 'none',
+      userSelect: 'none'
+    }}>
         {/* Language Selector and Timer */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-2">
             <Globe className="h-4 w-4 text-muted-foreground" />
             <div className="flex gap-1">
-              <Button
-                variant={language === 'en' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setLanguage('en')}
-              >
+              <Button variant={language === 'en' ? 'default' : 'outline'} size="sm" onClick={() => setLanguage('en')}>
                 EN
               </Button>
-              <Button
-                variant={language === 'es' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setLanguage('es')}
-              >
+              <Button variant={language === 'es' ? 'default' : 'outline'} size="sm" onClick={() => setLanguage('es')}>
                 ES
               </Button>
-              <Button
-                variant={language === 'fr' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setLanguage('fr')}
-              >
+              <Button variant={language === 'fr' ? 'default' : 'outline'} size="sm" onClick={() => setLanguage('fr')}>
                 FR
               </Button>
-              <Button
-                variant={language === 'it' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setLanguage('it')}
-              >
+              <Button variant={language === 'it' ? 'default' : 'outline'} size="sm" onClick={() => setLanguage('it')}>
                 IT
               </Button>
             </div>
           </div>
           <div className="flex items-center gap-4">
             {/* Auto-save indicator */}
-            {autoSaveStatus !== 'idle' && (
-              <Badge 
-                variant={autoSaveStatus === 'error' ? 'destructive' : 'outline'} 
-                className="text-sm px-3 py-1"
-              >
-                {autoSaveStatus === 'saving' && (
-                  <><LoaderIcon className="w-3 h-3 mr-1 animate-spin inline" /> Saving...</>
-                )}
-                {autoSaveStatus === 'saved' && (
-                  <><SaveIcon className="w-3 h-3 mr-1 inline" /> Saved</>
-                )}
-                {autoSaveStatus === 'error' && (
-                  <><AlertTriangleIcon className="w-3 h-3 mr-1 inline" /> Save failed</>
-                )}
-              </Badge>
-            )}
+            {autoSaveStatus !== 'idle' && <Badge variant={autoSaveStatus === 'error' ? 'destructive' : 'outline'} className="text-sm px-3 py-1">
+                {autoSaveStatus === 'saving' && <><LoaderIcon className="w-3 h-3 mr-1 animate-spin inline" /> Saving...</>}
+                {autoSaveStatus === 'saved' && <><SaveIcon className="w-3 h-3 mr-1 inline" /> Saved</>}
+                {autoSaveStatus === 'error' && <><AlertTriangleIcon className="w-3 h-3 mr-1 inline" /> Save failed</>}
+              </Badge>}
             <div className="text-sm font-medium">
               Time: {formatTime(elapsedTime)}
             </div>
-            <Button 
-              variant="destructive" 
-              size="sm" 
-              onClick={resetSurveyData}
-            >
+            <Button variant="destructive" size="sm" onClick={resetSurveyData}>
               Reset
             </Button>
           </div>
@@ -1555,41 +1374,14 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
           </div>
         </div>
 
-        {questionsLoading ? (
-          <div className="flex items-center justify-center p-12">
+        {questionsLoading ? <div className="flex items-center justify-center p-12">
             <LoaderIcon className="w-8 h-8 animate-spin" />
-          </div>
-        ) : (
-          <OnPageSurvey
-            demographicQuestions={getDemographicQuestions(allQuestions, language)}
-            ratingQuestions={getRatingQuestions(allQuestions, language)}
-            multiSelectQuestions={getMultiSelectQuestions(allQuestions, language)}
-            textQuestions={getTextQuestions(allQuestions, language)}
-            demographicResponses={responses}
-            ratingResponses={ratingResponses}
-            feedbackResponses={feedbackResponses}
-            multiSelectResponses={multiSelectResponses}
-            textResponses={textResponses}
-            naResponses={naResponses}
-            collaborationFeedback={collaborationFeedback}
-            additionalComments={additionalComments}
-            onDemographicChange={handleDemographicResponse}
-            onRatingChange={handleRatingResponse}
-            onFeedbackChange={handleFeedbackResponse}
-            onNaChange={handleNaResponse}
-            onMultiSelectChange={handleMultiSelectResponse}
-            onTextChange={(questionId, value) => setTextResponses(prev => ({ ...prev, [questionId]: value }))}
-            onCollaborationFeedbackChange={setCollaborationFeedback}
-            onAdditionalCommentsChange={setAdditionalComments}
-            onSubmit={handleSubmit}
-            canSubmit={isAllQuestionsAnswered()}
-            isSubmitting={isSubmitting}
-            language={language}
-          />
-        )}
+          </div> : <OnPageSurvey demographicQuestions={getDemographicQuestions(allQuestions, language)} ratingQuestions={getRatingQuestions(allQuestions, language)} multiSelectQuestions={getMultiSelectQuestions(allQuestions, language)} textQuestions={getTextQuestions(allQuestions, language)} demographicResponses={responses} ratingResponses={ratingResponses} feedbackResponses={feedbackResponses} multiSelectResponses={multiSelectResponses} textResponses={textResponses} naResponses={naResponses} collaborationFeedback={collaborationFeedback} additionalComments={additionalComments} onDemographicChange={handleDemographicResponse} onRatingChange={handleRatingResponse} onFeedbackChange={handleFeedbackResponse} onNaChange={handleNaResponse} onMultiSelectChange={handleMultiSelectResponse} onTextChange={(questionId, value) => setTextResponses(prev => ({
+        ...prev,
+        [questionId]: value
+      }))} onCollaborationFeedbackChange={setCollaborationFeedback} onAdditionalCommentsChange={setAdditionalComments} onSubmit={handleSubmit} canSubmit={isAllQuestionsAnswered()} isSubmitting={isSubmitting} language={language} />}
       </div>
-    </div>
-  );
+    </div>;
 }
 
 // One-Page Survey Component
@@ -1619,7 +1411,6 @@ interface OnPageSurveyProps {
   isSubmitting?: boolean;
   language: 'en' | 'es' | 'fr' | 'it';
 }
-
 function OnPageSurvey({
   demographicQuestions,
   ratingQuestions,
@@ -1677,9 +1468,7 @@ function OnPageSurvey({
     const firstQuestionB = groupedQuestions[b][0];
     return (firstQuestionA.display_order || 0) - (firstQuestionB.display_order || 0);
   });
-
-  return (
-    <div className="space-y-8">
+  return <div className="space-y-8">
       {/* Required Fields Notice */}
       <Card className="bg-muted/50 border-primary/20">
         <CardContent className="pt-6">
@@ -1701,117 +1490,66 @@ function OnPageSurvey({
       </Card>
 
       {/* Dynamically render all sections based on database */}
-      {sortedSections.map((section) => {
-        const sectionQuestions = groupedQuestions[section].sort((a, b) => 
-          (a.display_order || 0) - (b.display_order || 0)
-        );
-        return (
-          <Card key={section}>
+      {sortedSections.map(section => {
+      const sectionQuestions = groupedQuestions[section].sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+      return <Card key={section}>
             <CardHeader>
               <CardTitle>{getSectionTitle(section)}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {sectionQuestions.map((question) => {
-                // Check if it's a demographic question (has 'continent', 'division', 'role' id pattern)
-                if ('id' in question && demographicQuestions.some(dq => dq.id === question.id)) {
-                  return (
-                    <DemographicQuestion
-                      key={question.id}
-                      question={question as DemographicQuestion}
-                      value={demographicResponses[question.id]}
-                      onResponse={(value) => onDemographicChange(question.id, value)}
-                    />
-                  );
-                }
-                // Check if it's a multi-select question
-                else if ('options' in question && Array.isArray((question as MultiSelectQuestion).options)) {
-                  const msQuestion = question as MultiSelectQuestion;
-                  const isRequired = true; // All multiselect questions are required
-                  const hasError = isRequired && (!multiSelectResponses[question.id] || multiSelectResponses[question.id].length === 0);
-                  
-                  return (
-                    <Card key={question.id}>
+              {sectionQuestions.map(question => {
+            // Check if it's a demographic question (has 'continent', 'division', 'role' id pattern)
+            if ('id' in question && demographicQuestions.some(dq => dq.id === question.id)) {
+              return <DemographicQuestion key={question.id} question={question as DemographicQuestion} value={demographicResponses[question.id]} onResponse={value => onDemographicChange(question.id, value)} />;
+            }
+            // Check if it's a multi-select question
+            else if ('options' in question && Array.isArray((question as MultiSelectQuestion).options)) {
+              const msQuestion = question as MultiSelectQuestion;
+              const isRequired = true; // All multiselect questions are required
+              const hasError = isRequired && (!multiSelectResponses[question.id] || multiSelectResponses[question.id].length === 0);
+              return <Card key={question.id}>
                       <CardHeader>
                         <CardTitle>
                           {msQuestion.text}
                           {isRequired && <span className="text-destructive ml-1">*</span>}
                         </CardTitle>
-                        {hasError && (
-                          <p className="text-xs text-destructive mt-2">Please select at least one option</p>
-                        )}
+                        {hasError && <p className="text-xs text-destructive mt-2">Please select at least one option</p>}
                       </CardHeader>
                       <CardContent className="space-y-2">
-                        {msQuestion.options.map((option) => (
-                          <div key={option.value} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`${question.id}-${option.value}`}
-                              checked={multiSelectResponses[question.id]?.includes(option.value)}
-                              onCheckedChange={(checked) => {
-                                const current = multiSelectResponses[question.id] || [];
-                                const updated = checked
-                                  ? [...current, option.value]
-                                  : current.filter(v => v !== option.value);
-                                onMultiSelectChange(question.id, updated);
-                              }}
-                            />
+                        {msQuestion.options.map(option => <div key={option.value} className="flex items-center space-x-2">
+                            <Checkbox id={`${question.id}-${option.value}`} checked={multiSelectResponses[question.id]?.includes(option.value)} onCheckedChange={checked => {
+                      const current = multiSelectResponses[question.id] || [];
+                      const updated = checked ? [...current, option.value] : current.filter(v => v !== option.value);
+                      onMultiSelectChange(question.id, updated);
+                    }} />
                             <Label htmlFor={`${question.id}-${option.value}`}>{option.label}</Label>
-                          </div>
-                        ))}
+                          </div>)}
                       </CardContent>
-                    </Card>
-                  );
-                }
-                // Rating question
-                else {
-                  const ratingQuestion = question as RatingQuestion;
-                  return (
-                    <RatingQuestion
-                      key={question.id}
-                      question={ratingQuestion}
-                      response={ratingResponses[question.id]}
-                      feedback={feedbackResponses[question.id]}
-                      isNa={naResponses[question.id]}
-                      onRatingChange={(rating) => onRatingChange(question.id, rating)}
-                      onFeedbackChange={(feedback) => onFeedbackChange(question.id, feedback)}
-                      onNaChange={(isNa) => onNaChange(question.id, isNa)}
-                      language={language}
-                    />
-                  );
-                }
-              })}
+                    </Card>;
+            }
+            // Rating question
+            else {
+              const ratingQuestion = question as RatingQuestion;
+              return <RatingQuestion key={question.id} question={ratingQuestion} response={ratingResponses[question.id]} feedback={feedbackResponses[question.id]} isNa={naResponses[question.id]} onRatingChange={rating => onRatingChange(question.id, rating)} onFeedbackChange={feedback => onFeedbackChange(question.id, feedback)} onNaChange={isNa => onNaChange(question.id, isNa)} language={language} />;
+            }
+          })}
             </CardContent>
-          </Card>
-        );
-      })}
+          </Card>;
+    })}
 
       {/* Text Questions Section */}
-      {textQuestions.length > 0 && textQuestions.map((question) => (
-        <Card key={question.id} data-question-id={question.id}>
+      {textQuestions.length > 0 && textQuestions.map(question => <Card key={question.id} data-question-id={question.id}>
           <CardHeader>
             <CardTitle>
               {question.text}
               {question.is_required && <span className="text-destructive ml-1">*</span>}
             </CardTitle>
-            {question.is_required && !textResponses[question.id] && (
-              <p className="text-xs text-destructive mt-2">⚠️ This question is required</p>
-            )}
+            {question.is_required && !textResponses[question.id] && <p className="text-xs text-destructive mt-2">⚠️ This question is required</p>}
           </CardHeader>
           <CardContent>
-            <Textarea
-              value={textResponses[question.id] || ''}
-              onChange={(e) => onTextChange(question.id, e.target.value)}
-              placeholder={
-                language === 'en' ? "Share your thoughts..." : 
-                language === 'es' ? "Comparte tus pensamientos..." :
-                language === 'fr' ? "Partagez vos réflexions..." :
-                "Condividi i tuoi pensieri..."
-              }
-              rows={5}
-              className="w-full"
-            />
+            <Textarea value={textResponses[question.id] || ''} onChange={e => onTextChange(question.id, e.target.value)} placeholder={language === 'en' ? "Share your thoughts..." : language === 'es' ? "Comparte tus pensamientos..." : language === 'fr' ? "Partagez vos réflexions..." : "Condividi i tuoi pensieri..."} rows={5} className="w-full" />
           </CardContent>
-        </Card>
-      ))}
+        </Card>)}
 
       {/* Additional Comments Section */}
       <Card>
@@ -1822,26 +1560,15 @@ function OnPageSurvey({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Textarea
-            placeholder="Any additional comments or suggestions..."
-            value={additionalComments}
-            onChange={(e) => onAdditionalCommentsChange(e.target.value)}
-            className="min-h-[120px]"
-          />
+          <Textarea placeholder="Any additional comments or suggestions..." value={additionalComments} onChange={e => onAdditionalCommentsChange(e.target.value)} className="min-h-[120px]" />
         </CardContent>
       </Card>
 
       {/* Submit Button */}
-      <Button
-        onClick={onSubmit}
-        disabled={!canSubmit || isSubmitting}
-        className="w-full"
-        size="lg"
-      >
+      <Button onClick={onSubmit} disabled={!canSubmit || isSubmitting} className="w-full" size="lg">
         {isSubmitting ? "Submitting..." : "Submit Survey"}
       </Button>
-    </div>
-  );
+    </div>;
 }
 
 // Demographic Question Component
@@ -1850,72 +1577,50 @@ interface DemographicQuestionProps {
   value: string;
   onResponse: (value: string) => void;
 }
-
-function DemographicQuestion({ question, value, onResponse }: DemographicQuestionProps) {
+function DemographicQuestion({
+  question,
+  value,
+  onResponse
+}: DemographicQuestionProps) {
   const isDivisionQuestion = question.id === "division";
   const isContinentQuestion = question.id === "continent";
   const isRoleQuestion = question.id === "role";
   const isRequired = true; // All demographic questions are required
-  
-  return (
-    <Card data-question-id={question.id}>
+
+  return <Card data-question-id={question.id}>
       <CardHeader>
         <CardTitle>
           {question.text}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </CardTitle>
         {/* Show error if unanswered */}
-        {!value && (
-          <p className="text-xs text-destructive mt-2">⚠️ This question is required</p>
-        )}
+        {!value && <p className="text-xs text-destructive mt-2">⚠️ This question is required</p>}
       </CardHeader>
       <CardContent className="space-y-4">
         <RadioGroup onValueChange={onResponse} value={value}>
-          {question.options.map((option) => (
-            <div key={option.value} className="flex items-center space-x-4 p-4 rounded-lg hover:bg-muted/50 transition-colors touch-manipulation border">
+          {question.options.map(option => <div key={option.value} className="flex items-center space-x-4 p-4 rounded-lg hover:bg-muted/50 transition-colors touch-manipulation border">
               <RadioGroupItem value={option.value} id={option.value} className="min-w-[20px] min-h-[20px]" />
               
-              {isDivisionQuestion && (option.value === "equipment" || option.value === "magnetics") && (
-                <div className="flex items-center justify-center">
-                  <img 
-                    src={option.value === "equipment" ? buntingLogo : magnetApplicationsLogo} 
-                    alt={option.value === "equipment" ? "Bunting" : "Magnet Applications - A Division of Bunting"}
-                    className="h-8 w-auto"
-                  />
-                </div>
-              )}
+              {isDivisionQuestion && (option.value === "equipment" || option.value === "magnetics") && <div className="flex items-center justify-center">
+                  <img src={option.value === "equipment" ? buntingLogo : magnetApplicationsLogo} alt={option.value === "equipment" ? "Bunting" : "Magnet Applications - A Division of Bunting"} className="h-8 w-auto" />
+                </div>}
 
-              {isContinentQuestion && (
-                <div className="flex items-center justify-center">
-                  <img 
-                    src={option.value === "north-america" ? northAmericaIcon : europeIcon} 
-                    alt={option.value === "north-america" ? "North America" : "Europe"}
-                    className="h-8 w-auto"
-                  />
-                </div>
-              )}
+              {isContinentQuestion && <div className="flex items-center justify-center">
+                  <img src={option.value === "north-america" ? northAmericaIcon : europeIcon} alt={option.value === "north-america" ? "North America" : "Europe"} className="h-8 w-auto" />
+                </div>}
               
               <Label htmlFor={option.value} className="flex-1 cursor-pointer select-none text-lg font-medium">
                 {option.label}
               </Label>
-            </div>
-          ))}
+            </div>)}
         </RadioGroup>
         
-        {isRoleQuestion && (
-          <Button 
-            variant="outline" 
-            className="w-full mt-4" 
-            onClick={() => onResponse("other")}
-          >
+        {isRoleQuestion && <Button variant="outline" className="w-full mt-4" onClick={() => onResponse("other")}>
             Skip
-          </Button>
-        )}
+          </Button>}
       </CardContent>
-    </Card>
-  );
+    </Card>;
 }
-
 interface RatingQuestionProps {
   question: RatingQuestion;
   response: number | undefined;
@@ -1926,23 +1631,24 @@ interface RatingQuestionProps {
   onNaChange: (isNa: boolean) => void;
   language: 'en' | 'es' | 'fr' | 'it';
 }
-
-function RatingQuestion({ question, response, feedback, isNa, onRatingChange, onFeedbackChange, onNaChange, language }: RatingQuestionProps) {
+function RatingQuestion({
+  question,
+  response,
+  feedback,
+  isNa,
+  onRatingChange,
+  onFeedbackChange,
+  onNaChange,
+  language
+}: RatingQuestionProps) {
   const ratingLabels = getRatingLabels(language, question.answerSet);
   const isRequired = true; // All rating questions are required
   const requiresFeedback = response !== undefined && response <= 2;
   const feedbackError = requiresFeedback && !feedback?.trim();
-  
-  // Get rating options from answerSet, or default to [1, 2, 3, 4, 5]
-  const ratingOptions = question.answerSet?.answer_options
-    ? question.answerSet.answer_options
-        .map((opt: any) => opt.metadata?.numeric_value || parseInt(opt.option_key))
-        .filter((val: number) => !isNaN(val))
-        .sort((a: number, b: number) => a - b)
-    : [1, 2, 3, 4, 5];
 
-  return (
-    <div data-question-id={question.id}>
+  // Get rating options from answerSet, or default to [1, 2, 3, 4, 5]
+  const ratingOptions = question.answerSet?.answer_options ? question.answerSet.answer_options.map((opt: any) => opt.metadata?.numeric_value || parseInt(opt.option_key)).filter((val: number) => !isNaN(val)).sort((a: number, b: number) => a - b) : [1, 2, 3, 4, 5];
+  return <div data-question-id={question.id}>
       <div className="flex items-start justify-between gap-4 mb-4">
         <h3 className="font-medium flex-1">
           {question.text}
@@ -1954,80 +1660,37 @@ function RatingQuestion({ question, response, feedback, isNa, onRatingChange, on
           <Label htmlFor={`na-${question.id}`} className="text-sm text-muted-foreground cursor-pointer">
             N/A
           </Label>
-          <Checkbox
-            id={`na-${question.id}`}
-            checked={isNa || false}
-            onCheckedChange={(checked) => onNaChange(checked === true)}
-          />
+          <Checkbox id={`na-${question.id}`} checked={isNa || false} onCheckedChange={checked => onNaChange(checked === true)} />
         </div>
       </div>
       
       {/* Show warning if unanswered and not N/A */}
-      {!isNa && response === undefined && (
-        <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+      {!isNa && response === undefined && <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
           <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">⚠️ Please rate this question or select N/A to continue</p>
-        </div>
-      )}
+        </div>}
       
       {/* Rating Scale with Emojis - Hidden when N/A is selected */}
-      {!isNa && (
-        <div className="flex justify-center space-x-2 md:space-x-4 mb-4">
-          {ratingOptions.map((rating) => (
-            <button
-              key={rating}
-              onClick={() => onRatingChange(rating)}
-              className={cn(
-                "flex flex-col items-center p-2 md:p-3 rounded-lg border-2 transition-all touch-manipulation",
-                "select-none focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px] min-w-[60px]",
-                "active:scale-95 hover:scale-105",
-                response === rating
-                  ? "border-primary bg-primary/10 ring-2 ring-primary"
-                  : "border-border hover:border-primary/50 active:bg-muted/70"
-              )}
-              onTouchStart={(e) => e.preventDefault()}
-              type="button"
-            >
+      {!isNa && <div className="flex justify-center space-x-2 md:space-x-4 mb-4">
+          {ratingOptions.map(rating => <button key={rating} onClick={() => onRatingChange(rating)} className={cn("flex flex-col items-center p-2 md:p-3 rounded-lg border-2 transition-all touch-manipulation", "select-none focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px] min-w-[60px]", "active:scale-95 hover:scale-105", response === rating ? "border-primary bg-primary/10 ring-2 ring-primary" : "border-border hover:border-primary/50 active:bg-muted/70")} onTouchStart={e => e.preventDefault()} type="button">
               <span className="text-xl md:text-2xl mb-1 select-none">{ratingEmojis[rating as keyof typeof ratingEmojis]}</span>
               <span className="text-xs text-muted-foreground text-center select-none leading-tight">
                 {ratingLabels[rating as keyof typeof ratingLabels] || rating}
               </span>
-            </button>
-          ))}
-        </div>
-      )}
+            </button>)}
+        </div>}
       
       {/* N/A Selected Message */}
-      {isNa && (
-        <div className="mb-4 p-3 bg-muted/50 border border-border rounded-lg">
+      {isNa && <div className="mb-4 p-3 bg-muted/50 border border-border rounded-lg">
           <p className="text-sm text-muted-foreground text-center">✓ Marked as Not Applicable</p>
-        </div>
-      )}
+        </div>}
 
       {/* Feedback box for low scores - REQUIRED for all 1-2 ratings, hidden when N/A */}
-      {!isNa && response !== undefined && response <= 2 && (
-        <div className="space-y-2">
-          <Label htmlFor={`feedback-${question.id}`} className={cn(
-            "text-sm font-medium",
-            feedbackError ? "text-destructive" : "text-destructive"
-          )}>
+      {!isNa && response !== undefined && response <= 2 && <div className="space-y-2">
+          <Label htmlFor={`feedback-${question.id}`} className={cn("text-sm font-medium", feedbackError ? "text-destructive" : "text-destructive")}>
             {languageContent[language].lowRatingFeedback} *
           </Label>
-          <Textarea
-            id={`feedback-${question.id}`}
-            placeholder={languageContent[language].lowRatingFeedback}
-            value={feedback || ""}
-            onChange={(e) => onFeedbackChange(e.target.value)}
-            className={cn(
-              "min-h-[100px] touch-manipulation",
-              feedbackError ? "border-destructive/50" : "border-destructive/50"
-            )}
-            required
-          />
-          {feedbackError && (
-            <p className="text-xs text-destructive">This feedback is required for low ratings (1-2)</p>
-          )}
-        </div>
-      )}
-    </div>
-  );
+          <Textarea id={`feedback-${question.id}`} placeholder={languageContent[language].lowRatingFeedback} value={feedback || ""} onChange={e => onFeedbackChange(e.target.value)} className={cn("min-h-[100px] touch-manipulation", feedbackError ? "border-destructive/50" : "border-destructive/50")} required />
+          {feedbackError && <p className="text-xs text-destructive">This feedback is required for low ratings (1-2)</p>}
+        </div>}
+    </div>;
 }
