@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckIcon, AlertTriangleIcon, LoaderIcon, Globe, Download, SaveIcon, ShieldIcon } from "lucide-react";
+import { CheckIcon, AlertTriangleIcon, LoaderIcon, Globe, Download, SaveIcon, ShieldIcon, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -508,6 +508,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
   const [ratingResponses, setRatingResponses] = useState<Record<string, number>>({});
   const [feedbackResponses, setFeedbackResponses] = useState<Record<string, string>>({});
   const [multiSelectResponses, setMultiSelectResponses] = useState<Record<string, string[]>>({});
+  const [naResponses, setNaResponses] = useState<Record<string, boolean>>({});
   const [collaborationFeedback, setCollaborationFeedback] = useState("");
   const [additionalComments, setAdditionalComments] = useState("");
   const [isComplete, setIsComplete] = useState(false);
@@ -552,6 +553,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
       ratingResponses,
       feedbackResponses,
       multiSelectResponses,
+      naResponses,
       collaborationFeedback,
       additionalComments,
       elapsedTime
@@ -620,7 +622,8 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
         // Store ALL feedback responses in JSONB (including low-rating feedback)
         follow_up_responses: {
           ...feedbackResponses,
-          language: language
+          language: language,
+          na_responses: naResponses
         },
         
         // GDPR consent fields
@@ -895,7 +898,7 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     setRatingResponses({});
     setFeedbackResponses({});
     setMultiSelectResponses({});
-    setCollaborationFeedback("");
+    setNaResponses({});
     setStartTime(null);
     setElapsedTime(0);
     setAdditionalComments("");
@@ -940,6 +943,23 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     setMultiSelectResponses(prev => ({ ...prev, [questionId]: selectedOptions }));
   };
 
+  const handleNaResponse = (questionId: string, isNa: boolean) => {
+    setNaResponses(prev => ({ ...prev, [questionId]: isNa }));
+    // Clear rating and feedback when N/A is selected
+    if (isNa) {
+      setRatingResponses(prev => {
+        const updated = { ...prev };
+        delete updated[questionId];
+        return updated;
+      });
+      setFeedbackResponses(prev => {
+        const updated = { ...prev };
+        delete updated[questionId];
+        return updated;
+      });
+    }
+  };
+
   const isAllQuestionsAnswered = () => {
     // Get all questions
     const demographicQuestions = getDemographicQuestions(allQuestions, language);
@@ -953,16 +973,18 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
     });
     const allDemographicsAnswered = unansweredDemographics.length === 0;
     
-    // Check ratings - all required
+    // Check ratings - all required (unless marked N/A)
     const unansweredRatings = ratingQuestions.filter(q => {
+      const isNa = naResponses[q.id];
+      if (isNa) return false; // N/A questions don't need answers
       const rating = ratingResponses[q.id];
       return rating === undefined || rating === null || rating < 1 || rating > 5;
     });
     const allRatingsAnswered = unansweredRatings.length === 0;
     
-    // Check low rating feedback - required for ratings 1 or 2
+    // Check low rating feedback - required for ratings 1 or 2 (not for N/A)
     const lowRatingsWithoutFeedback = ratingQuestions
-      .filter(q => ratingResponses[q.id] !== undefined && ratingResponses[q.id] <= 2)
+      .filter(q => !naResponses[q.id] && ratingResponses[q.id] !== undefined && ratingResponses[q.id] <= 2)
       .filter(q => {
         const feedback = feedbackResponses[q.id];
         return !feedback || feedback.trim() === '';
@@ -1021,10 +1043,10 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
       const multiSelectQuestions = getMultiSelectQuestions(allQuestions, language);
       
       const missingDemographics = demographicQuestions.filter(q => !responses[q.id]?.trim());
-      const missingRatings = ratingQuestions.filter(q => ratingResponses[q.id] === undefined);
+      const missingRatings = ratingQuestions.filter(q => !naResponses[q.id] && ratingResponses[q.id] === undefined);
       const missingMultiSelect = multiSelectQuestions.filter(q => !multiSelectResponses[q.id]?.length);
       const missingFeedback = ratingQuestions
-        .filter(q => ratingResponses[q.id] <= 2 && !feedbackResponses[q.id]?.trim());
+        .filter(q => !naResponses[q.id] && ratingResponses[q.id] <= 2 && !feedbackResponses[q.id]?.trim());
       
       let errorMessage = "Please complete all required fields:\n";
       
@@ -1122,7 +1144,8 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
         // Store ALL feedback responses in JSONB (including low-rating feedback)
         follow_up_responses: {
           ...feedbackResponses,
-          language: language
+          language: language,
+          na_responses: naResponses
         },
         
         // GDPR consent fields
@@ -1492,11 +1515,13 @@ export function EmployeeSurvey({ onViewResults }: { onViewResults?: () => void }
             ratingResponses={ratingResponses}
             feedbackResponses={feedbackResponses}
             multiSelectResponses={multiSelectResponses}
+            naResponses={naResponses}
             collaborationFeedback={collaborationFeedback}
             additionalComments={additionalComments}
             onDemographicChange={handleDemographicResponse}
             onRatingChange={handleRatingResponse}
             onFeedbackChange={handleFeedbackResponse}
+            onNaChange={handleNaResponse}
             onMultiSelectChange={handleMultiSelectResponse}
             onCollaborationFeedbackChange={setCollaborationFeedback}
             onAdditionalCommentsChange={setAdditionalComments}
@@ -1520,11 +1545,13 @@ interface OnPageSurveyProps {
   ratingResponses: Record<string, number>;
   feedbackResponses: Record<string, string>;
   multiSelectResponses: Record<string, string[]>;
+  naResponses: Record<string, boolean>;
   collaborationFeedback: string;
   additionalComments: string;
   onDemographicChange: (questionId: string, value: string) => void;
   onRatingChange: (questionId: string, rating: number) => void;
   onFeedbackChange: (questionId: string, feedback: string) => void;
+  onNaChange: (questionId: string, isNa: boolean) => void;
   onMultiSelectChange: (questionId: string, selectedOptions: string[]) => void;
   onCollaborationFeedbackChange: (feedback: string) => void;
   onAdditionalCommentsChange: (comments: string) => void;
@@ -1542,11 +1569,13 @@ function OnPageSurvey({
   ratingResponses,
   feedbackResponses,
   multiSelectResponses,
+  naResponses,
   collaborationFeedback,
   additionalComments,
   onDemographicChange,
   onRatingChange,
   onFeedbackChange,
+  onNaChange,
   onMultiSelectChange,
   onCollaborationFeedbackChange,
   onAdditionalCommentsChange,
@@ -1679,8 +1708,10 @@ function OnPageSurvey({
                       question={ratingQuestion}
                       response={ratingResponses[question.id]}
                       feedback={feedbackResponses[question.id]}
+                      isNa={naResponses[question.id]}
                       onRatingChange={(rating) => onRatingChange(question.id, rating)}
                       onFeedbackChange={(feedback) => onFeedbackChange(question.id, feedback)}
+                      onNaChange={(isNa) => onNaChange(question.id, isNa)}
                       language={language}
                     />
                   );
@@ -1798,12 +1829,14 @@ interface RatingQuestionProps {
   question: RatingQuestion;
   response: number | undefined;
   feedback: string | undefined;
+  isNa: boolean | undefined;
   onRatingChange: (rating: number) => void;
   onFeedbackChange: (feedback: string) => void;
+  onNaChange: (isNa: boolean) => void;
   language: 'en' | 'es' | 'fr' | 'it';
 }
 
-function RatingQuestion({ question, response, feedback, onRatingChange, onFeedbackChange, language }: RatingQuestionProps) {
+function RatingQuestion({ question, response, feedback, isNa, onRatingChange, onFeedbackChange, onNaChange, language }: RatingQuestionProps) {
   const ratingLabels = getRatingLabels(language, question.answerSet);
   const isRequired = true; // All rating questions are required
   const requiresFeedback = response !== undefined && response <= 2;
@@ -1819,45 +1852,68 @@ function RatingQuestion({ question, response, feedback, onRatingChange, onFeedba
 
   return (
     <div data-question-id={question.id}>
-      <h3 className="font-medium mb-4">
-        {question.text}
-        {isRequired && <span className="text-destructive ml-1">*</span>}
-      </h3>
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <h3 className="font-medium flex-1">
+          {question.text}
+          {isRequired && <span className="text-destructive ml-1">*</span>}
+        </h3>
+        
+        {/* N/A Toggle */}
+        <div className="flex items-center gap-2 shrink-0">
+          <Label htmlFor={`na-${question.id}`} className="text-sm text-muted-foreground cursor-pointer">
+            N/A
+          </Label>
+          <Checkbox
+            id={`na-${question.id}`}
+            checked={isNa || false}
+            onCheckedChange={(checked) => onNaChange(checked === true)}
+          />
+        </div>
+      </div>
       
-      {/* Show warning if unanswered */}
-      {response === undefined && (
+      {/* Show warning if unanswered and not N/A */}
+      {!isNa && response === undefined && (
         <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
-          <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">⚠️ Please rate this question to continue</p>
+          <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">⚠️ Please rate this question or select N/A to continue</p>
         </div>
       )}
       
-      {/* Rating Scale with Emojis */}
-      <div className="flex justify-center space-x-2 md:space-x-4 mb-4">
-        {ratingOptions.map((rating) => (
-          <button
-            key={rating}
-            onClick={() => onRatingChange(rating)}
-            className={cn(
-              "flex flex-col items-center p-2 md:p-3 rounded-lg border-2 transition-all touch-manipulation",
-              "select-none focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px] min-w-[60px]",
-              "active:scale-95 hover:scale-105",
-              response === rating
-                ? "border-primary bg-primary/10 ring-2 ring-primary"
-                : "border-border hover:border-primary/50 active:bg-muted/70"
-            )}
-            onTouchStart={(e) => e.preventDefault()}
-            type="button"
-          >
-            <span className="text-xl md:text-2xl mb-1 select-none">{ratingEmojis[rating as keyof typeof ratingEmojis]}</span>
-            <span className="text-xs text-muted-foreground text-center select-none leading-tight">
-              {ratingLabels[rating as keyof typeof ratingLabels] || rating}
-            </span>
-          </button>
-        ))}
-      </div>
+      {/* Rating Scale with Emojis - Hidden when N/A is selected */}
+      {!isNa && (
+        <div className="flex justify-center space-x-2 md:space-x-4 mb-4">
+          {ratingOptions.map((rating) => (
+            <button
+              key={rating}
+              onClick={() => onRatingChange(rating)}
+              className={cn(
+                "flex flex-col items-center p-2 md:p-3 rounded-lg border-2 transition-all touch-manipulation",
+                "select-none focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px] min-w-[60px]",
+                "active:scale-95 hover:scale-105",
+                response === rating
+                  ? "border-primary bg-primary/10 ring-2 ring-primary"
+                  : "border-border hover:border-primary/50 active:bg-muted/70"
+              )}
+              onTouchStart={(e) => e.preventDefault()}
+              type="button"
+            >
+              <span className="text-xl md:text-2xl mb-1 select-none">{ratingEmojis[rating as keyof typeof ratingEmojis]}</span>
+              <span className="text-xs text-muted-foreground text-center select-none leading-tight">
+                {ratingLabels[rating as keyof typeof ratingLabels] || rating}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+      
+      {/* N/A Selected Message */}
+      {isNa && (
+        <div className="mb-4 p-3 bg-muted/50 border border-border rounded-lg">
+          <p className="text-sm text-muted-foreground text-center">✓ Marked as Not Applicable</p>
+        </div>
+      )}
 
-      {/* Feedback box for low scores - REQUIRED for all 1-2 ratings */}
-      {response !== undefined && response <= 2 && (
+      {/* Feedback box for low scores - REQUIRED for all 1-2 ratings, hidden when N/A */}
+      {!isNa && response !== undefined && response <= 2 && (
         <div className="space-y-2">
           <Label htmlFor={`feedback-${question.id}`} className={cn(
             "text-sm font-medium",
