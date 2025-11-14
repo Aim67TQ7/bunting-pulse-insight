@@ -17,7 +17,7 @@ const RATING_EMOJIS: Record<number, string> = {
   2: "😕",
   3: "😐",
   4: "😊",
-  5: "😍"
+  5: "😄"
 };
 interface QuestionResponse {
   id: string;
