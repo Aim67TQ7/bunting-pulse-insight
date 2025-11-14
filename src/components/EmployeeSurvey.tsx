@@ -1484,6 +1484,10 @@ function OnPageSurvey({
   isSubmitting = false,
   language
 }: OnPageSurveyProps) {
+  // Debug logging
+  console.log('[OnPageSurvey] Text questions:', textQuestions);
+  console.log('[OnPageSurvey] Text questions count:', textQuestions.length);
+  
   const getSectionTitle = (sectionKey: string): string => {
     const sectionMap: Record<string, keyof typeof languageContent.en> = {
       "Demographics": "demographics",
@@ -1498,7 +1502,7 @@ function OnPageSurvey({
     return languageContent[language][sectionMap[sectionKey]] || sectionKey;
   };
 
-  // Group ALL questions by section (including demographics)
+  // Group ALL questions by section (including demographics) - Text questions are rendered separately
   const allQuestions = [...demographicQuestions, ...ratingQuestions, ...multiSelectQuestions];
   const groupedQuestions = allQuestions.reduce((acc, question) => {
     const section = question.section || "Demographics";
@@ -1597,6 +1601,13 @@ function OnPageSurvey({
             <Textarea value={textResponses[question.id] || ''} onChange={e => onTextChange(question.id, e.target.value)} placeholder={language === 'en' ? "Share your thoughts..." : language === 'es' ? "Comparte tus pensamientos..." : language === 'fr' ? "Partagez vos réflexions..." : "Condividi i tuoi pensieri..."} rows={5} className="w-full" />
           </CardContent>
         </Card>)}
+      
+      {/* Debug: Show if no text questions */}
+      {textQuestions.length === 0 && (
+        <div className="hidden" data-debug="no-text-questions">
+          No text questions loaded
+        </div>
+      )}
 
       {/* Additional Comments Section */}
       <Card>
