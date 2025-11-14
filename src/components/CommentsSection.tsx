@@ -37,10 +37,10 @@ export const CommentsSection = ({ configurationId }: CommentsSectionProps) => {
           question_id,
           answer_value,
           created_at,
-          survey_question_config!inner(
-            question_labels,
-            question_type
-          ),
+        survey_question_config!inner(
+          labels,
+          question_type
+        ),
           employee_survey_responses!inner(
             continent,
             division,
@@ -66,10 +66,10 @@ export const CommentsSection = ({ configurationId }: CommentsSectionProps) => {
           question_id,
           answer_value,
           created_at,
-          survey_question_config!inner(
-            question_labels,
-            question_type
-          ),
+        survey_question_config!inner(
+          labels,
+          question_type
+        ),
           employee_survey_responses!inner(
             continent,
             division,
@@ -89,12 +89,13 @@ export const CommentsSection = ({ configurationId }: CommentsSectionProps) => {
       // Process text responses
       if (textResponses) {
         textResponses.forEach((response: any) => {
-          const textValue = response.answer_value?.text;
+          // Handle both new text structure and legacy feedback structure
+          const textValue = response.answer_value?.text || response.answer_value?.feedback;
           if (textValue && textValue.trim()) {
             comments.push({
               id: response.id,
               response_id: response.response_id,
-              comment_type: response.survey_question_config.question_labels?.en || 'Text Response',
+              comment_type: response.survey_question_config.labels?.en || 'Text Response',
               comment_text: textValue,
               created_at: response.created_at,
               continent: response.employee_survey_responses.continent,

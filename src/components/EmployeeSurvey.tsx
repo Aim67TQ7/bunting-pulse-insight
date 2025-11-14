@@ -1255,6 +1255,34 @@ export function EmployeeSurvey({
         </div>
       </div>;
   }
+  // Auto-redirect countdown
+  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (isComplete) {
+      setRedirectCountdown(5);
+      const interval = setInterval(() => {
+        setRedirectCountdown(prev => {
+          if (prev === null || prev <= 1) {
+            clearInterval(interval);
+            // Reset to landing page
+            setCurrentSection("landing");
+            setIsComplete(false);
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isComplete]);
+
+  const handleReturnNow = () => {
+    setCurrentSection("landing");
+    setIsComplete(false);
+    setRedirectCountdown(null);
+  };
+
   if (isComplete) {
     return <div className="min-h-screen bg-background p-4">
         <div className="max-w-4xl mx-auto mt-12">
@@ -1271,6 +1299,23 @@ export function EmployeeSurvey({
                   Time to complete: {formatTime(elapsedTime)}
                 </p>
               </div>
+              
+              {redirectCountdown !== null && (
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                  <p className="text-sm font-medium">
+                    Returning to home page in {redirectCountdown} second{redirectCountdown !== 1 ? 's' : ''}...
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleReturnNow}
+                    className="mt-2"
+                  >
+                    Return Now
+                  </Button>
+                </div>
+              )}
+              
               <div className="bg-muted/50 p-6 rounded-lg">
                 <p className="text-lg">
                   We truly appreciate you taking the time to share your feedback with us.
@@ -1651,43 +1696,66 @@ function RatingQuestion({
 
   // Get rating options from answerSet, or default to [1, 2, 3, 4, 5]
   const ratingOptions = question.answerSet?.answer_options ? question.answerSet.answer_options.map((opt: any) => opt.metadata?.numeric_value || parseInt(opt.option_key)).filter((val: number) => !isNaN(val)).sort((a: number, b: number) => a - b) : [1, 2, 3, 4, 5];
+  
+  const handleNaChange = () => {
+    onNaChange(!isNa);
+  };
+
   return <div data-question-id={question.id}>
-      <div className="flex items-start justify-between gap-4 mb-4">
-        <h3 className="font-medium flex-1">
+      <div className="mb-4">
+        <h3 className="font-medium">
           {question.text}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </h3>
-        
-        {/* N/A Toggle - Only show if allow_na is true */}
-        {showNa && (
-          <div className="flex items-center gap-2 shrink-0">
-            <Label htmlFor={`na-${question.id}`} className="text-sm text-muted-foreground cursor-pointer">
-              N/A
-            </Label>
-            <Checkbox id={`na-${question.id}`} checked={isNa || false} onCheckedChange={checked => onNaChange(checked === true)} />
-          </div>
-        )}
       </div>
+
+      {/* N/A Status Message */}
+      {isNa && showNa && <div className="bg-muted/50 rounded-lg p-3 mb-4 flex items-center gap-2 text-sm">
+          <CheckIcon className="h-4 w-4 text-primary" />
+          <span>✓ Marked as Not Applicable</span>
+        </div>}
       
       {/* Show warning if unanswered and not N/A */}
       {!isNa && response === undefined && <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
           <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">⚠️ Please rate this question{showNa ? ' or select N/A' : ''} to continue</p>
         </div>}
-      
-      {/* Rating Scale with Emojis - Hidden when N/A is selected */}
-      {!isNa && <div className="flex justify-center space-x-2 md:space-x-4 mb-4">
-          {ratingOptions.map(rating => <button key={rating} onClick={() => onRatingChange(rating)} className={cn("flex flex-col items-center p-2 md:p-3 rounded-lg border-2 transition-all touch-manipulation", "select-none focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px] min-w-[60px]", "active:scale-95 hover:scale-105", response === rating ? "border-primary bg-primary/10 ring-2 ring-primary" : "border-border hover:border-primary/50 active:bg-muted/70")} onTouchStart={e => e.preventDefault()} type="button">
-              <span className="text-xl md:text-2xl mb-1 select-none">{ratingEmojis[rating as keyof typeof ratingEmojis]}</span>
-              <span className="text-xs text-muted-foreground text-center select-none leading-tight">
-                {ratingLabels[rating as keyof typeof ratingLabels] || rating}
-              </span>
-            </button>)}
-        </div>}
-      
-      {/* N/A Selected Message */}
-      {isNa && <div className="mb-4 p-3 bg-muted/50 border border-border rounded-lg">
-          <p className="text-sm text-muted-foreground text-center">✓ Marked as Not Applicable</p>
-        </div>}
+
+      {/* Rating Buttons - N/A First, then numbered ratings */}
+      <div className="flex flex-wrap gap-2 md:gap-3 justify-center mb-4">
+        {/* N/A Button positioned first */}
+        {showNa && <button
+          onClick={handleNaChange}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            handleNaChange();
+          }}
+          className={cn(
+            "flex flex-col items-center p-2 md:p-3 rounded-lg border-2 transition-all",
+            "touch-manipulation select-none focus:outline-none focus:ring-2 focus:ring-ring",
+            "min-h-[80px] min-w-[60px] active:scale-95 hover:scale-105",
+            isNa
+              ? "bg-primary/10 border-primary ring-2 ring-primary"
+              : "bg-background border-border hover:border-primary/50"
+          )}
+          type="button"
+        >
+          <span className="text-2xl mb-1">⊘</span>
+          <span className={cn(
+            "text-xs font-medium text-center",
+            isNa ? "text-foreground" : "text-muted-foreground"
+          )}>
+            N/A
+          </span>
+        </button>}
+        
+        {/* Numbered rating buttons */}
+        {ratingOptions.map(rating => <button key={rating} onClick={() => onRatingChange(rating)} className={cn("flex flex-col items-center p-2 md:p-3 rounded-lg border-2 transition-all touch-manipulation", "select-none focus:outline-none focus:ring-2 focus:ring-primary min-h-[80px] min-w-[60px]", "active:scale-95 hover:scale-105", response === rating ? "border-primary bg-primary/10 ring-2 ring-primary" : "border-border hover:border-primary/50 active:bg-muted/70")} onTouchStart={e => e.preventDefault()} type="button">
+            <span className="text-xl md:text-2xl mb-1 select-none">{ratingEmojis[rating as keyof typeof ratingEmojis]}</span>
+            <span className="text-xs text-muted-foreground text-center select-none leading-tight">
+              {ratingLabels[rating as keyof typeof ratingLabels] || rating}
+            </span>
+          </button>)}
+      </div>
 
       {/* Feedback box for low scores - REQUIRED for all 1-2 ratings, hidden when N/A */}
       {!isNa && response !== undefined && response <= 2 && <div className="space-y-2">
