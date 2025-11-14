@@ -10,6 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSurveyQuestions } from "@/hooks/useSurveyQuestions";
+import { cn } from "@/lib/utils";
 import buntingLogo from "@/assets/bunting-logo-2.png";
 import magnetApplicationsLogo from "@/assets/magnet-applications-logo-2.png";
 
@@ -155,6 +156,15 @@ export default function DynamicSurveyDashboard({ onBack }: { onBack?: () => void
     }, {} as Record<string, number>);
 
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
+  };
+
+  const getTextResponses = (questionId: string) => {
+    return responses
+      .map(r => ({
+        text: r.answers.get(questionId)?.answer_value?.text,
+        date: r.created_at
+      }))
+      .filter(r => r.text && r.text.trim() !== '');
   };
 
   const getSectionQuestions = (section: string) => {
@@ -456,6 +466,52 @@ export default function DynamicSurveyDashboard({ onBack }: { onBack?: () => void
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Text Question Responses */}
+        {getTextQuestions().length > 0 && (
+          <Card className="col-span-full">
+            <CardHeader>
+              <CardTitle>Open-Ended Responses</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {getTextQuestions().map((question) => {
+                const textResponses = getTextResponses(question.question_id);
+                return (
+                  <Collapsible
+                    key={question.question_id}
+                    open={openSections[`text-${question.question_id}`]}
+                    onOpenChange={(open) => setOpenSections(prev => ({ ...prev, [`text-${question.question_id}`]: open }))}
+                  >
+                    <div className="space-y-4">
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
+                        <div className="flex items-center gap-3">
+                          <h3 className="font-medium text-left">{getQuestionLabel(question.question_id)}</h3>
+                          <Badge variant="secondary">{textResponses.length} responses</Badge>
+                        </div>
+                        <ChevronDownIcon className={cn(
+                          "h-5 w-5 transition-transform",
+                          openSections[`text-${question.question_id}`] && "rotate-180"
+                        )} />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-3 pt-2">
+                        {textResponses.map((response, idx) => (
+                          <Card key={idx} className="bg-card/50">
+                            <CardContent className="pt-4">
+                              <p className="text-sm whitespace-pre-wrap">{response.text}</p>
+                              <p className="text-xs text-muted-foreground mt-2">
+                                {new Date(response.date).toLocaleDateString()}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </CollapsibleContent>
+                    </div>
+                  </Collapsible>
                 );
               })}
             </CardContent>
