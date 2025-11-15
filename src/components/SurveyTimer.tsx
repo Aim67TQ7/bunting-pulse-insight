@@ -28,6 +28,7 @@ export const SurveyTimer = ({ onStatusChange }: SurveyTimerProps) => {
 
   // Survey times
   const SURVEY_START = new Date("2025-11-16T04:00:00+00:00"); // 4 AM UK time Nov 16
+  const SURVEY_END = new Date("2025-11-23T23:59:59-06:00"); // 11:59 PM Newton KS time Nov 23
 
   useEffect(() => {
     const updateTimes = () => {
@@ -52,9 +53,13 @@ export const SurveyTimer = ({ onStatusChange }: SurveyTimerProps) => {
         newStatus = "before-open";
         const diff = SURVEY_START.getTime() - now.getTime();
         countdownText = formatCountdown(diff);
-      } else {
+      } else if (now >= SURVEY_START && now < SURVEY_END) {
         newStatus = "open";
-        countdownText = "Survey is Open";
+        const diff = SURVEY_END.getTime() - now.getTime();
+        countdownText = formatCountdown(diff);
+      } else {
+        newStatus = "closed";
+        countdownText = "Survey Closed";
       }
 
       setStatus(newStatus);
@@ -134,7 +139,7 @@ export const SurveyTimer = ({ onStatusChange }: SurveyTimerProps) => {
           <div className="text-center space-y-2">
             <div className="text-sm font-semibold text-muted-foreground">
               {status === "before-open" && "Survey Opens In"}
-              {status === "open" && "Status"}
+              {status === "open" && "Survey Closes In"}
               {status === "closed" && "Status"}
             </div>
             <div className={`text-2xl font-bold font-mono ${getCountdownStyles()}`}>
