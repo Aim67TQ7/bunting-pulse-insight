@@ -47,7 +47,9 @@ export const AIAnalysisSectionWrapper = () => {
         responses: (survey.responses_jsonb as any[] || []).map((answer: any) => ({
           question_id: answer.question_id,
           question_type: answer.question_type,
-          answer_value: answer.answer_value
+          answer_value: answer.answer_value,
+          question_labels: answer.question_labels,
+          display_order: answer.display_order
         }))
       }));
       
