@@ -27,8 +27,8 @@ export const SurveyTimer = ({ onStatusChange }: SurveyTimerProps) => {
   const [status, setStatus] = useState<SurveyStatus>("before-open");
 
   // Survey times
-  const SURVEY_START = new Date("2024-11-16T04:00:00+00:00"); // 4 AM UK time Nov 16
-  const SURVEY_END = new Date("2024-11-23T18:00:00-06:00"); // 6 PM Newton KS time Nov 23
+  const SURVEY_START = new Date("2025-11-16T04:00:00+00:00"); // 4 AM UK time Nov 16
+  const SURVEY_END = new Date("2025-11-23T18:00:00-06:00"); // 6 PM Newton KS time Nov 23
 
   useEffect(() => {
     const updateTimes = () => {
