@@ -104,10 +104,21 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
       }
 
       console.log('Analysis generated successfully');
-      setAnalysisResult(data);
+      
+      // Create properly structured result with metadata
+      const result: AnalysisResult = {
+        analysis: data.analysis,
+        metadata: {
+          totalResponses: responses.length,
+          generatedAt: new Date().toISOString(),
+          model: 'gpt-4o'
+        }
+      };
+      
+      setAnalysisResult(result);
 
       // Generate and upload PDF
-      const pdfBlob = await generatePDFBlob(data);
+      const pdfBlob = await generatePDFBlob(result);
       const fileName = `survey-analysis-${Date.now()}-${crypto.randomUUID()}.pdf`;
       
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -133,9 +144,9 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
       const { error: saveError } = await supabase
         .from('survey_analysis_reports')
         .insert({
-          analysis_text: data.analysis,
-          total_responses: data.metadata.totalResponses,
-          generated_at: data.metadata.generatedAt,
+          analysis_text: result.analysis,
+          total_responses: result.metadata.totalResponses,
+          generated_at: result.metadata.generatedAt,
           pdf_url: pdfUrl,
         });
 
