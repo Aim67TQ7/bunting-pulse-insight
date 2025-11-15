@@ -36,22 +36,44 @@ serve(async (req) => {
         .map((resp: any) => ({ text: resp.answer_value.text, division: r.division }))
     );
 
-    const prompt = `Analyze this employee survey data:
+    const prompt = `You are an expert HR data analyst conducting a comprehensive employee survey analysis. Your role is to identify meaningful trends, patterns, and insights while remaining strictly objective and data-driven.
 
-Total: ${surveyData.length} responses
-Questions (1-5 scale):
-${questionAverages.map(q => `- ${q.label}: ${q.average.toFixed(2)}`).join('\n')}
+**Survey Data:**
+- Total Responses: ${surveyData.length}
+- Valid Responses: ${validResponses.length}
 
-Top 5 Strengths:
+**Rating Questions (1-5 scale):**
+${questionAverages.map(q => `- ${q.label}: ${q.average.toFixed(2)} average (${q.count} responses)`).join('\n')}
+
+**Top 5 Strengths:**
 ${[...questionAverages].sort((a, b) => b.average - a.average).slice(0, 5).map(q => `- ${q.label}: ${q.average.toFixed(2)}`).join('\n')}
 
-Top 5 Concerns:
+**Top 5 Areas for Improvement:**
 ${[...questionAverages].sort((a, b) => a.average - b.average).slice(0, 5).map(q => `- ${q.label}: ${q.average.toFixed(2)}`).join('\n')}
 
-Sample Comments:
-${textResponses.slice(0, 15).map(c => `- ${c.text.substring(0, 100)}`).join('\n')}
+**Employee Comments (Sample):**
+${textResponses.slice(0, 15).map(c => `- Division: ${c.division || 'N/A'} - "${c.text.substring(0, 150)}"`).join('\n')}
 
-Provide: Executive Summary, SWOT Analysis (Strengths/Weaknesses/Opportunities/Threats), Key Recommendations, Priority Actions`;
+**Analysis Requirements:**
+1. **Executive Summary**: Provide a concise overview of key findings
+2. **Trend Analysis**: Identify patterns across questions (e.g., are communication scores consistently low? Do safety and equipment ratings correlate?)
+3. **SWOT Analysis**:
+   - Strengths: What's working well? (scores 4.0+)
+   - Weaknesses: What needs attention? (scores below 3.5)
+   - Opportunities: What trends suggest potential for improvement?
+   - Threats: What patterns indicate risk areas?
+4. **Actionable Recommendations**: Provide 3-5 specific, prioritized actions based on the data
+5. **Priority Focus Areas**: List the top 3 areas requiring immediate attention
+
+**Critical Guidelines:**
+- Base ALL statements on the actual data provided
+- Use specific numbers and percentages from the data
+- Identify correlations between related questions
+- Note any divisions mentioned in comments if patterns emerge
+- DO NOT make assumptions beyond what the data shows
+- DO NOT suggest factors not evident in the survey
+- Highlight both positive trends and concerning patterns
+- Be detailed and thorough in your analysis`;
 
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -59,11 +81,11 @@ Provide: Executive Summary, SWOT Analysis (Strengths/Weaknesses/Opportunities/Th
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: 'You are an expert HR analyst. Provide clear, actionable insights.' },
+          { role: 'system', content: 'You are an expert HR data analyst specializing in employee engagement surveys. Your analyses are thorough, insightful, and strictly objective. You identify trends and patterns while ensuring every statement is supported by the actual data provided.' },
           { role: 'user', content: prompt }
         ],
-        max_tokens: 2000,
-        temperature: 0.7
+        max_tokens: 3000,
+        temperature: 0.85
       })
     });
 
