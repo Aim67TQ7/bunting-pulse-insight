@@ -197,59 +197,48 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
       const renderMarkdownToPDF = (text: string) => {
         const lines = text.split('\n');
         
-        for (const line of lines) {
+        for (let line of lines) {
           checkPageBreak();
           
           // Handle headers
-          if (line.startsWith('# ')) {
-            pdf.setFontSize(18);
+          if (line.startsWith('#### ')) {
+            pdf.setFontSize(12);
             pdf.setFont('helvetica', 'bold');
-            pdf.text(line.substring(2), margin, yPosition);
-            yPosition += 25;
-          } else if (line.startsWith('## ')) {
-            pdf.setFontSize(16);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text(line.substring(3), margin, yPosition);
-            yPosition += 22;
+            pdf.text(line.substring(5), margin, yPosition);
+            yPosition += 18;
           } else if (line.startsWith('### ')) {
             pdf.setFontSize(14);
             pdf.setFont('helvetica', 'bold');
             pdf.text(line.substring(4), margin, yPosition);
             yPosition += 20;
-          } else if (line.startsWith('**') && line.endsWith('**')) {
-            // Bold text (section headers)
-            pdf.setFontSize(12);
+          } else if (line.startsWith('## ')) {
+            pdf.setFontSize(16);
             pdf.setFont('helvetica', 'bold');
-            const cleanText = line.replace(/\*\*/g, '');
-            pdf.text(cleanText, margin, yPosition);
-            yPosition += 18;
-          } else if (line.startsWith('*') && line.endsWith('*') && !line.startsWith('**')) {
-            // Italic text
-            pdf.setFontSize(11);
-            pdf.setFont('helvetica', 'italic');
-            const cleanText = line.replace(/\*/g, '');
-            const splitLines = pdf.splitTextToSize(cleanText, pageWidth - 2 * margin);
-            for (const splitLine of splitLines) {
-              checkPageBreak();
-              pdf.text(splitLine, margin, yPosition);
-              yPosition += lineHeight;
-            }
+            pdf.text(line.substring(3), margin, yPosition);
+            yPosition += 22;
+          } else if (line.startsWith('# ')) {
+            pdf.setFontSize(18);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text(line.substring(2), margin, yPosition);
+            yPosition += 25;
           } else if (line.startsWith('- ') || line.startsWith('• ')) {
-            // Bullet points
+            // Bullet points - clean markdown
             pdf.setFontSize(11);
             pdf.setFont('helvetica', 'normal');
             const bulletText = line.startsWith('- ') ? line.substring(2) : line.substring(2);
-            const splitLines = pdf.splitTextToSize(`• ${bulletText}`, pageWidth - 2 * margin - 20);
+            const cleanText = bulletText.replace(/\*\*/g, '').replace(/\*/g, '');
+            const splitLines = pdf.splitTextToSize(`• ${cleanText}`, pageWidth - 2 * margin - 20);
             for (const splitLine of splitLines) {
               checkPageBreak();
               pdf.text(splitLine, margin + 20, yPosition);
               yPosition += lineHeight;
             }
           } else if (line.match(/^\d+\. /)) {
-            // Numbered lists
+            // Numbered lists - clean markdown
             pdf.setFontSize(11);
             pdf.setFont('helvetica', 'normal');
-            const splitLines = pdf.splitTextToSize(line, pageWidth - 2 * margin - 20);
+            const cleanText = line.replace(/\*\*/g, '').replace(/\*/g, '');
+            const splitLines = pdf.splitTextToSize(cleanText, pageWidth - 2 * margin - 20);
             for (const splitLine of splitLines) {
               checkPageBreak();
               pdf.text(splitLine, margin + 20, yPosition);
@@ -259,14 +248,53 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
             // Empty line - add space
             yPosition += lineHeight / 2;
           } else {
-            // Regular paragraph text
+            // Regular paragraph text - clean all markdown symbols
             pdf.setFontSize(11);
-            pdf.setFont('helvetica', 'normal');
-            const splitLines = pdf.splitTextToSize(line, pageWidth - 2 * margin);
-            for (const splitLine of splitLines) {
-              checkPageBreak();
-              pdf.text(splitLine, margin, yPosition);
-              yPosition += lineHeight;
+            
+            // Remove markdown formatting but identify bold sections
+            const hasBold = line.includes('**');
+            
+            if (hasBold && line.startsWith('**') && line.indexOf('**', 2) !== -1) {
+              // Line starts with bold text
+              const endBold = line.indexOf('**', 2);
+              const boldPart = line.substring(2, endBold);
+              const restPart = line.substring(endBold + 2);
+              
+              // Print bold part
+              pdf.setFont('helvetica', 'bold');
+              pdf.text(boldPart, margin, yPosition);
+              
+              // Calculate width and continue with rest if exists
+              const boldWidth = pdf.getTextWidth(boldPart);
+              if (restPart.trim()) {
+                pdf.setFont('helvetica', 'normal');
+                const cleanRest = restPart.replace(/\*\*/g, '').replace(/\*/g, '');
+                const splitLines = pdf.splitTextToSize(cleanRest, pageWidth - 2 * margin - boldWidth - 5);
+                
+                if (splitLines.length === 1) {
+                  pdf.text(splitLines[0], margin + boldWidth + 5, yPosition);
+                  yPosition += lineHeight;
+                } else {
+                  yPosition += lineHeight;
+                  for (const splitLine of splitLines) {
+                    checkPageBreak();
+                    pdf.text(splitLine, margin, yPosition);
+                    yPosition += lineHeight;
+                  }
+                }
+              } else {
+                yPosition += lineHeight;
+              }
+            } else {
+              // No special formatting, just clean and print
+              pdf.setFont('helvetica', 'normal');
+              const cleanText = line.replace(/\*\*/g, '').replace(/\*/g, '').replace(/`/g, '');
+              const splitLines = pdf.splitTextToSize(cleanText, pageWidth - 2 * margin);
+              for (const splitLine of splitLines) {
+                checkPageBreak();
+                pdf.text(splitLine, margin, yPosition);
+                yPosition += lineHeight;
+              }
             }
           }
         }
