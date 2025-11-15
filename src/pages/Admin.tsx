@@ -9,7 +9,6 @@ import { ArrowLeftIcon, ShieldCheckIcon } from "lucide-react";
 import DynamicSurveyDashboard from "@/components/DynamicSurveyDashboard";
 import { QuestionLevelAnalytics } from "@/components/QuestionLevelAnalytics";
 import { AIAnalysisSectionWrapper } from "@/components/AIAnalysisSectionWrapper";
-import { CommentsSection } from "@/components/CommentsSection";
 import buntingLogo from "@/assets/bunting-logo.png";
 import magnetLogo from "@/assets/magnet-applications-logo.png";
 interface AdminProps {
@@ -139,11 +138,10 @@ export const Admin = ({
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="question-level">Question-Level Analytics</TabsTrigger>
             <TabsTrigger value="ai-analysis">AI Analysis</TabsTrigger>
-            <TabsTrigger value="comments">All Comments</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
@@ -156,10 +154,6 @@ export const Admin = ({
 
           <TabsContent value="ai-analysis" className="space-y-6">
             <AIAnalysisSectionWrapper />
-          </TabsContent>
-
-          <TabsContent value="comments" className="space-y-6">
-            <CommentsSection configurationId="default" />
           </TabsContent>
         </Tabs>
       </main>

@@ -10,7 +10,6 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieCha
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSurveyQuestions } from "@/hooks/useSurveyQuestions";
-import { SurveyQuestionManager } from "./SurveyQuestionManager";
 const CHART_COLORS = ['hsl(var(--chart-primary))', 'hsl(var(--chart-secondary))', 'hsl(var(--chart-tertiary))', 'hsl(var(--chart-quaternary))', 'hsl(var(--chart-quinary))', 'hsl(var(--chart-senary))', 'hsl(var(--chart-septenary))', 'hsl(var(--chart-octonary))'];
 const RATING_EMOJIS: Record<number, string> = {
   1: "😞",
@@ -321,7 +320,6 @@ export const QuestionLevelAnalytics = ({
             <TabsTrigger value="questions">Question Analysis</TabsTrigger>
             <TabsTrigger value="trends">Trends</TabsTrigger>
             <TabsTrigger value="completion">Completion Times</TabsTrigger>
-            <TabsTrigger value="controls">Survey Controls</TabsTrigger>
           </TabsList>
 
           {/* Question Analysis Tab */}
@@ -536,11 +534,6 @@ export const QuestionLevelAnalytics = ({
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Survey Controls Tab */}
-          <TabsContent value="controls" className="space-y-6">
-            <SurveyQuestionManager />
           </TabsContent>
         </Tabs>
       </div>
