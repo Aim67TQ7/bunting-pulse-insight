@@ -286,6 +286,31 @@ export const QuestionLevelAnalytics = ({
     })).sort((a, b) => b.count - a.count);
   };
 
+  // Get demographic distribution
+  const getDemographicDistribution = (questionId: string) => {
+    const responses = questionResponses.filter(r => 
+      r.question_id === questionId && 
+      r.question_type === 'demographic'
+    );
+    
+    const counts = new Map<string, number>();
+    responses.forEach(r => {
+      const value = r.answer_value?.value;
+      if (value) {
+        counts.set(value, (counts.get(value) || 0) + 1);
+      }
+    });
+    
+    return Array.from(counts.entries())
+      .map(([name, count], index) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, ' '),
+        count,
+        percentage: ((count / responses.length) * 100).toFixed(1),
+        fill: CHART_COLORS[index % CHART_COLORS.length]
+      }))
+      .sort((a, b) => b.count - a.count);
+  };
+
   // Get low-score comments for a rating question
   const getLowRatingComments = (questionId: string) => {
     const responses = questionResponses.filter(r => 
@@ -454,6 +479,55 @@ export const QuestionLevelAnalytics = ({
                       </ResponsiveContainer>
                     </CardContent>
                   </Card>}
+
+                {/* Demographic Distribution */}
+                {questionStats.find(q => q.id === selectedQuestion)?.type === 'demographic' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Distribution</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <PieChart>
+                            <Pie
+                              data={getDemographicDistribution(selectedQuestion)}
+                              dataKey="count"
+                              nameKey="name"
+                              cx="50%"
+                              cy="50%"
+                              outerRadius={100}
+                              label={(entry) => `${entry.name}: ${entry.count}`}
+                            >
+                              {getDemographicDistribution(selectedQuestion).map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.fill} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Breakdown by Count</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={getDemographicDistribution(selectedQuestion)}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="count" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
               </>}
           </TabsContent>
 

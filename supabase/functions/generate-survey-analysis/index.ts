@@ -36,6 +36,51 @@ serve(async (req) => {
         .map((resp: any) => ({ text: resp.answer_value.text, division: r.division }))
     );
 
+    // Calculate demographic correlations
+    const demographicCorrelations = {
+      byContinent: Array.from(
+        validResponses.reduce((map, r) => {
+          const continent = r.continent || 'Unknown';
+          if (!map.has(continent)) {
+            map.set(continent, { ratings: [], count: 0 });
+          }
+          const data = map.get(continent)!;
+          r.responses.filter((resp: any) => resp.question_type === 'rating').forEach((resp: any) => {
+            if (resp.answer_value?.rating) {
+              data.ratings.push(resp.answer_value.rating);
+              data.count++;
+            }
+          });
+          return map;
+        }, new Map<string, { ratings: number[], count: number }>())
+      ).map(([continent, data]) => ({
+        continent,
+        average: data.ratings.reduce((s, r) => s + r, 0) / data.ratings.length,
+        responseCount: Math.round(data.count / questionAverages.length)
+      })),
+      
+      byDivision: Array.from(
+        validResponses.reduce((map, r) => {
+          const division = r.division || 'Unknown';
+          if (!map.has(division)) {
+            map.set(division, { ratings: [], count: 0 });
+          }
+          const data = map.get(division)!;
+          r.responses.filter((resp: any) => resp.question_type === 'rating').forEach((resp: any) => {
+            if (resp.answer_value?.rating) {
+              data.ratings.push(resp.answer_value.rating);
+              data.count++;
+            }
+          });
+          return map;
+        }, new Map<string, { ratings: number[], count: number }>())
+      ).map(([division, data]) => ({
+        division,
+        average: data.ratings.reduce((s, r) => s + r, 0) / data.ratings.length,
+        responseCount: Math.round(data.count / questionAverages.length)
+      }))
+    };
+
     const prompt = `You are an expert HR data analyst conducting a comprehensive employee survey analysis. Your role is to identify meaningful trends, patterns, and insights while remaining strictly objective and data-driven.
 
 **Survey Data:**
@@ -51,24 +96,40 @@ ${[...questionAverages].sort((a, b) => b.average - a.average).slice(0, 5).map(q 
 **Top 5 Areas for Improvement:**
 ${[...questionAverages].sort((a, b) => a.average - b.average).slice(0, 5).map(q => `- ${q.label}: ${q.average.toFixed(2)}`).join('\n')}
 
+**Demographic Breakdown:**
+By Continent:
+${demographicCorrelations.byContinent.map(c => `  • ${c.continent}: ${c.average.toFixed(2)} average rating (${c.responseCount} avg responses per question)`).join('\n')}
+
+By Division:
+${demographicCorrelations.byDivision.map(d => `  • ${d.division}: ${d.average.toFixed(2)} average rating (${d.responseCount} avg responses per question)`).join('\n')}
+
 **Employee Comments (Sample):**
 ${textResponses.slice(0, 15).map(c => `- Division: ${c.division || 'N/A'} - "${c.text.substring(0, 150)}"`).join('\n')}
 
 **Analysis Requirements:**
 1. **Executive Summary**: Provide a concise overview of key findings
 2. **Trend Analysis**: Identify patterns across questions (e.g., are communication scores consistently low? Do safety and equipment ratings correlate?)
-3. **SWOT Analysis**:
+3. **Demographic Analysis**: 
+   - Identify significant differences between continents (North America vs Europe)
+   - Compare division performance (Equipment vs Magnetics vs Both)
+   - Note if certain issues are continent-specific or division-specific
+   - Look for correlation patterns (e.g., "Equipment division in North America shows...")
+4. **SWOT Analysis**:
    - Strengths: What's working well? (scores 4.0+)
    - Weaknesses: What needs attention? (scores below 3.5)
    - Opportunities: What trends suggest potential for improvement?
    - Threats: What patterns indicate risk areas?
-4. **Actionable Recommendations**: Provide 3-5 specific, prioritized actions based on the data
-5. **Priority Focus Areas**: List the top 3 areas requiring immediate attention
+5. **Actionable Recommendations**: Provide 3-5 specific, prioritized actions based on the data
+6. **Priority Focus Areas**: List the top 3 areas requiring immediate attention
 
 **Critical Guidelines:**
 - Base ALL statements on the actual data provided
 - Use specific numbers and percentages from the data
 - Identify correlations between related questions
+- ALWAYS analyze demographic differences when they exist
+- Highlight if one continent/division scores significantly different from another
+- Look for patterns like "Europe rates communication higher" or "Equipment division has safety concerns"
+- Consider cultural or operational differences that might explain geographic variations
 - Note any divisions mentioned in comments if patterns emerge
 - DO NOT make assumptions beyond what the data shows
 - DO NOT suggest factors not evident in the survey
