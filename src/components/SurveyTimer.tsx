@@ -32,7 +32,7 @@ export const SurveyTimer = ({ onStatusChange }: SurveyTimerProps) => {
   
   // TEMPORARY: Set to true to test survey while it's not officially open
   // ⚠️ IMPORTANT: Set back to false before production launch! ⚠️
-  const TEMP_TEST_MODE = true;
+  const TEMP_TEST_MODE = false;
 
   useEffect(() => {
     const updateTimes = () => {
