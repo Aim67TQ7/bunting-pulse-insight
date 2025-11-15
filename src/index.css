@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* iOS Safe Area Support */
+@supports (padding: max(0px)) {
+  .pt-safe {
+    padding-top: max(env(safe-area-inset-top), 1rem);
+  }
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+  .pl-safe {
+    padding-left: max(env(safe-area-inset-left), 1rem);
+  }
+  .pr-safe {
+    padding-right: max(env(safe-area-inset-right), 1rem);
+  }
+}
+
 /* Professional Employee Survey Design System - Bunting */
 
 @layer base {
@@ -117,5 +133,21 @@
 
   body {
     @apply bg-background text-foreground;
+    /* iOS optimizations */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Prevent iOS bounce on fixed elements */
+  body.overflow-hidden {
+    position: fixed;
+    width: 100%;
+    overflow: hidden;
+  }
+  
+  /* Better scrolling on iOS */
+  * {
+    -webkit-overflow-scrolling: touch;
   }
 }
