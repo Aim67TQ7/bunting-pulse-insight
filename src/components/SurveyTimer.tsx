@@ -29,6 +29,10 @@ export const SurveyTimer = ({ onStatusChange }: SurveyTimerProps) => {
   // Survey times
   const SURVEY_START = new Date("2025-11-16T04:00:00+00:00"); // 4 AM UK time Nov 16
   const SURVEY_END = new Date("2025-11-23T23:59:59-06:00"); // 11:59 PM Newton KS time Nov 23
+  
+  // TEMPORARY: Set to true to test survey while it's not officially open
+  // ⚠️ IMPORTANT: Set back to false before production launch! ⚠️
+  const TEMP_TEST_MODE = true;
 
   useEffect(() => {
     const updateTimes = () => {
@@ -49,7 +53,11 @@ export const SurveyTimer = ({ onStatusChange }: SurveyTimerProps) => {
       let newStatus: SurveyStatus;
       let countdownText: string;
 
-      if (now < SURVEY_START) {
+      // TEMPORARY TEST MODE OVERRIDE
+      if (TEMP_TEST_MODE) {
+        newStatus = "open";
+        countdownText = "TEST MODE ACTIVE";
+      } else if (now < SURVEY_START) {
         newStatus = "before-open";
         const diff = SURVEY_START.getTime() - now.getTime();
         countdownText = formatCountdown(diff);

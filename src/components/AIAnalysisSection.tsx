@@ -26,6 +26,7 @@ interface DynamicSurveyResponse {
 
 interface AIAnalysisSectionProps {
   responses: DynamicSurveyResponse[];
+  isSurveyComplete: boolean;
 }
 
 interface AnalysisResult {
@@ -41,7 +42,7 @@ interface AnalysisResult {
   };
 }
 
-export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
+export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSectionProps) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
@@ -392,7 +393,7 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
               )}
               <Button 
                 onClick={generateAnalysis}
-                disabled={isAnalyzing || responses.length < 5}
+                disabled={isAnalyzing || responses.length < 5 || !isSurveyComplete}
                 className="bg-primary hover:bg-primary/90"
               >
                 {isAnalyzing ? (
@@ -422,6 +423,14 @@ export const AIAnalysisSection = ({ responses }: AIAnalysisSectionProps) => {
                 executive summary, regional comparisons, division breakdowns, role-based insights, 
                 score pattern analysis, sentiment analysis of comments, and strategic recommendations.
               </p>
+              
+              {!isSurveyComplete && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-800">
+                    <strong>Survey is still active.</strong> AI Analysis will be available after the survey closes on November 23, 2025.
+                  </p>
+                </div>
+              )}
               
               {responses.length < 5 && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">

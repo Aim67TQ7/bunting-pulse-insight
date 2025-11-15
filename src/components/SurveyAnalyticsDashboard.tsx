@@ -189,7 +189,7 @@ const SurveyAnalyticsDashboard = ({ configurationId }: AnalyticsDashboardProps) 
       </TabsContent>
 
       <TabsContent value="comments"><CommentsSection configurationId={configurationId} /></TabsContent>
-      <TabsContent value="ai-analysis"><AIAnalysisSection responses={filteredResponses} /></TabsContent>
+      <TabsContent value="ai-analysis"><AIAnalysisSection responses={filteredResponses} isSurveyComplete={true} /></TabsContent>
     </Tabs>
   );
 };
