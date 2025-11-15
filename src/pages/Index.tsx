@@ -103,19 +103,14 @@ const Index = () => {
                 <Badge variant="secondary">Anonymous</Badge>
                 <Badge variant="secondary">{totalQuestions} questions</Badge>
               </div>
-              <div className="flex gap-2">
-                <Button 
-                  onClick={() => setCurrentView("survey")} 
-                  disabled={hasSubmitted || surveyStatus !== "open"} 
-                  className={`flex-1 ${hasSubmitted || surveyStatus !== "open" ? 'cursor-not-allowed' : 'group-hover:scale-[1.02] transition-transform'}`} 
-                  variant={hasSubmitted || surveyStatus !== "open" ? "outline" : "default"}
-                >
-                  {hasSubmitted ? '✓ Survey Completed' : surveyStatus === "before-open" ? 'Survey Opens Nov 16' : surveyStatus === "closed" ? 'Survey Closed' : 'Start Survey'}
-                </Button>
-                <Button variant="destructive" size="default" onClick={resetSurveyData} className="px-4 font-medium border-2">
-                  🔄 Admin Reset
-                </Button>
-              </div>
+              <Button 
+                onClick={() => setCurrentView("survey")} 
+                disabled={hasSubmitted || surveyStatus !== "open"} 
+                className={`w-full ${hasSubmitted || surveyStatus !== "open" ? 'cursor-not-allowed' : 'group-hover:scale-[1.02] transition-transform'}`} 
+                variant={hasSubmitted || surveyStatus !== "open" ? "outline" : "default"}
+              >
+                {hasSubmitted ? '✓ Survey Completed' : surveyStatus === "before-open" ? 'Survey Opens Nov 16' : surveyStatus === "closed" ? 'Survey Closed' : 'Start Survey'}
+              </Button>
             </CardContent>
           </Card>
             </div>
