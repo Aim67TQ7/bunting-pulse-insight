@@ -44,20 +44,21 @@ export const Admin = ({
     }
   };
   if (!isAuthenticated) {
-    return <div className="min-h-screen bg-background">
-        <header className="border-b bg-card">
-          <div className="max-w-6xl mx-auto px-4 py-6">
-            <div className="flex items-center justify-between">
-              <Button variant="ghost" onClick={onBack} className="flex items-center gap-2">
+    return <div className="min-h-screen bg-background pb-safe">
+        <header className="border-b bg-card pt-safe">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <Button variant="ghost" onClick={onBack} className="flex items-center gap-2 -ml-2">
                 <ArrowLeftIcon className="h-4 w-4" />
-                Back to Dashboard
+                <span className="hidden sm:inline">Back to Dashboard</span>
+                <span className="sm:hidden">Back</span>
               </Button>
-              <h1 className="text-2xl font-bold text-foreground">Admin Access</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Admin Access</h1>
             </div>
           </div>
         </header>
 
-        <main className="max-w-md mx-auto px-4 py-12">
+        <main className="max-w-md mx-auto px-4 sm:px-6 py-8 sm:py-12">
           <Card>
             <CardHeader className="text-center">
               <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto mb-4">
@@ -68,7 +69,16 @@ export const Admin = ({
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="passcode">Enter Passcode</Label>
-                <Input id="passcode" type="password" value={passcode} onChange={e => setPasscode(e.target.value)} onKeyPress={handleKeyPress} placeholder="Enter admin passcode" className="mt-1" />
+                <Input 
+                  id="passcode" 
+                  type="password" 
+                  inputMode="numeric"
+                  value={passcode} 
+                  onChange={e => setPasscode(e.target.value)} 
+                  onKeyPress={handleKeyPress} 
+                  placeholder="Enter admin passcode" 
+                  className="mt-1 text-base"
+                />
               </div>
               <Button onClick={handleAuth} className="w-full">
                 Access Admin Panel
@@ -78,17 +88,20 @@ export const Admin = ({
         </main>
       </div>;
   }
-  return <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img src={buntingLogo} alt="Bunting" className="h-10" />
-              <img src={magnetLogo} alt="Magnet Applications" className="h-10" />
+  return <div className="min-h-screen bg-background pb-safe">
+      <header className="border-b bg-card pt-safe sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-6">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <img src={buntingLogo} alt="Bunting" className="h-8 sm:h-10" />
+                <img src={magnetLogo} alt="Magnet Applications" className="h-8 sm:h-10" />
+              </div>
+              <h1 className="text-lg sm:text-2xl font-bold text-foreground hidden sm:block">Admin Panel</h1>
+              <h1 className="text-lg font-bold text-foreground sm:hidden">Admin</h1>
             </div>
-            <h1 className="text-2xl font-bold text-foreground">Admin Panel</h1>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={async () => {
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
+              <Button variant="outline" size="sm" onClick={async () => {
               const {
                 jsPDF
               } = await import('jspdf');
@@ -124,24 +137,35 @@ export const Admin = ({
 
               // Save PDF
               doc.save('bunting-survey-qr.pdf');
-            }} className="flex items-center gap-2">
-                Download QR Code
+            }} className="flex items-center gap-1.5 whitespace-nowrap text-sm">
+                <span className="hidden sm:inline">Download QR Code</span>
+                <span className="sm:hidden">QR Code</span>
               </Button>
-              <Button variant="ghost" onClick={onBack} className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={onBack} className="flex items-center gap-1.5 whitespace-nowrap text-sm">
                 <ArrowLeftIcon className="h-4 w-4" />
-                Back to Survey
+                <span className="hidden sm:inline">Back to Survey</span>
+                <span className="sm:hidden">Back</span>
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="question-level">Question-Level Analytics</TabsTrigger>
-            <TabsTrigger value="ai-analysis">AI Analysis</TabsTrigger>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
+        <Tabs defaultValue="dashboard" className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-3 h-auto">
+            <TabsTrigger value="dashboard" className="text-xs sm:text-sm py-2 sm:py-2.5">
+              <span className="hidden sm:inline">Dashboard</span>
+              <span className="sm:hidden">Data</span>
+            </TabsTrigger>
+            <TabsTrigger value="question-level" className="text-xs sm:text-sm py-2 sm:py-2.5">
+              <span className="hidden sm:inline">Question-Level Analytics</span>
+              <span className="sm:hidden">Questions</span>
+            </TabsTrigger>
+            <TabsTrigger value="ai-analysis" className="text-xs sm:text-sm py-2 sm:py-2.5">
+              <span className="hidden sm:inline">AI Analysis</span>
+              <span className="sm:hidden">AI</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
