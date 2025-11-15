@@ -1,29 +1,60 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeftIcon, ShieldCheckIcon } from "lucide-react";
+import { ArrowLeftIcon, ShieldCheckIcon, KeyRoundIcon } from "lucide-react";
 import DynamicSurveyDashboard from "@/components/DynamicSurveyDashboard";
 import { QuestionLevelAnalytics } from "@/components/QuestionLevelAnalytics";
 import { AIAnalysisSectionWrapper } from "@/components/AIAnalysisSectionWrapper";
 import buntingLogo from "@/assets/bunting-logo.png";
 import magnetLogo from "@/assets/magnet-applications-logo.png";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 interface AdminProps {
   onBack: () => void;
 }
+const STORAGE_KEY = "admin_passcode";
+const DEFAULT_PASSCODE = "4155";
+
 export const Admin = ({
   onBack
 }: AdminProps) => {
   const [passcode, setPasscode] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showChangePasscode, setShowChangePasscode] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
+  const [newPasscode, setNewPasscode] = useState("");
+  const [confirmPasscode, setConfirmPasscode] = useState("");
+  const [storedPasscode, setStoredPasscode] = useState<string>("");
   const {
     toast
   } = useToast();
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    setStoredPasscode(stored || DEFAULT_PASSCODE);
+  }, []);
   const handleAuth = () => {
-    if (passcode === "4155") {
+    if (passcode === storedPasscode) {
       setIsAuthenticated(true);
       toast({
         title: "Access granted",
@@ -37,6 +68,37 @@ export const Admin = ({
       });
       setPasscode("");
     }
+  };
+
+  const handleChangePasscode = () => {
+    if (newPasscode.length < 4) {
+      toast({
+        title: "Invalid passcode",
+        description: "Passcode must be at least 4 characters",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (newPasscode !== confirmPasscode) {
+      toast({
+        title: "Passcodes don't match",
+        description: "Please make sure both passcodes match",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    localStorage.setItem(STORAGE_KEY, newPasscode);
+    setStoredPasscode(newPasscode);
+    setShowChangePasscode(false);
+    setShowWarning(false);
+    setNewPasscode("");
+    setConfirmPasscode("");
+    toast({
+      title: "Passcode updated",
+      description: "Your admin passcode has been changed successfully"
+    });
   };
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -101,6 +163,11 @@ export const Admin = ({
               <h1 className="text-lg font-bold text-foreground sm:hidden">Admin</h1>
             </div>
             <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
+              <Button variant="outline" size="sm" onClick={() => setShowWarning(true)} className="flex items-center gap-1.5 whitespace-nowrap text-sm">
+                <KeyRoundIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">Change Passcode</span>
+                <span className="sm:hidden">Passcode</span>
+              </Button>
               <Button variant="outline" size="sm" onClick={async () => {
               const {
                 jsPDF
@@ -181,6 +248,83 @@ export const Admin = ({
           </TabsContent>
         </Tabs>
       </main>
+
+      <AlertDialog open={showWarning} onOpenChange={setShowWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>⚠️ Change Admin Passcode</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p className="font-semibold text-foreground">
+                CRITICAL WARNING: Write down your new passcode immediately.
+              </p>
+              <p>
+                There is no password recovery system. If you forget your passcode, you will be permanently locked out of the admin panel.
+              </p>
+              <p className="text-destructive font-medium">
+                This action cannot be undone. Make sure to store your new passcode in a secure location.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              setShowWarning(false);
+              setShowChangePasscode(true);
+            }}>
+              I Understand, Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={showChangePasscode} onOpenChange={setShowChangePasscode}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Admin Passcode</DialogTitle>
+            <DialogDescription>
+              Enter your new passcode. Make sure to write it down securely.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="new-passcode">New Passcode</Label>
+              <Input
+                id="new-passcode"
+                type="password"
+                inputMode="numeric"
+                value={newPasscode}
+                onChange={(e) => setNewPasscode(e.target.value)}
+                placeholder="Enter new passcode"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="confirm-passcode">Confirm Passcode</Label>
+              <Input
+                id="confirm-passcode"
+                type="password"
+                inputMode="numeric"
+                value={confirmPasscode}
+                onChange={(e) => setConfirmPasscode(e.target.value)}
+                placeholder="Confirm new passcode"
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowChangePasscode(false);
+              setNewPasscode("");
+              setConfirmPasscode("");
+            }}>
+              Cancel
+            </Button>
+            <Button onClick={handleChangePasscode}>
+              Update Passcode
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>;
 };
 export default Admin;
