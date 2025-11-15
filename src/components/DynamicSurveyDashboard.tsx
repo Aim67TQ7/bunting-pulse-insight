@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Globe, UsersIcon, TrendingUpIcon, ChevronDownIcon } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -283,9 +283,15 @@ export default function DynamicSurveyDashboard({
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold">100%</div>
+                <div className="text-3xl font-bold">
+                  {Math.round((responses.length / 180) * 100)}%
+                </div>
+                <UsersIcon className="h-8 w-8 text-muted-foreground" />
               </div>
-              <Progress value={100} className="mt-2" />
+              <div className="text-xs text-muted-foreground mt-1">
+                {responses.length} of 180 employees
+              </div>
+              <Progress value={(responses.length / 180) * 100} className="mt-2" />
             </CardContent>
           </Card>
         </div>
@@ -358,15 +364,15 @@ export default function DynamicSurveyDashboard({
               const data = calculateDemographicBreakdown(question.question_id);
               return <div key={question.id}>
                       <h4 className="font-medium mb-4 text-center">{getQuestionLabel(question.question_id)}</h4>
-                      <ResponsiveContainer width="100%" height={250}>
+                      <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
-                          <Pie data={data} cx="50%" cy="50%" labelLine={false} label={({
-                      name,
+                          <Pie data={data} cx="50%" cy="45%" labelLine={false} outerRadius={80} fill="#8884d8" dataKey="value" label={({
                       percent
-                    }) => `${name}: ${(percent * 100).toFixed(0)}%`} outerRadius={80} fill="#8884d8" dataKey="value">
+                    }) => `${(percent * 100).toFixed(0)}%`}>
                             {data.map((entry, index) => <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />)}
                           </Pie>
                           <Tooltip />
+                          <Legend verticalAlign="bottom" height={36} formatter={(value) => <span className="text-sm">{value}</span>} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>;
