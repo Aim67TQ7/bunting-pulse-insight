@@ -11,11 +11,13 @@ import { useSurveyQuestions } from "@/hooks/useSurveyQuestions";
 import { GDPRPrivacyPolicy } from "@/components/GDPRPrivacyPolicy";
 import { DataRightsManager } from "@/components/DataRightsManager";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
+import { SurveyTimer, type SurveyStatus } from "@/components/SurveyTimer";
 const Index = () => {
   const [currentView, setCurrentView] = useState<"landing" | "survey" | "dashboard" | "admin">("landing");
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showDataRights, setShowDataRights] = useState(false);
+  const [surveyStatus, setSurveyStatus] = useState<SurveyStatus>("before-open");
   const {
     toast
   } = useToast();
@@ -73,8 +75,16 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-12">
-        {/* Action Cards */}
-        <div className="grid grid-cols-1 gap-8 mb-12 max-w-2xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-8">
+          {/* Timer Section - Left Side */}
+          <div className="order-2 lg:order-1">
+            <SurveyTimer onStatusChange={setSurveyStatus} />
+          </div>
+
+          {/* Survey Content - Right Side */}
+          <div className="order-1 lg:order-2 space-y-8">
+            {/* Action Cards */}
+            <div className="max-w-2xl mx-auto lg:mx-0">
           <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
@@ -94,8 +104,13 @@ const Index = () => {
                 <Badge variant="secondary">{totalQuestions} questions</Badge>
               </div>
               <div className="flex gap-2">
-                <Button onClick={() => !hasSubmitted && setCurrentView("survey")} disabled={hasSubmitted} className={`flex-1 ${hasSubmitted ? 'cursor-not-allowed' : 'group-hover:scale-[1.02] transition-transform'}`} variant={hasSubmitted ? "outline" : "default"}>
-                  {hasSubmitted ? '✓ Survey Completed' : 'Start Survey'}
+                <Button 
+                  onClick={() => setCurrentView("survey")} 
+                  disabled={hasSubmitted || surveyStatus !== "open"} 
+                  className={`flex-1 ${hasSubmitted || surveyStatus !== "open" ? 'cursor-not-allowed' : 'group-hover:scale-[1.02] transition-transform'}`} 
+                  variant={hasSubmitted || surveyStatus !== "open" ? "outline" : "default"}
+                >
+                  {hasSubmitted ? '✓ Survey Completed' : surveyStatus === "before-open" ? 'Survey Opens Nov 16' : surveyStatus === "closed" ? 'Survey Closed' : 'Start Survey'}
                 </Button>
                 <Button variant="destructive" size="default" onClick={resetSurveyData} className="px-4 font-medium border-2">
                   🔄 Admin Reset
@@ -103,12 +118,9 @@ const Index = () => {
               </div>
             </CardContent>
           </Card>
-        </div>
+            </div>
 
-        {/* Features */}
-        
-
-        {/* Info Box */}
+            {/* Info Box */}
         <Card className="bg-muted/50 border-dashed">
           <CardContent className="p-6 text-center">
             <h3 className="font-semibold mb-2">Survey Guidelines</h3>
@@ -120,8 +132,8 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        {/* GDPR Links */}
-        <div className="flex gap-3 justify-center mt-8">
+            {/* GDPR Links */}
+            <div className="flex gap-3 justify-center mt-8">
           <Button variant="outline" size="sm" onClick={() => {
           console.log('Privacy Policy button clicked');
           setShowPrivacyPolicy(true);
@@ -136,6 +148,8 @@ const Index = () => {
             <ShieldIcon className="h-4 w-4 mr-2" />
             Manage My Data
           </Button>
+            </div>
+          </div>
         </div>
       </main>
 
