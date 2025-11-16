@@ -197,15 +197,7 @@ export default function DynamicSurveyDashboard({
   if (responses.length === 0) {
     return <div className="min-h-screen bg-background p-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <div className="flex gap-4 items-center">
-              <img src={buntingLogo} alt="Bunting" className="h-12" />
-              <img src={magnetApplicationsLogo} alt="Magnet Applications" className="h-12" />
-            </div>
-            {onBack && <Button onClick={onBack} variant="outline">
-                Back to Survey
-              </Button>}
-          </div>
+          
           <Card>
             <CardContent className="pt-6 text-center">
               <UsersIcon className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
@@ -284,14 +276,14 @@ export default function DynamicSurveyDashboard({
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-3xl font-bold">
-                  {Math.round((responses.length / 180) * 100)}%
+                  {Math.round(responses.length / 180 * 100)}%
                 </div>
                 <UsersIcon className="h-8 w-8 text-muted-foreground" />
               </div>
               <div className="text-xs text-muted-foreground mt-1">
                 {responses.length} of 180 employees
               </div>
-              <Progress value={(responses.length / 180) * 100} className="mt-2" />
+              <Progress value={responses.length / 180 * 100} className="mt-2" />
             </CardContent>
           </Card>
         </div>
@@ -372,7 +364,7 @@ export default function DynamicSurveyDashboard({
                             {data.map((entry, index) => <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />)}
                           </Pie>
                           <Tooltip />
-                          <Legend verticalAlign="bottom" height={36} formatter={(value) => <span className="text-sm">{value}</span>} />
+                          <Legend verticalAlign="bottom" height={36} formatter={value => <span className="text-sm">{value}</span>} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>;
