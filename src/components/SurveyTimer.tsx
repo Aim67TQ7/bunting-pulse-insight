@@ -27,7 +27,7 @@ export const SurveyTimer = ({ onStatusChange }: SurveyTimerProps) => {
   const [status, setStatus] = useState<SurveyStatus>("before-open");
 
   // Survey times
-  const SURVEY_START = new Date("2025-11-16T04:00:00+00:00"); // 4 AM UK time Nov 16
+  const SURVEY_START = new Date("2025-11-17T00:01:00+00:00"); // 12:01 AM UK time Nov 17
   const SURVEY_END = new Date("2025-11-23T23:59:59-06:00"); // 11:59 PM Newton KS time Nov 23
   
   // TEMPORARY: Set to true to test survey while it's not officially open
