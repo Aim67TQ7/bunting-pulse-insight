@@ -2301,6 +2301,54 @@ export type Database = {
         }
         Relationships: []
       }
+      prospector2: {
+        Row: {
+          Address: string | null
+          "Cust ID": number
+          Customer: string | null
+          Latitude: number | null
+          Longitude: number | null
+          Phone: string | null
+          QuotedAmtLastYear: number | null
+          QuotesLastYear: number | null
+          sales2022: number | null
+          sales2023: number | null
+          sales2024: number | null
+          sales2025: number | null
+          salesFourYear: number | null
+        }
+        Insert: {
+          Address?: string | null
+          "Cust ID": number
+          Customer?: string | null
+          Latitude?: number | null
+          Longitude?: number | null
+          Phone?: string | null
+          QuotedAmtLastYear?: number | null
+          QuotesLastYear?: number | null
+          sales2022?: number | null
+          sales2023?: number | null
+          sales2024?: number | null
+          sales2025?: number | null
+          salesFourYear?: number | null
+        }
+        Update: {
+          Address?: string | null
+          "Cust ID"?: number
+          Customer?: string | null
+          Latitude?: number | null
+          Longitude?: number | null
+          Phone?: string | null
+          QuotedAmtLastYear?: number | null
+          QuotesLastYear?: number | null
+          sales2022?: number | null
+          sales2023?: number | null
+          sales2024?: number | null
+          sales2025?: number | null
+          salesFourYear?: number | null
+        }
+        Relationships: []
+      }
       pt_entities: {
         Row: {
           address: string | null

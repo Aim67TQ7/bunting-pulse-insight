@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Globe, UsersIcon, TrendingUpIcon, ChevronDownIcon } from "lucide-react";
+import { Globe, UsersIcon, TrendingUpIcon, ChevronDownIcon, FilterIcon } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +27,8 @@ interface GroupedResponse {
   response_id: string;
   created_at: string;
   answers: Map<string, QuestionResponse>;
+  continent?: string;
+  division?: string;
 }
 export default function DynamicSurveyDashboard({
   onBack
@@ -37,6 +39,9 @@ export default function DynamicSurveyDashboard({
   const [responses, setResponses] = useState<GroupedResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [filterContinent, setFilterContinent] = useState<string>("all");
+  const [filterDivision, setFilterDivision] = useState<string>("all");
+  const [filteredResponses, setFilteredResponses] = useState<GroupedResponse[]>([]);
   const {
     toast
   } = useToast();
@@ -47,13 +52,31 @@ export default function DynamicSurveyDashboard({
   useEffect(() => {
     loadResponses();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [responses, filterContinent, filterDivision]);
+
+  const applyFilters = () => {
+    let filtered = responses;
+    
+    if (filterContinent !== "all") {
+      filtered = filtered.filter(r => r.continent === filterContinent);
+    }
+    
+    if (filterDivision !== "all") {
+      filtered = filtered.filter(r => r.division === filterDivision);
+    }
+    
+    setFilteredResponses(filtered);
+  };
   const loadResponses = async () => {
     try {
       setLoading(true);
       const {
         data,
         error
-      } = await supabase.from("employee_survey_responses").select("id, responses_jsonb, created_at").eq("is_draft", false).order("submitted_at", {
+      } = await supabase.from("employee_survey_responses").select("id, responses_jsonb, created_at, continent, division").eq("is_draft", false).order("submitted_at", {
         ascending: false
       });
       if (error) throw error;
@@ -74,7 +97,9 @@ export default function DynamicSurveyDashboard({
         return {
           response_id: survey.id,
           created_at: survey.created_at,
-          answers
+          answers,
+          continent: survey.continent,
+          division: survey.division
         };
       });
       setResponses(groupedArray);
@@ -105,7 +130,7 @@ export default function DynamicSurveyDashboard({
     return questions.filter(q => q.question_type === "text");
   };
   const calculateRatingStats = (questionId: string) => {
-    const ratings = responses.map(r => r.answers.get(questionId)?.answer_value?.rating).filter(r => r !== undefined && r !== null);
+    const ratings = filteredResponses.map(r => r.answers.get(questionId)?.answer_value?.rating).filter(r => r !== undefined && r !== null);
     if (ratings.length === 0) return {
       average: 0,
       distribution: []
@@ -121,7 +146,7 @@ export default function DynamicSurveyDashboard({
     };
   };
   const calculateDemographicBreakdown = (questionId: string) => {
-    const values = responses.map(r => r.answers.get(questionId)?.answer_value?.value).filter(v => v !== undefined && v !== null);
+    const values = filteredResponses.map(r => r.answers.get(questionId)?.answer_value?.value).filter(v => v !== undefined && v !== null);
     const counts = values.reduce((acc, val) => {
       acc[val] = (acc[val] || 0) + 1;
       return acc;
@@ -133,7 +158,7 @@ export default function DynamicSurveyDashboard({
   };
   const calculateMultiselectBreakdown = (questionId: string) => {
     const allSelections: string[] = [];
-    responses.forEach(r => {
+    filteredResponses.forEach(r => {
       const answer = r.answers.get(questionId)?.answer_value?.selected;
       if (Array.isArray(answer)) {
         allSelections.push(...answer);
@@ -149,7 +174,7 @@ export default function DynamicSurveyDashboard({
     }));
   };
   const getTextResponses = (questionId: string) => {
-    return responses.map(r => ({
+    return filteredResponses.map(r => ({
       text: r.answers.get(questionId)?.answer_value?.text,
       date: r.created_at
     })).filter(r => r.text && r.text.trim() !== '');
@@ -210,13 +235,83 @@ export default function DynamicSurveyDashboard({
         </div>
       </div>;
   }
-  const totalResponses = responses.length;
+  const totalResponses = filteredResponses.length;
   const ratingQuestions = getRatingQuestions();
   const overallAverage = ratingQuestions.length > 0 ? ratingQuestions.reduce((sum, q) => sum + calculateRatingStats(q.question_id).average, 0) / ratingQuestions.length : 0;
   return <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        
+        {/* Header with Filters and Language Selector */}
+        <div className="mb-8 space-y-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold">Survey Dashboard</h1>
+              <p className="text-muted-foreground mt-1">Analyze employee survey responses</p>
+            </div>
+            <Select value={language} onValueChange={setLanguage}>
+              <SelectTrigger className="w-[180px]">
+                <Globe className="mr-2 h-4 w-4" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="fr">Français</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FilterIcon className="h-5 w-5" />
+                Filters
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                    Location
+                  </label>
+                  <Select value={filterContinent} onValueChange={setFilterContinent}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Locations</SelectItem>
+                      <SelectItem value="Europe">Europe</SelectItem>
+                      <SelectItem value="North America">North America</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex-1">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                    Division
+                  </label>
+                  <Select value={filterDivision} onValueChange={setFilterDivision}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Divisions</SelectItem>
+                      <SelectItem value="Both">Both</SelectItem>
+                      <SelectItem value="Equipment">Equipment</SelectItem>
+                      <SelectItem value="Magnets">Magnets</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex-1 flex items-end">
+                  <div className="text-sm">
+                    <span className="font-medium">Showing:</span>
+                    <Badge variant="secondary" className="ml-2">
+                      {filteredResponses.length} of {responses.length} responses
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
 
         {/* Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
