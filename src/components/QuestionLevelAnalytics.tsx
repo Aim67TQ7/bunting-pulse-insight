@@ -45,6 +45,10 @@ export const QuestionLevelAnalytics = ({
   const [loading, setLoading] = useState(true);
   const [selectedQuestion, setSelectedQuestion] = useState<string>("all");
   const [selectedDemographic, setSelectedDemographic] = useState<"continent" | "division">("continent");
+  const [filterContinent, setFilterContinent] = useState<string>("all");
+  const [filterDivision, setFilterDivision] = useState<string>("all");
+  const [filteredMetadata, setFilteredMetadata] = useState<SurveyMetadata[]>([]);
+  const [filteredQuestionResponses, setFilteredQuestionResponses] = useState<QuestionResponse[]>([]);
   const {
     toast
   } = useToast();
@@ -54,6 +58,29 @@ export const QuestionLevelAnalytics = ({
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [surveyMetadata, questionResponses, filterContinent, filterDivision]);
+
+  const applyFilters = () => {
+    let filteredMeta = surveyMetadata;
+    
+    if (filterContinent !== "all") {
+      filteredMeta = filteredMeta.filter(m => m.continent === filterContinent);
+    }
+    
+    if (filterDivision !== "all") {
+      filteredMeta = filteredMeta.filter(m => m.division === filterDivision);
+    }
+    
+    setFilteredMetadata(filteredMeta);
+    
+    // Filter question responses to only include those from filtered surveys
+    const filteredSurveyIds = new Set(filteredMeta.map(m => m.id));
+    const filteredQR = questionResponses.filter(qr => filteredSurveyIds.has(qr.response_id));
+    setFilteredQuestionResponses(filteredQR);
+  };
   const loadData = async () => {
     try {
       setLoading(true);
@@ -110,7 +137,7 @@ export const QuestionLevelAnalytics = ({
       count: number;
       displayOrder: number;
     }>();
-    questionResponses.forEach(response => {
+    filteredQuestionResponses.forEach(response => {
       if (!stats.has(response.question_id)) {
         stats.set(response.question_id, {
           id: response.question_id,
@@ -128,7 +155,7 @@ export const QuestionLevelAnalytics = ({
 
   // Get rating distribution for a specific question
   const getRatingDistribution = (questionId: string) => {
-    const responses = questionResponses.filter(r => r.question_id === questionId && r.question_type === 'rating');
+    const responses = filteredQuestionResponses.filter(r => r.question_id === questionId && r.question_type === 'rating');
     const distribution: Record<number, number> = {
       1: 0,
       2: 0,
@@ -160,13 +187,13 @@ export const QuestionLevelAnalytics = ({
 
   // Get demographic breakdown for a question
   const getDemographicBreakdown = (questionId: string, demographic: 'continent' | 'division') => {
-    const responses = questionResponses.filter(r => r.question_id === questionId && r.question_type === 'rating');
+    const responses = filteredQuestionResponses.filter(r => r.question_id === questionId && r.question_type === 'rating');
     const groups = new Map<string, {
       sum: number;
       count: number;
     }>();
     responses.forEach(r => {
-      const metadata = surveyMetadata.find(m => m.id === r.response_id);
+      const metadata = filteredMetadata.find(m => m.id === r.response_id);
       if (!metadata) return;
       const group = metadata[demographic];
       if (!groups.has(group)) {
@@ -189,7 +216,7 @@ export const QuestionLevelAnalytics = ({
 
   // Get trends over time for rating questions
   const getTrendsOverTime = () => {
-    const ratingQuestions = questionResponses.filter(r => r.question_type === 'rating');
+    const ratingQuestions = filteredQuestionResponses.filter(r => r.question_type === 'rating');
 
     // Group by date and question
     const dateMap = new Map<string, Map<string, {
@@ -229,7 +256,7 @@ export const QuestionLevelAnalytics = ({
 
   // Get completion time statistics
   const getCompletionTimeStats = () => {
-    const times = surveyMetadata.map(m => m.completion_time_seconds);
+    const times = filteredMetadata.map(m => m.completion_time_seconds);
     const average = times.reduce((sum, t) => sum + t, 0) / times.length;
     const min = Math.min(...times);
     const max = Math.max(...times);
@@ -270,7 +297,7 @@ export const QuestionLevelAnalytics = ({
 
   // Get multiselect breakdown
   const getMultiSelectBreakdown = (questionId: string) => {
-    const responses = questionResponses.filter(r => r.question_id === questionId && r.question_type === 'multiselect');
+    const responses = filteredQuestionResponses.filter(r => r.question_id === questionId && r.question_type === 'multiselect');
     const counts = new Map<string, number>();
     responses.forEach(r => {
       const selected = r.answer_value?.selected || [];
@@ -288,7 +315,7 @@ export const QuestionLevelAnalytics = ({
 
   // Get demographic distribution
   const getDemographicDistribution = (questionId: string) => {
-    const responses = questionResponses.filter(r => 
+    const responses = filteredQuestionResponses.filter(r => 
       r.question_id === questionId && 
       r.question_type === 'demographic'
     );
@@ -313,7 +340,7 @@ export const QuestionLevelAnalytics = ({
 
   // Get low-score comments for a rating question
   const getLowRatingComments = (questionId: string) => {
-    const responses = questionResponses.filter(r => 
+    const responses = filteredQuestionResponses.filter(r => 
       r.question_id === questionId && 
       r.question_type === 'rating' &&
       r.answer_value?.rating <= 2 &&
@@ -338,7 +365,70 @@ export const QuestionLevelAnalytics = ({
   return <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Question-Level Analytics</h1>
+            <p className="text-muted-foreground mt-1">Deep dive into individual question responses</p>
+          </div>
+          <Button onClick={onBack} variant="outline">
+            <ArrowLeftIcon className="mr-2 h-4 w-4" />
+            Back
+          </Button>
+        </div>
+
+        {/* Filters Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FilterIcon className="h-5 w-5" />
+              Filters
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                  Location
+                </label>
+                <Select value={filterContinent} onValueChange={setFilterContinent}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Locations</SelectItem>
+                    <SelectItem value="Europe">Europe</SelectItem>
+                    <SelectItem value="North America">North America</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1">
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                  Division
+                </label>
+                <Select value={filterDivision} onValueChange={setFilterDivision}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Divisions</SelectItem>
+                    <SelectItem value="Both">Both</SelectItem>
+                    <SelectItem value="Equipment">Equipment</SelectItem>
+                    <SelectItem value="Magnets">Magnets</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1 flex items-end">
+                <div className="text-sm">
+                  <span className="font-medium">Showing:</span>
+                  <Badge variant="secondary" className="ml-2">
+                    {filteredMetadata.length} of {surveyMetadata.length} responses
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
 
         <Tabs defaultValue="questions" className="space-y-6 mx-0">
           <TabsList>
