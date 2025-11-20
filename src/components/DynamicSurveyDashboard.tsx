@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Globe, UsersIcon, TrendingUpIcon, ChevronDownIcon, FilterIcon } from "lucide-react";
+import { Globe, UsersIcon, TrendingUpIcon, ChevronDownIcon, FilterIcon, ClockIcon } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +29,7 @@ interface GroupedResponse {
   answers: Map<string, QuestionResponse>;
   continent?: string;
   division?: string;
+  completion_time_seconds?: number;
 }
 export default function DynamicSurveyDashboard({
   onBack
@@ -76,7 +77,7 @@ export default function DynamicSurveyDashboard({
       const {
         data,
         error
-      } = await supabase.from("employee_survey_responses").select("id, responses_jsonb, created_at, continent, division").eq("is_draft", false).order("submitted_at", {
+      } = await supabase.from("employee_survey_responses").select("id, responses_jsonb, created_at, continent, division, completion_time_seconds").eq("is_draft", false).order("submitted_at", {
         ascending: false
       });
       if (error) throw error;
@@ -99,7 +100,8 @@ export default function DynamicSurveyDashboard({
           created_at: survey.created_at,
           answers,
           continent: survey.continent,
-          division: survey.division
+          division: survey.division,
+          completion_time_seconds: survey.completion_time_seconds
         };
       });
       setResponses(groupedArray);
@@ -365,20 +367,25 @@ export default function DynamicSurveyDashboard({
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Response Rate
+                Response Time
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-3xl font-bold">
-                  {Math.round(responses.length / 180 * 100)}%
+                  {filteredResponses.length > 0 
+                    ? Math.round(
+                        filteredResponses.reduce((sum, r) => 
+                          sum + (r.completion_time_seconds || 0), 0
+                        ) / filteredResponses.length / 60
+                      )
+                    : 0} min
                 </div>
-                <UsersIcon className="h-8 w-8 text-muted-foreground" />
+                <ClockIcon className="h-8 w-8 text-muted-foreground" />
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                {responses.length} of 180 employees
+                Average completion time
               </div>
-              <Progress value={responses.length / 180 * 100} className="mt-2" />
             </CardContent>
           </Card>
         </div>
