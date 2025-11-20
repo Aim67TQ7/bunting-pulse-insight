@@ -45,7 +45,7 @@ export default function AITestView() {
   const [filterContinent, setFilterContinent] = useState("all");
   const [filterDivision, setFilterDivision] = useState("all");
   const [filteredResponses, setFilteredResponses] = useState<any[]>([]);
-  const [selectedModel, setSelectedModel] = useState("gpt-4o");
+  const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
   const [customPrompt, setCustomPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentAnalysis, setCurrentAnalysis] = useState<TestAnalysis | null>(null);
@@ -290,8 +290,13 @@ export default function AITestView() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="gpt-4o">GPT-4o (Default)</SelectItem>
-                        <SelectItem value="gpt-4o-mini">GPT-4o Mini (Faster)</SelectItem>
+                        <SelectItem value="google/gemini-2.5-flash">Gemini 2.5 Flash (Default)</SelectItem>
+                        <SelectItem value="google/gemini-2.5-pro">Gemini 2.5 Pro (Best)</SelectItem>
+                        <SelectItem value="google/gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (Fast)</SelectItem>
+                        <SelectItem value="claude-sonnet-4-5">Claude Sonnet 4.5 (Most Capable)</SelectItem>
+                        <SelectItem value="claude-opus-4-1-20250805">Claude Opus 4.1 (Highly Intelligent)</SelectItem>
+                        <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+                        <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
                         <SelectItem value="gpt-5-mini-2025-08-07">GPT-5 Mini</SelectItem>
                       </SelectContent>
                     </Select>
