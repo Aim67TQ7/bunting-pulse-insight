@@ -291,13 +291,11 @@ export default function AITestView() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="google/gemini-2.5-flash">Gemini 2.5 Flash (Default)</SelectItem>
-                        <SelectItem value="google/gemini-2.5-pro">Gemini 2.5 Pro (Best)</SelectItem>
-                        <SelectItem value="google/gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (Fast)</SelectItem>
-                        <SelectItem value="claude-sonnet-4-5">Claude Sonnet 4.5 (Most Capable)</SelectItem>
-                        <SelectItem value="claude-opus-4-1-20250805">Claude Opus 4.1 (Highly Intelligent)</SelectItem>
-                        <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-                        <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
-                        <SelectItem value="gpt-5-mini-2025-08-07">GPT-5 Mini</SelectItem>
+                        <SelectItem value="google/gemini-2.5-pro">Gemini 2.5 Pro</SelectItem>
+                        <SelectItem value="google/gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</SelectItem>
+                        <SelectItem value="openai/gpt-5">GPT-5</SelectItem>
+                        <SelectItem value="openai/gpt-5-mini">GPT-5 Mini</SelectItem>
+                        <SelectItem value="openai/gpt-5-nano">GPT-5 Nano</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
