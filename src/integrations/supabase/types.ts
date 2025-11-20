@@ -74,6 +74,51 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_test_analyses: {
+        Row: {
+          analysis_text: string
+          created_at: string | null
+          filters_applied: Json | null
+          generation_time_ms: number | null
+          id: string
+          is_favorite: boolean | null
+          model_used: string
+          notes: string | null
+          prompt_version: string | null
+          rating: number | null
+          response_count: number
+          tokens_used: number | null
+        }
+        Insert: {
+          analysis_text: string
+          created_at?: string | null
+          filters_applied?: Json | null
+          generation_time_ms?: number | null
+          id?: string
+          is_favorite?: boolean | null
+          model_used: string
+          notes?: string | null
+          prompt_version?: string | null
+          rating?: number | null
+          response_count: number
+          tokens_used?: number | null
+        }
+        Update: {
+          analysis_text?: string
+          created_at?: string | null
+          filters_applied?: Json | null
+          generation_time_ms?: number | null
+          id?: string
+          is_favorite?: boolean | null
+          model_used?: string
+          notes?: string | null
+          prompt_version?: string | null
+          rating?: number | null
+          response_count?: number
+          tokens_used?: number | null
+        }
+        Relationships: []
+      }
       app_items: {
         Row: {
           access_token: string | null

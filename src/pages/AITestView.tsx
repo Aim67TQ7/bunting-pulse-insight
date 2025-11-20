@@ -78,12 +78,12 @@ export default function AITestView() {
     }
 
     const { data: historyData } = await supabase
-      .from('ai_test_analyses')
+      .from('ai_test_analyses' as any)
       .select('*')
       .order('created_at', { ascending: false });
     
     if (historyData) {
-      setTestHistory(historyData);
+      setTestHistory(historyData as unknown as TestAnalysis[]);
     }
   };
 
@@ -129,7 +129,7 @@ export default function AITestView() {
         is_favorite: false
       };
 
-      await supabase.from('ai_test_analyses').insert(testAnalysis);
+      await supabase.from('ai_test_analyses' as any).insert(testAnalysis);
 
       setCurrentAnalysis(testAnalysis);
       setTestHistory([testAnalysis, ...testHistory]);
@@ -152,8 +152,8 @@ export default function AITestView() {
 
   const rateAnalysis = async (id: string, rating: number) => {
     await supabase
-      .from('ai_test_analyses')
-      .update({ rating })
+      .from('ai_test_analyses' as any)
+      .update({ rating } as any)
       .eq('id', id);
     
     setTestHistory(testHistory.map(t => 
@@ -172,8 +172,8 @@ export default function AITestView() {
     const newFavoriteState = !analysis.is_favorite;
     
     await supabase
-      .from('ai_test_analyses')
-      .update({ is_favorite: newFavoriteState })
+      .from('ai_test_analyses' as any)
+      .update({ is_favorite: newFavoriteState } as any)
       .eq('id', id);
     
     setTestHistory(testHistory.map(t => 
