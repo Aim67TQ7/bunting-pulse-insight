@@ -12,15 +12,48 @@ serve(async (req) => {
     const { surveyData, testMode = false, model, customPrompt } = await req.json();
     if (!surveyData?.length) throw new Error('No survey data');
 
-    const validResponses = surveyData.filter((r: any) => r.responses?.length > 0);
-    const ratingQuestions = new Map<string, { label: string; ratings: number[] }>();
+    const validResponses = surveyData.filter((r: any) => r.responses_jsonb?.length > 0);
+    
+    // Process all responses with full context
+    const ratingQuestions = new Map<string, { 
+      label: string; 
+      ratings: number[]; 
+      feedbackByRating: Map<number, string[]>;
+      demographicBreakdown: Array<{ rating: number; continent: string; division: string; feedback?: string }>;
+    }>();
     
     validResponses.forEach((r: any) => {
-      r.responses.filter((resp: any) => resp.question_type === 'rating').forEach((resp: any) => {
-        if (!ratingQuestions.has(resp.question_id)) {
-          ratingQuestions.set(resp.question_id, { label: resp.question_labels?.en || resp.question_id, ratings: [] });
+      r.responses_jsonb.filter((resp: any) => resp.question_type === 'rating').forEach((resp: any) => {
+        const questionId = resp.question_id;
+        if (!ratingQuestions.has(questionId)) {
+          ratingQuestions.set(questionId, { 
+            label: resp.question_labels?.en || questionId, 
+            ratings: [],
+            feedbackByRating: new Map(),
+            demographicBreakdown: []
+          });
         }
-        if (resp.answer_value?.rating) ratingQuestions.get(resp.question_id)!.ratings.push(resp.answer_value.rating);
+        
+        const qData = ratingQuestions.get(questionId)!;
+        const rating = resp.answer_value?.rating;
+        const feedback = resp.answer_value?.feedback;
+        
+        if (rating) {
+          qData.ratings.push(rating);
+          qData.demographicBreakdown.push({
+            rating,
+            continent: r.continent || 'Unknown',
+            division: r.division || 'Unknown',
+            feedback: feedback || undefined
+          });
+          
+          if (feedback) {
+            if (!qData.feedbackByRating.has(rating)) {
+              qData.feedbackByRating.set(rating, []);
+            }
+            qData.feedbackByRating.get(rating)!.push(feedback);
+          }
+        }
       });
     });
     
@@ -28,113 +61,249 @@ serve(async (req) => {
       question_id: id,
       label: data.label,
       average: data.ratings.reduce((s, r) => s + r, 0) / data.ratings.length,
-      count: data.ratings.length
+      count: data.ratings.length,
+      distribution: {
+        '5': data.ratings.filter(r => r === 5).length,
+        '4': data.ratings.filter(r => r === 4).length,
+        '3': data.ratings.filter(r => r === 3).length,
+        '2': data.ratings.filter(r => r === 2).length,
+        '1': data.ratings.filter(r => r === 1).length,
+      },
+      feedbackByRating: Array.from(data.feedbackByRating.entries()).map(([rating, comments]) => ({
+        rating,
+        comments: comments.slice(0, 5) // Top 5 comments per rating
+      })),
+      demographicBreakdown: data.demographicBreakdown
     }));
     
+    // Extract text/open-ended responses with full context
     const textResponses = validResponses.flatMap((r: any) => 
-      r.responses.filter((resp: any) => resp.question_type === 'text' && resp.answer_value?.text)
-        .map((resp: any) => ({ text: resp.answer_value.text, division: r.division }))
+      r.responses_jsonb.filter((resp: any) => resp.question_type === 'text' && resp.answer_value?.text)
+        .map((resp: any) => ({ 
+          question: resp.question_labels?.en || resp.question_id,
+          text: resp.answer_value.text,
+          continent: r.continent || 'Unknown',
+          division: r.division || 'Unknown'
+        }))
+    );
+    
+    // Extract multiselect responses
+    const multiselectResponses = validResponses.flatMap((r: any) =>
+      r.responses_jsonb.filter((resp: any) => resp.question_type === 'multiselect' && resp.answer_value?.selected)
+        .map((resp: any) => ({
+          question: resp.question_labels?.en || resp.question_id,
+          selected: resp.answer_value.selected,
+          continent: r.continent || 'Unknown',
+          division: r.division || 'Unknown'
+        }))
     );
 
-    // Calculate demographic correlations
+    // Calculate demographic correlations with more detail
     const demographicCorrelations = {
       byContinent: Array.from(
         validResponses.reduce((map, r) => {
           const continent = r.continent || 'Unknown';
           if (!map.has(continent)) {
-            map.set(continent, { ratings: [], count: 0 });
+            map.set(continent, { 
+              ratings: [], 
+              count: 0,
+              questionBreakdown: new Map<string, number[]>()
+            });
           }
           const data = map.get(continent)!;
-          r.responses.filter((resp: any) => resp.question_type === 'rating').forEach((resp: any) => {
+          r.responses_jsonb.filter((resp: any) => resp.question_type === 'rating').forEach((resp: any) => {
             if (resp.answer_value?.rating) {
               data.ratings.push(resp.answer_value.rating);
               data.count++;
+              
+              const qLabel = resp.question_labels?.en || resp.question_id;
+              if (!data.questionBreakdown.has(qLabel)) {
+                data.questionBreakdown.set(qLabel, []);
+              }
+              data.questionBreakdown.get(qLabel)!.push(resp.answer_value.rating);
             }
           });
           return map;
-        }, new Map<string, { ratings: number[], count: number }>())
-      ).map(([continent, data]) => ({
+        }, new Map())
+      ).map(([continent, data]: [string, any]) => ({
         continent,
-        average: data.ratings.reduce((s, r) => s + r, 0) / data.ratings.length,
-        responseCount: Math.round(data.count / questionAverages.length)
+        average: data.ratings.reduce((s: number, r: number) => s + r, 0) / data.ratings.length,
+        responseCount: Math.round(data.count / questionAverages.length),
+        topIssues: Array.from(data.questionBreakdown.entries())
+          .map(([q, ratings]: [string, number[]]) => ({
+            question: q,
+            avg: ratings.reduce((s, r) => s + r, 0) / ratings.length
+          }))
+          .sort((a, b) => a.avg - b.avg)
+          .slice(0, 3)
       })),
       
       byDivision: Array.from(
         validResponses.reduce((map, r) => {
           const division = r.division || 'Unknown';
           if (!map.has(division)) {
-            map.set(division, { ratings: [], count: 0 });
+            map.set(division, { 
+              ratings: [], 
+              count: 0,
+              questionBreakdown: new Map<string, number[]>()
+            });
           }
           const data = map.get(division)!;
-          r.responses.filter((resp: any) => resp.question_type === 'rating').forEach((resp: any) => {
+          r.responses_jsonb.filter((resp: any) => resp.question_type === 'rating').forEach((resp: any) => {
             if (resp.answer_value?.rating) {
               data.ratings.push(resp.answer_value.rating);
               data.count++;
+              
+              const qLabel = resp.question_labels?.en || resp.question_id;
+              if (!data.questionBreakdown.has(qLabel)) {
+                data.questionBreakdown.set(qLabel, []);
+              }
+              data.questionBreakdown.get(qLabel)!.push(resp.answer_value.rating);
             }
           });
           return map;
-        }, new Map<string, { ratings: number[], count: number }>())
-      ).map(([division, data]) => ({
+        }, new Map())
+      ).map(([division, data]: [string, any]) => ({
         division,
-        average: data.ratings.reduce((s, r) => s + r, 0) / data.ratings.length,
-        responseCount: Math.round(data.count / questionAverages.length)
+        average: data.ratings.reduce((s: number, r: number) => s + r, 0) / data.ratings.length,
+        responseCount: Math.round(data.count / questionAverages.length),
+        topIssues: Array.from(data.questionBreakdown.entries())
+          .map(([q, ratings]: [string, number[]]) => ({
+            question: q,
+            avg: ratings.reduce((s, r) => s + r, 0) / ratings.length
+          }))
+          .sort((a, b) => a.avg - b.avg)
+          .slice(0, 3)
       }))
     };
 
-    const defaultPrompt = `You are an expert HR data analyst conducting a comprehensive employee survey analysis. Your role is to identify meaningful trends, patterns, and insights while remaining strictly objective and data-driven.
+    const defaultPrompt = `You are an expert HR data analyst conducting a comprehensive employee survey analysis for leadership review. Your analysis must be thorough, data-driven, and actionable.
 
-**Survey Data:**
+**CRITICAL: This analysis will be presented to senior leadership. Be specific, cite data, and provide clear insights.**
+
+# SURVEY DATA SUMMARY
+
+**Response Statistics:**
 - Total Responses: ${surveyData.length}
 - Valid Responses: ${validResponses.length}
+- Response Rate: ${((validResponses.length / surveyData.length) * 100).toFixed(1)}%
 
-**Rating Questions (1-5 scale):**
-${questionAverages.map(q => `- ${q.label}: ${q.average.toFixed(2)} average (${q.count} responses)`).join('\n')}
+# DETAILED QUESTION ANALYSIS
 
-**Top 5 Strengths:**
-${[...questionAverages].sort((a, b) => b.average - a.average).slice(0, 5).map(q => `- ${q.label}: ${q.average.toFixed(2)}`).join('\n')}
+## Rating Questions (1-5 scale, where 1=Strongly Disagree, 5=Strongly Agree)
 
-**Top 5 Areas for Improvement:**
-${[...questionAverages].sort((a, b) => a.average - b.average).slice(0, 5).map(q => `- ${q.label}: ${q.average.toFixed(2)}`).join('\n')}
+${questionAverages.map(q => `
+### ${q.label}
+- **Average Score: ${q.average.toFixed(2)}/5.0** (${q.count} responses)
+- **Distribution:** 
+  * 5 Stars: ${q.distribution['5']} (${((q.distribution['5']/q.count)*100).toFixed(0)}%)
+  * 4 Stars: ${q.distribution['4']} (${((q.distribution['4']/q.count)*100).toFixed(0)}%)
+  * 3 Stars: ${q.distribution['3']} (${((q.distribution['3']/q.count)*100).toFixed(0)}%)
+  * 2 Stars: ${q.distribution['2']} (${((q.distribution['2']/q.count)*100).toFixed(0)}%)
+  * 1 Star: ${q.distribution['1']} (${((q.distribution['1']/q.count)*100).toFixed(0)}%)
 
-**Demographic Breakdown:**
-By Continent:
-${demographicCorrelations.byContinent.map(c => `  • ${c.continent}: ${c.average.toFixed(2)} average rating (${c.responseCount} avg responses per question)`).join('\n')}
+${q.feedbackByRating.length > 0 ? `**Employee Comments by Rating:**\n${q.feedbackByRating.map(fb => `  Rating ${fb.rating}/5:\n${fb.comments.map(c => `    - "${c}"`).join('\n')}`).join('\n')}` : ''}
+`).join('\n')}
 
-By Division:
-${demographicCorrelations.byDivision.map(d => `  • ${d.division}: ${d.average.toFixed(2)} average rating (${d.responseCount} avg responses per question)`).join('\n')}
+# DEMOGRAPHIC ANALYSIS
 
-**Employee Comments (Sample):**
-${textResponses.slice(0, 15).map(c => `- Division: ${c.division || 'N/A'} - "${c.text.substring(0, 150)}"`).join('\n')}
+## By Continent:
+${demographicCorrelations.byContinent.map(c => `
+**${c.continent}** (${c.responseCount} avg responses/question)
+- Overall Average: ${c.average.toFixed(2)}/5.0
+- Top 3 Concerns:
+${c.topIssues.map((issue, i) => `  ${i+1}. ${issue.question}: ${issue.avg.toFixed(2)}/5.0`).join('\n')}
+`).join('\n')}
 
-**Analysis Requirements:**
-1. **Executive Summary**: Provide a concise overview of key findings
-2. **Trend Analysis**: Identify patterns across questions (e.g., are communication scores consistently low? Do safety and equipment ratings correlate?)
-3. **Demographic Analysis**: 
-   - Identify significant differences between continents (North America vs Europe)
-   - Compare division performance (Equipment vs Magnetics vs Both)
-   - Note if certain issues are continent-specific or division-specific
-   - Look for correlation patterns (e.g., "Equipment division in North America shows...")
-4. **SWOT Analysis**:
-   - Strengths: What's working well? (scores 4.0+)
-   - Weaknesses: What needs attention? (scores below 3.5)
-   - Opportunities: What trends suggest potential for improvement?
-   - Threats: What patterns indicate risk areas?
-5. **Actionable Recommendations**: Provide 3-5 specific, prioritized actions based on the data
-6. **Priority Focus Areas**: List the top 3 areas requiring immediate attention
+## By Division:
+${demographicCorrelations.byDivision.map(d => `
+**${d.division}** (${d.responseCount} avg responses/question)
+- Overall Average: ${d.average.toFixed(2)}/5.0
+- Top 3 Concerns:
+${d.topIssues.map((issue, i) => `  ${i+1}. ${issue.question}: ${issue.avg.toFixed(2)}/5.0`).join('\n')}
+`).join('\n')}
 
-**Critical Guidelines:**
-- Base ALL statements on the actual data provided
-- Use specific numbers and percentages from the data
-- Identify correlations between related questions
-- ALWAYS analyze demographic differences when they exist
-- Highlight if one continent/division scores significantly different from another
-- Look for patterns like "Europe rates communication higher" or "Equipment division has safety concerns"
-- Consider cultural or operational differences that might explain geographic variations
-- Note any divisions mentioned in comments if patterns emerge
-- DO NOT make assumptions beyond what the data shows
-- DO NOT suggest factors not evident in the survey
-- Highlight both positive trends and concerning patterns
-- Be detailed and thorough in your analysis`;
+# OPEN-ENDED RESPONSES
+
+${textResponses.length > 0 ? textResponses.map(r => `
+**Question: ${r.question}**
+Division: ${r.division} | Continent: ${r.continent}
+Response: "${r.text}"
+`).join('\n---\n') : 'No open-ended responses provided.'}
+
+${multiselectResponses.length > 0 ? `\n# MULTIPLE CHOICE RESPONSES\n\n${multiselectResponses.map(r => `**${r.question}** (${r.division}, ${r.continent}): ${r.selected.join(', ')}`).join('\n')}` : ''}
+
+---
+
+# YOUR ANALYSIS REQUIREMENTS:
+
+## 1. EXECUTIVE SUMMARY (2-3 paragraphs)
+Provide a concise overview highlighting:
+- Overall employee sentiment (use the average scores)
+- 3 biggest strengths (scores 4.0+)
+- 3 most critical concerns (scores below 3.5)
+- Key demographic differences that require attention
+
+## 2. DETAILED FINDINGS BY CATEGORY
+
+For each major category (Job Satisfaction, Communication, Leadership, Career Development, Work Environment, etc.):
+- **Current State**: What does the data show? (cite specific averages)
+- **Employee Voice**: What are employees saying in comments? (quote specific feedback)
+- **Patterns**: Are there differences between continents/divisions?
+- **Severity**: Rate as High/Medium/Low concern based on scores and comment sentiment
+
+## 3. DEMOGRAPHIC INSIGHTS
+
+Compare and contrast:
+- **Continent Differences**: How do Europe vs North America ratings differ? Why might this be?
+- **Division Differences**: How do Equipment vs Magnetics vs Both divisions compare?
+- **Cross-Analysis**: Are there specific continent+division combinations with unique patterns?
+
+## 4. CRITICAL THEMES FROM COMMENTS
+
+Analyze all employee comments to identify:
+- Recurring themes mentioned by multiple employees
+- Specific issues or concerns raised
+- Positive feedback and what's working well
+- Suggestions for improvement
+
+## 5. PRIORITY ACTION PLAN
+
+Provide 5-7 specific, actionable recommendations ranked by:
+- **Impact**: How many employees are affected?
+- **Urgency**: How severe is the issue based on scores and comments?
+- **Feasibility**: How quickly can this be addressed?
+
+For each recommendation:
+- **Issue**: What's the problem?
+- **Evidence**: What data supports this? (cite scores and quotes)
+- **Proposed Action**: Specific steps to take
+- **Expected Outcome**: What improvement should we see?
+
+## 6. STRENGTHS TO MAINTAIN
+
+Identify what's working well (scores 4.0+) and recommend how to:
+- Maintain these strengths
+- Apply these successes to weaker areas
+- Recognize teams/areas performing well
+
+---
+
+**ANALYSIS GUIDELINES:**
+✓ BE SPECIFIC: Use actual scores, percentages, and direct quotes
+✓ BE HONEST: Don't sugarcoat low scores or concerning patterns
+✓ BE ACTIONABLE: Every insight should lead to a clear recommendation
+✓ BE THOROUGH: Analyze BOTH quantitative ratings AND qualitative comments
+✓ CONNECT DOTS: Link related issues across questions
+✓ CONSIDER CONTEXT: Think about why certain departments/locations might differ
+✓ PRIORITIZE: Not all issues are equal - focus on what matters most
+
+**DO NOT:**
+✗ Make generic statements without data support
+✗ Ignore low-scoring areas
+✗ Overlook demographic differences
+✗ Miss patterns in employee comments
+✗ Provide vague recommendations`;
 
     // Use custom prompt if provided in test mode, otherwise use default
     const prompt = (testMode && customPrompt) ? customPrompt : defaultPrompt;
@@ -148,10 +317,10 @@ ${textResponses.slice(0, 15).map(c => `- Division: ${c.division || 'N/A'} - "${c
       body: JSON.stringify({
         model: modelToUse,
         messages: [
-          { role: 'system', content: 'You are an expert HR data analyst specializing in employee engagement surveys. Your analyses are thorough, insightful, and strictly objective. You identify trends and patterns while ensuring every statement is supported by the actual data provided.' },
+          { role: 'system', content: 'You are a senior HR analytics consultant with 15+ years of experience in organizational development and employee engagement. You specialize in extracting actionable insights from survey data by combining quantitative metrics with qualitative feedback. Your analyses are known for being thorough, honest, and directly useful to leadership teams making strategic decisions. You never provide generic advice - every statement is grounded in the specific data provided.' },
           { role: 'user', content: prompt }
         ],
-        max_completion_tokens: 3000,
+        max_completion_tokens: 8000,
         temperature: 1
       })
     });
