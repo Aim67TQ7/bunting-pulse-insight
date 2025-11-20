@@ -8,9 +8,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from 'react-markdown';
+import jsPDF from 'jspdf';
 import { 
   BrainCircuit, 
   Play, 
@@ -19,7 +22,9 @@ import {
   Filter,
   Star,
   Lock,
-  FlaskConical
+  FlaskConical,
+  Download,
+  Trash2
 } from "lucide-react";
 
 const TEST_PASSCODE = "203";
@@ -50,6 +55,12 @@ export default function AITestView() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentAnalysis, setCurrentAnalysis] = useState<TestAnalysis | null>(null);
   const [testHistory, setTestHistory] = useState<TestAnalysis[]>([]);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedAnalysisForView, setSelectedAnalysisForView] = useState<TestAnalysis | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   
   const { toast } = useToast();
 
@@ -179,6 +190,165 @@ export default function AITestView() {
     setTestHistory(testHistory.map(t => 
       t.id === id ? { ...t, is_favorite: newFavoriteState } : t
     ));
+  };
+
+  const downloadAnalysisAsPDF = async (analysis: TestAnalysis) => {
+    setIsGeneratingPDF(true);
+    try {
+      const pdf = new jsPDF('p', 'pt', 'a4');
+      const pageWidth = pdf.internal.pageSize.width;
+      const pageHeight = pdf.internal.pageSize.height;
+      const margin = 40;
+      const lineHeight = 16;
+      let yPosition = 60;
+
+      const checkPageBreak = (neededSpace = lineHeight) => {
+        if (yPosition + neededSpace > pageHeight - margin) {
+          pdf.addPage();
+          yPosition = margin;
+          return true;
+        }
+        return false;
+      };
+
+      // Header
+      pdf.setFontSize(20);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('AI Test Analysis Report', margin, yPosition);
+      yPosition += 30;
+
+      // Metadata
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Model: ${analysis.model_used}`, margin, yPosition);
+      yPosition += 15;
+      pdf.text(`Response Count: ${analysis.response_count}`, margin, yPosition);
+      yPosition += 15;
+      pdf.text(`Generated: ${new Date(analysis.created_at).toLocaleString()}`, margin, yPosition);
+      yPosition += 15;
+      if (analysis.rating) {
+        pdf.text(`Rating: ${'★'.repeat(analysis.rating)}${'☆'.repeat(5 - analysis.rating)}`, margin, yPosition);
+        yPosition += 15;
+      }
+      yPosition += 10;
+
+      // Analysis content
+      const lines = analysis.analysis_text.split('\n');
+      for (let line of lines) {
+        checkPageBreak();
+        
+        if (line.startsWith('#### ')) {
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(line.substring(5), margin, yPosition);
+          yPosition += 18;
+        } else if (line.startsWith('### ')) {
+          pdf.setFontSize(14);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(line.substring(4), margin, yPosition);
+          yPosition += 20;
+        } else if (line.startsWith('## ')) {
+          pdf.setFontSize(16);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(line.substring(3), margin, yPosition);
+          yPosition += 22;
+        } else if (line.startsWith('# ')) {
+          pdf.setFontSize(18);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(line.substring(2), margin, yPosition);
+          yPosition += 25;
+        } else if (line.startsWith('- ') || line.startsWith('• ')) {
+          pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'normal');
+          const bulletText = line.startsWith('- ') ? line.substring(2) : line.substring(2);
+          const cleanText = bulletText.replace(/\*\*/g, '').replace(/\*/g, '');
+          const splitLines = pdf.splitTextToSize(`• ${cleanText}`, pageWidth - 2 * margin - 20);
+          for (const splitLine of splitLines) {
+            checkPageBreak();
+            pdf.text(splitLine, margin + 20, yPosition);
+            yPosition += lineHeight;
+          }
+        } else if (line.match(/^\d+\. /)) {
+          pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'normal');
+          const cleanText = line.replace(/\*\*/g, '').replace(/\*/g, '');
+          const splitLines = pdf.splitTextToSize(cleanText, pageWidth - 2 * margin - 20);
+          for (const splitLine of splitLines) {
+            checkPageBreak();
+            pdf.text(splitLine, margin + 20, yPosition);
+            yPosition += lineHeight;
+          }
+        } else if (line.trim() === '') {
+          yPosition += lineHeight / 2;
+        } else {
+          pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'normal');
+          const cleanText = line.replace(/\*\*/g, '').replace(/\*/g, '');
+          const splitLines = pdf.splitTextToSize(cleanText, pageWidth - 2 * margin);
+          for (const splitLine of splitLines) {
+            checkPageBreak();
+            pdf.text(splitLine, margin, yPosition);
+            yPosition += lineHeight;
+          }
+        }
+      }
+
+      const dateStr = new Date(analysis.created_at).toISOString().split('T')[0];
+      pdf.save(`ai-test-analysis-${dateStr}.pdf`);
+
+      toast({
+        title: "PDF Downloaded",
+        description: "Analysis report has been downloaded successfully"
+      });
+    } catch (error: any) {
+      toast({
+        title: "PDF Generation Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  const deleteAnalysis = async () => {
+    if (!analysisToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('ai_test_analyses' as any)
+        .delete()
+        .eq('id', analysisToDelete);
+
+      if (error) throw error;
+
+      setTestHistory(testHistory.filter(t => t.id !== analysisToDelete));
+      
+      if (currentAnalysis?.id === analysisToDelete) {
+        setCurrentAnalysis(null);
+      }
+      
+      if (selectedAnalysisForView?.id === analysisToDelete) {
+        setViewDialogOpen(false);
+        setSelectedAnalysisForView(null);
+      }
+
+      toast({
+        title: "Analysis Deleted",
+        description: "Test analysis has been permanently deleted"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Deletion Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeleting(false);
+      setDeleteConfirmOpen(false);
+      setAnalysisToDelete(null);
+    }
   };
 
   if (!isAuthenticated) {
@@ -441,7 +611,10 @@ export default function AITestView() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => setCurrentAnalysis(test)}
+                                onClick={() => {
+                                  setSelectedAnalysisForView(test);
+                                  setViewDialogOpen(true);
+                                }}
                               >
                                 View
                               </Button>
@@ -497,6 +670,109 @@ export default function AITestView() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* View Dialog */}
+        <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle>Analysis Report</DialogTitle>
+            </DialogHeader>
+
+            {selectedAnalysisForView && (
+              <div className="flex-1 overflow-hidden flex flex-col gap-4">
+                <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b">
+                  <div className="flex gap-2 flex-wrap">
+                    <Badge>{selectedAnalysisForView.model_used}</Badge>
+                    <Badge variant="outline">{selectedAnalysisForView.response_count} responses</Badge>
+                    <Badge variant="outline">
+                      {new Date(selectedAnalysisForView.created_at).toLocaleString()}
+                    </Badge>
+                    {selectedAnalysisForView.generation_time_ms && (
+                      <Badge variant="outline">
+                        {(selectedAnalysisForView.generation_time_ms / 1000).toFixed(1)}s
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {selectedAnalysisForView.rating && (
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <Star
+                          key={star}
+                          className={`h-4 w-4 ${
+                            star <= selectedAnalysisForView.rating!
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {selectedAnalysisForView.filters_applied && 
+                 Object.keys(selectedAnalysisForView.filters_applied).length > 0 && (
+                  <div className="text-sm">
+                    <span className="font-medium">Filters: </span>
+                    <span className="text-muted-foreground">
+                      {JSON.stringify(selectedAnalysisForView.filters_applied)}
+                    </span>
+                  </div>
+                )}
+
+                <ScrollArea className="flex-1 max-h-[60vh]">
+                  <div className="prose prose-sm max-w-none pr-4">
+                    <ReactMarkdown>{selectedAnalysisForView.analysis_text}</ReactMarkdown>
+                  </div>
+                </ScrollArea>
+
+                <DialogFooter className="flex-row justify-between sm:justify-between gap-2 pt-4 border-t">
+                  <Button
+                    onClick={() => downloadAnalysisAsPDF(selectedAnalysisForView)}
+                    disabled={isGeneratingPDF}
+                    className="flex-1 sm:flex-none"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    {isGeneratingPDF ? "Generating..." : "Download PDF"}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      setAnalysisToDelete(selectedAnalysisForView.id);
+                      setDeleteConfirmOpen(true);
+                    }}
+                    className="flex-1 sm:flex-none"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </Button>
+                </DialogFooter>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Analysis?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete this test analysis from the database.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={deleteAnalysis}
+                disabled={isDeleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
