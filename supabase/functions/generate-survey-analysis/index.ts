@@ -151,7 +151,7 @@ ${textResponses.slice(0, 15).map(c => `- Division: ${c.division || 'N/A'} - "${c
           { role: 'system', content: 'You are an expert HR data analyst specializing in employee engagement surveys. Your analyses are thorough, insightful, and strictly objective. You identify trends and patterns while ensuring every statement is supported by the actual data provided.' },
           { role: 'user', content: prompt }
         ],
-        max_tokens: 3000,
+        max_completion_tokens: 3000,
         temperature: 0.85
       })
     });
