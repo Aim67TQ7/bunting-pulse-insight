@@ -152,7 +152,7 @@ ${textResponses.slice(0, 15).map(c => `- Division: ${c.division || 'N/A'} - "${c
           { role: 'user', content: prompt }
         ],
         max_completion_tokens: 3000,
-        temperature: 0.85
+        temperature: 1
       })
     });
 
