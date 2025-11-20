@@ -9,7 +9,7 @@ serve(async (req) => {
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     if (!OPENAI_API_KEY) throw new Error('OpenAI API key not configured');
 
-    const { surveyData } = await req.json();
+    const { surveyData, testMode = false, model, customPrompt } = await req.json();
     if (!surveyData?.length) throw new Error('No survey data');
 
     const validResponses = surveyData.filter((r: any) => r.responses?.length > 0);
@@ -81,7 +81,7 @@ serve(async (req) => {
       }))
     };
 
-    const prompt = `You are an expert HR data analyst conducting a comprehensive employee survey analysis. Your role is to identify meaningful trends, patterns, and insights while remaining strictly objective and data-driven.
+    const defaultPrompt = `You are an expert HR data analyst conducting a comprehensive employee survey analysis. Your role is to identify meaningful trends, patterns, and insights while remaining strictly objective and data-driven.
 
 **Survey Data:**
 - Total Responses: ${surveyData.length}
@@ -136,11 +136,17 @@ ${textResponses.slice(0, 15).map(c => `- Division: ${c.division || 'N/A'} - "${c
 - Highlight both positive trends and concerning patterns
 - Be detailed and thorough in your analysis`;
 
+    // Use custom prompt if provided in test mode, otherwise use default
+    const prompt = (testMode && customPrompt) ? customPrompt : defaultPrompt;
+    
+    // Use specified model in test mode, otherwise use default
+    const modelToUse = (testMode && model) ? model : 'gpt-4o';
+
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: modelToUse,
         messages: [
           { role: 'system', content: 'You are an expert HR data analyst specializing in employee engagement surveys. Your analyses are thorough, insightful, and strictly objective. You identify trends and patterns while ensuring every statement is supported by the actual data provided.' },
           { role: 'user', content: prompt }
