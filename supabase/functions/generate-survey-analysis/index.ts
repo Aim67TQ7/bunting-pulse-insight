@@ -177,18 +177,42 @@ serve(async (req) => {
       }))
     };
 
-    const defaultPrompt = `You are an expert HR data analyst conducting a comprehensive employee survey analysis for leadership review. Your analysis must be thorough, data-driven, and actionable.
+    const defaultPrompt = `You are an advanced analytics engine responsible for generating executive-grade insights from the employee_survey_responses dataset.
+Your task is to perform a full organizational health analysis using all available fields.
 
-**CRITICAL: This analysis will be presented to senior leadership. Be specific, cite data, and provide clear insights.**
+# CORE REQUIREMENTS
 
-# SURVEY DATA SUMMARY
+## Load & Parse Survey Data
+
+Source table: employee_survey_responses
+
+Each row includes a responses_jsonb field containing:
+- rating questions (0–5 scale)
+- text responses
+- demographic fields, including: continent, division
+
+Extract all ratings, text comments, and demographic metadata.
+Gracefully ignore null or missing values.
+Build a clean analysis-ready dataframe.
+
+## Compute Key Metrics
+
+eNPS using the recommend_company rating:
+- Promoters: 9–10
+- Passives: 7–8
+- Detractors: 0–6
+- Formula: (Promoters - Detractors) / Total Respondents * 100
+
+Category averages across all rating questions.
+Text sentiment highlights (positive, negative, recurring themes).
+Identify top strengths and top weaknesses (ranked).
+
+# SURVEY DATA PROVIDED
 
 **Response Statistics:**
 - Total Responses: ${surveyData.length}
 - Valid Responses: ${validResponses.length}
 - Response Rate: ${((validResponses.length / surveyData.length) * 100).toFixed(1)}%
-
-# DETAILED QUESTION ANALYSIS
 
 ## Rating Questions (1-5 scale, where 1=Strongly Disagree, 5=Strongly Agree)
 
@@ -205,9 +229,9 @@ ${questionAverages.map(q => `
 ${q.feedbackByRating.length > 0 ? `**Employee Comments by Rating:**\n${q.feedbackByRating.map(fb => `  Rating ${fb.rating}/5:\n${fb.comments.map(c => `    - "${c}"`).join('\n')}`).join('\n')}` : ''}
 `).join('\n')}
 
-# DEMOGRAPHIC ANALYSIS
+## Demographic Analysis
 
-## By Continent:
+### By Continent:
 ${demographicCorrelations.byContinent.map(c => `
 **${c.continent}** (${c.responseCount} avg responses/question)
 - Overall Average: ${c.average.toFixed(2)}/5.0
@@ -215,7 +239,7 @@ ${demographicCorrelations.byContinent.map(c => `
 ${c.topIssues.map((issue, i) => `  ${i+1}. ${issue.question}: ${issue.avg.toFixed(2)}/5.0`).join('\n')}
 `).join('\n')}
 
-## By Division:
+### By Division:
 ${demographicCorrelations.byDivision.map(d => `
 **${d.division}** (${d.responseCount} avg responses/question)
 - Overall Average: ${d.average.toFixed(2)}/5.0
@@ -223,7 +247,7 @@ ${demographicCorrelations.byDivision.map(d => `
 ${d.topIssues.map((issue, i) => `  ${i+1}. ${issue.question}: ${issue.avg.toFixed(2)}/5.0`).join('\n')}
 `).join('\n')}
 
-# OPEN-ENDED RESPONSES
+## Open-Ended Responses
 
 ${textResponses.length > 0 ? textResponses.map(r => `
 **Question: ${r.question}**
@@ -231,79 +255,110 @@ Division: ${r.division} | Continent: ${r.continent}
 Response: "${r.text}"
 `).join('\n---\n') : 'No open-ended responses provided.'}
 
-${multiselectResponses.length > 0 ? `\n# MULTIPLE CHOICE RESPONSES\n\n${multiselectResponses.map(r => `**${r.question}** (${r.division}, ${r.continent}): ${r.selected.join(', ')}`).join('\n')}` : ''}
+${multiselectResponses.length > 0 ? `\n## Multiple Choice Responses\n\n${multiselectResponses.map(r => `**${r.question}** (${r.division}, ${r.continent}): ${r.selected.join(', ')}`).join('\n')}` : ''}
 
 ---
 
-# YOUR ANALYSIS REQUIREMENTS:
+# YOUR ANALYSIS TASK
 
-## 1. EXECUTIVE SUMMARY (2-3 paragraphs)
-Provide a concise overview highlighting:
-- Overall employee sentiment (use the average scores)
-- 3 biggest strengths (scores 4.0+)
-- 3 most critical concerns (scores below 3.5)
-- Key demographic differences that require attention
+Generate a Comprehensive Leadership Report with the following sections:
 
-## 2. DETAILED FINDINGS BY CATEGORY
+## 1. Executive Summary
 
-For each major category (Job Satisfaction, Communication, Leadership, Career Development, Work Environment, etc.):
-- **Current State**: What does the data show? (cite specific averages)
-- **Employee Voice**: What are employees saying in comments? (quote specific feedback)
-- **Patterns**: Are there differences between continents/divisions?
-- **Severity**: Rate as High/Medium/Low concern based on scores and comment sentiment
+High-level view of employee sentiment.
+Direct but professional commentary on organizational health.
 
-## 3. DEMOGRAPHIC INSIGHTS
+## 2. Key Sentiment Themes
 
-Compare and contrast:
-- **Continent Differences**: How do Europe vs North America ratings differ? Why might this be?
-- **Division Differences**: How do Equipment vs Magnetics vs Both divisions compare?
-- **Cross-Analysis**: Are there specific continent+division combinations with unique patterns?
+- Strengths
+- Weaknesses
+- Systemic friction points
+- Any indicators of burnout risk, operational drag, or communication gaps.
 
-## 4. CRITICAL THEMES FROM COMMENTS
+## 3. eNPS Analysis
 
-Analyze all employee comments to identify:
-- Recurring themes mentioned by multiple employees
-- Specific issues or concerns raised
-- Positive feedback and what's working well
-- Suggestions for improvement
+- Numeric score
+- What it means
+- What's driving it
+- How it compares to similar manufacturing organizations.
 
-## 5. PRIORITY ACTION PLAN
+## 4. Quantitative Findings
 
-Provide 5-7 specific, actionable recommendations ranked by:
-- **Impact**: How many employees are affected?
-- **Urgency**: How severe is the issue based on scores and comments?
-- **Feasibility**: How quickly can this be addressed?
+- Highest-rated categories
+- Lowest-rated categories
+- Any notable deltas across demographics
 
-For each recommendation:
-- **Issue**: What's the problem?
-- **Evidence**: What data supports this? (cite scores and quotes)
-- **Proposed Action**: Specific steps to take
-- **Expected Outcome**: What improvement should we see?
+## 5. SWOT Analysis (Employee Experience Lens)
 
-## 6. STRENGTHS TO MAINTAIN
+- Strengths
+- Weaknesses
+- Opportunities
+- Threats
 
-Identify what's working well (scores 4.0+) and recommend how to:
-- Maintain these strengths
-- Apply these successes to weaker areas
-- Recognize teams/areas performing well
+## 6. Leadership Recommendations
 
----
+Provide a prioritized, actionable list of fixes such as:
+- Communication cadence improvements
+- Process/automation target areas
+- Equipment/tooling enhancements
+- Workload balancing
+- Cross-functional coordination
 
-**ANALYSIS GUIDELINES:**
-✓ BE SPECIFIC: Use actual scores, percentages, and direct quotes
-✓ BE HONEST: Don't sugarcoat low scores or concerning patterns
-✓ BE ACTIONABLE: Every insight should lead to a clear recommendation
-✓ BE THOROUGH: Analyze BOTH quantitative ratings AND qualitative comments
-✓ CONNECT DOTS: Link related issues across questions
-✓ CONSIDER CONTEXT: Think about why certain departments/locations might differ
-✓ PRIORITIZE: Not all issues are equal - focus on what matters most
+## 7. Continental Summary
+
+Produce brief summaries (no cross-splitting to avoid isolating respondents):
+- Summary by continent
+
+Each summary should include:
+- Overall sentiment
+- Key strengths
+- Key weaknesses
+- Notable operational or communication patterns
+
+## 8. Divisional Summary
+
+Produce brief summaries:
+- Summary by division
+
+Each summary should include:
+- Overall sentiment
+- Key strengths
+- Key weaknesses
+- Notable operational or communication patterns
+
+# TONE REQUIREMENTS
+
+- Direct, candid, and strategic.
+- No sugar-coating, but diplomatically phrased for executives.
+- Forward-thinking and risk-aware.
+- Use clear bullet points and short paragraphs.
+- Highlight alignment or friction with long-term direction.
+
+# OUTPUT FORMAT
+
+The final output must be delivered as clean Markdown with the following heading structure:
+
+# Employee Experience Report
+## Executive Summary
+## Key Sentiment Themes
+## eNPS Analysis
+## Quantitative Findings
+## SWOT Analysis
+## Recommendations for Leadership
+## Continental Summary
+## Divisional Summary
 
 **DO NOT:**
-✗ Make generic statements without data support
-✗ Ignore low-scoring areas
-✗ Overlook demographic differences
-✗ Miss patterns in employee comments
-✗ Provide vague recommendations`;
+- Output code
+- Reference internal SQL or parsing steps
+- Present only the final polished analysis
+
+**DO:**
+- Be specific and cite actual data from the survey
+- Quote employee comments directly when relevant
+- Use percentages and averages to support your conclusions
+- Identify patterns across demographics
+- Provide actionable, prioritized recommendations`;
 
     // Use custom prompt if provided in test mode, otherwise use default
     const prompt = (testMode && customPrompt) ? customPrompt : defaultPrompt;
@@ -317,7 +372,7 @@ Identify what's working well (scores 4.0+) and recommend how to:
       body: JSON.stringify({
         model: modelToUse,
         messages: [
-          { role: 'system', content: 'You are a senior HR analytics consultant with 15+ years of experience in organizational development and employee engagement. You specialize in extracting actionable insights from survey data by combining quantitative metrics with qualitative feedback. Your analyses are known for being thorough, honest, and directly useful to leadership teams making strategic decisions. You never provide generic advice - every statement is grounded in the specific data provided.' },
+          { role: 'system', content: 'You are an advanced analytics engine and strategic business consultant specializing in organizational health diagnostics. Your expertise spans employee engagement, operational efficiency, and workforce sentiment analysis. You deliver executive-grade insights that are candid, data-driven, and actionable. You identify systemic issues, recognize patterns across demographics, and provide prioritized recommendations that balance immediate fixes with long-term strategic improvements. Your tone is direct and professional, avoiding corporate jargon while maintaining diplomatic phrasing suitable for C-suite audiences.' },
           { role: 'user', content: prompt }
         ],
         max_completion_tokens: 8000,
