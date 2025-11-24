@@ -77,7 +77,7 @@ export default function DynamicSurveyDashboard({
       const {
         data,
         error
-      } = await supabase.from("employee_survey_responses").select("id, responses_jsonb, created_at, continent, division, completion_time_seconds").eq("is_draft", false).order("submitted_at", {
+      } = await supabase.from("employee_survey_responses").select("id, responses_jsonb, created_at, continent, division, completion_time_seconds, submitted_at").eq("is_draft", false).order("submitted_at", {
         ascending: false
       });
       if (error) throw error;
