@@ -10,14 +10,14 @@ import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from 'react-markdown';
 import jsPDF from 'jspdf';
 
-interface DynamicSurveyResponse {
+interface AIAnalysisSurveyResponse {
   id: string;
   continent: string;
   division: string;
   role: string;
   submitted_at: string;
   completion_time_seconds: number;
-  responses: {
+  responses_jsonb: {
     question_id: string;
     question_type: string;
     answer_value: any;
@@ -25,7 +25,7 @@ interface DynamicSurveyResponse {
 }
 
 interface AIAnalysisSectionProps {
-  responses: DynamicSurveyResponse[];
+  responses: AIAnalysisSurveyResponse[];
   isSurveyComplete: boolean;
 }
 
@@ -38,7 +38,6 @@ interface AnalysisResult {
     commentsCount?: number;
     analysisLength?: number;
     generatedAt: string;
-    model: string;
   };
 }
 
@@ -70,7 +69,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           metadata: {
             totalResponses: data[0].total_responses,
             generatedAt: data[0].generated_at,
-            model: 'gemini-2.5-flash',
           }
         });
       }
@@ -112,7 +110,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         metadata: {
           totalResponses: responses.length,
           generatedAt: new Date().toISOString(),
-          model: 'gpt-4o'
         }
       };
       
@@ -322,7 +319,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         pdf.text(`Comments: ${result.metadata.commentsCount}`, margin, yPosition);
         yPosition += lineHeight;
       }
-      pdf.text(`AI Model: ${result.metadata.model}`, margin, yPosition);
       yPosition += 30;
 
       // Analysis content with markdown formatting
@@ -452,7 +448,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
                     }
                     {analysisResult.metadata.commentsCount !== undefined && 
                       `, ${analysisResult.metadata.commentsCount} comments`
-                    } using {analysisResult.metadata.model}.
+                    }.
                   </p>
                 </div>
               )}
@@ -502,7 +498,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
                           metadata: {
                             totalResponses: report.total_responses,
                             generatedAt: report.generated_at,
-                            model: 'gemini-2.5-flash',
                           }
                         });
                         setShowAnalysisDialog(true);
@@ -545,9 +540,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
                     </div>
                     <div>
                       <strong>Total Responses:</strong> {analysisResult.metadata.totalResponses}
-                    </div>
-                    <div>
-                      <strong>AI Model:</strong> {analysisResult.metadata.model}
                     </div>
                   </div>
                 </div>

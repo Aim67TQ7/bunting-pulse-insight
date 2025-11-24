@@ -311,8 +311,8 @@ ${multiselectResponses.length > 0 ? `\n## Multiple Choice Selections\n${multisel
     // Use custom prompt if provided in test mode, otherwise use default
     const prompt = (testMode && customPrompt) ? customPrompt : defaultPrompt;
     
-    // Use specified model in test mode, otherwise use openai/gpt-5 for production
-    const modelToUse = (testMode && model) ? model : 'openai/gpt-5';
+    // Use specified model in test mode, otherwise use openai/gpt-5-mini for production
+    const modelToUse = (testMode && model) ? model : 'openai/gpt-5-mini';
 
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',

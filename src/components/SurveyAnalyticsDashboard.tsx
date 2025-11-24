@@ -8,7 +8,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CommentsSection } from "./CommentsSection";
-import { AIAnalysisSection } from "./AIAnalysisSection";
 import { useSurveyQuestions } from "@/hooks/useSurveyQuestions";
 
 const CHART_COLORS = ['#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444'];
@@ -112,10 +111,9 @@ const SurveyAnalyticsDashboard = ({ configurationId }: AnalyticsDashboardProps) 
 
   return (
     <Tabs defaultValue="overview" className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="overview">Overview</TabsTrigger>
         <TabsTrigger value="comments">Comments</TabsTrigger>
-        <TabsTrigger value="ai-analysis">AI Analysis</TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview" className="space-y-6">
@@ -189,7 +187,6 @@ const SurveyAnalyticsDashboard = ({ configurationId }: AnalyticsDashboardProps) 
       </TabsContent>
 
       <TabsContent value="comments"><CommentsSection configurationId={configurationId} /></TabsContent>
-      <TabsContent value="ai-analysis"><AIAnalysisSection responses={filteredResponses} isSurveyComplete={true} /></TabsContent>
     </Tabs>
   );
 };

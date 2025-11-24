@@ -3,14 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AIAnalysisSection } from "./AIAnalysisSection";
 
-interface DynamicSurveyResponse {
+interface AIAnalysisSurveyResponse {
   id: string;
   continent: string | null;
   division: string | null;
   role: string | null;
   submitted_at: string;
   completion_time_seconds: number | null;
-  responses: Array<{
+  responses_jsonb: Array<{
     question_id: string;
     question_type: string;
     answer_value: any;
@@ -18,7 +18,7 @@ interface DynamicSurveyResponse {
 }
 
 export const AIAnalysisSectionWrapper = () => {
-  const [responses, setResponses] = useState<DynamicSurveyResponse[]>([]);
+  const [responses, setResponses] = useState<AIAnalysisSurveyResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
@@ -48,7 +48,7 @@ export const AIAnalysisSectionWrapper = () => {
         role: survey.role,
         submitted_at: survey.submitted_at,
         completion_time_seconds: survey.completion_time_seconds,
-        responses: (survey.responses_jsonb as any[] || []).map((answer: any) => ({
+        responses_jsonb: (survey.responses_jsonb as any[] || []).map((answer: any) => ({
           question_id: answer.question_id,
           question_type: answer.question_type,
           answer_value: answer.answer_value,
