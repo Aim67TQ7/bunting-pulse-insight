@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from 'react-markdown';
 import jsPDF from 'jspdf';
+import buntingLogo from '@/assets/bunting-logo.png';
 
 interface AIAnalysisSurveyResponse {
   id: string;
@@ -175,156 +176,329 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
 
   const generatePDFBlob = async (result: AnalysisResult): Promise<Blob> => {
     const pdf = new jsPDF('p', 'pt', 'a4');
-      const pageWidth = pdf.internal.pageSize.width;
-      const pageHeight = pdf.internal.pageSize.height;
-      const margin = 40;
-      const lineHeight = 16;
-      let yPosition = 60;
+    const pageWidth = pdf.internal.pageSize.width;
+    const pageHeight = pdf.internal.pageSize.height;
+    const margin = 50;
+    const lineHeight = 18;
+    let yPosition = margin;
+    let currentPage = 1;
 
-      // Helper function to add new page if needed
-      const checkPageBreak = (neededSpace = lineHeight) => {
-        if (yPosition + neededSpace > pageHeight - margin) {
-          pdf.addPage();
-          yPosition = margin;
-          return true;
-        }
-        return false;
-      };
+    // Brand colors (RGB for jsPDF)
+    const colors = {
+      primary: [59, 130, 246] as [number, number, number],
+      purple: [139, 92, 246] as [number, number, number],
+      pink: [236, 72, 153] as [number, number, number],
+      green: [16, 185, 129] as [number, number, number],
+      orange: [245, 158, 11] as [number, number, number],
+      text: [51, 65, 85] as [number, number, number],
+      textLight: [100, 116, 139] as [number, number, number],
+      divider: [220, 220, 230] as [number, number, number]
+    };
 
-      // Helper function to parse and format markdown text
-      const renderMarkdownToPDF = (text: string) => {
-        const lines = text.split('\n');
-        
-        for (let line of lines) {
-          checkPageBreak();
-          
-          // Handle headers
-          if (line.startsWith('#### ')) {
-            pdf.setFontSize(12);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text(line.substring(5), margin, yPosition);
-            yPosition += 18;
-          } else if (line.startsWith('### ')) {
-            pdf.setFontSize(14);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text(line.substring(4), margin, yPosition);
-            yPosition += 20;
-          } else if (line.startsWith('## ')) {
-            pdf.setFontSize(16);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text(line.substring(3), margin, yPosition);
-            yPosition += 22;
-          } else if (line.startsWith('# ')) {
-            pdf.setFontSize(18);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text(line.substring(2), margin, yPosition);
-            yPosition += 25;
-          } else if (line.startsWith('- ') || line.startsWith('• ')) {
-            // Bullet points - clean markdown
-            pdf.setFontSize(11);
-            pdf.setFont('helvetica', 'normal');
-            const bulletText = line.startsWith('- ') ? line.substring(2) : line.substring(2);
-            const cleanText = bulletText.replace(/\*\*/g, '').replace(/\*/g, '');
-            const splitLines = pdf.splitTextToSize(`• ${cleanText}`, pageWidth - 2 * margin - 20);
-            for (const splitLine of splitLines) {
-              checkPageBreak();
-              pdf.text(splitLine, margin + 20, yPosition);
-              yPosition += lineHeight;
-            }
-          } else if (line.match(/^\d+\. /)) {
-            // Numbered lists - clean markdown
-            pdf.setFontSize(11);
-            pdf.setFont('helvetica', 'normal');
-            const cleanText = line.replace(/\*\*/g, '').replace(/\*/g, '');
-            const splitLines = pdf.splitTextToSize(cleanText, pageWidth - 2 * margin - 20);
-            for (const splitLine of splitLines) {
-              checkPageBreak();
-              pdf.text(splitLine, margin + 20, yPosition);
-              yPosition += lineHeight;
-            }
-          } else if (line.trim() === '') {
-            // Empty line - add space
-            yPosition += lineHeight / 2;
-          } else {
-            // Regular paragraph text - clean all markdown symbols
-            pdf.setFontSize(11);
-            
-            // Remove markdown formatting but identify bold sections
-            const hasBold = line.includes('**');
-            
-            if (hasBold && line.startsWith('**') && line.indexOf('**', 2) !== -1) {
-              // Line starts with bold text
-              const endBold = line.indexOf('**', 2);
-              const boldPart = line.substring(2, endBold);
-              const restPart = line.substring(endBold + 2);
-              
-              // Print bold part
-              pdf.setFont('helvetica', 'bold');
-              pdf.text(boldPart, margin, yPosition);
-              
-              // Calculate width and continue with rest if exists
-              const boldWidth = pdf.getTextWidth(boldPart);
-              if (restPart.trim()) {
-                pdf.setFont('helvetica', 'normal');
-                const cleanRest = restPart.replace(/\*\*/g, '').replace(/\*/g, '');
-                const splitLines = pdf.splitTextToSize(cleanRest, pageWidth - 2 * margin - boldWidth - 5);
-                
-                if (splitLines.length === 1) {
-                  pdf.text(splitLines[0], margin + boldWidth + 5, yPosition);
-                  yPosition += lineHeight;
-                } else {
-                  yPosition += lineHeight;
-                  for (const splitLine of splitLines) {
-                    checkPageBreak();
-                    pdf.text(splitLine, margin, yPosition);
-                    yPosition += lineHeight;
-                  }
-                }
-              } else {
-                yPosition += lineHeight;
-              }
-            } else {
-              // No special formatting, just clean and print
-              pdf.setFont('helvetica', 'normal');
-              const cleanText = line.replace(/\*\*/g, '').replace(/\*/g, '').replace(/`/g, '');
-              const splitLines = pdf.splitTextToSize(cleanText, pageWidth - 2 * margin);
-              for (const splitLine of splitLines) {
-                checkPageBreak();
-                pdf.text(splitLine, margin, yPosition);
-                yPosition += lineHeight;
-              }
-            }
-          }
-        }
-      };
+    // Calculate metrics
+    const calculateMetrics = () => {
+      const totalResponses = responses.length;
+      const ratingResponses = responses.flatMap(r => 
+        r.responses_jsonb.filter((q: any) => q.question_type === 'rating')
+      );
+      const avgEngagement = ratingResponses.length > 0
+        ? ratingResponses.reduce((sum, r: any) => sum + (r.answer_value?.rating || 0), 0) / ratingResponses.length
+        : 0;
+      const avgCompletionTime = responses.reduce((sum, r) => sum + (r.completion_time_seconds || 0), 0) / totalResponses / 60;
+      const commentsCount = responses.filter(r => 
+        r.responses_jsonb.some((q: any) => q.question_type === 'text' && q.answer_value?.text)
+      ).length;
 
-      // Title
-      pdf.setFontSize(20);
+      return { totalResponses, avgEngagement, avgCompletionTime, commentsCount };
+    };
+
+    const metrics = calculateMetrics();
+
+    // Helper: Page header
+    const addPageHeader = (pageNum: number) => {
+      if (pageNum > 1) {
+        pdf.addImage(buntingLogo, 'PNG', margin, 20, 60, 20);
+        pdf.setFontSize(10);
+        pdf.setTextColor(...colors.textLight);
+        pdf.text('Survey Analysis Report', pageWidth - margin - 100, 30);
+        pdf.setDrawColor(...colors.divider);
+        pdf.line(margin, 50, pageWidth - margin, 50);
+      }
+    };
+
+    // Helper: Page footer
+    const addPageFooter = (pageNum: number) => {
+      pdf.setFontSize(8);
+      pdf.setTextColor(...colors.textLight);
+      pdf.text('Confidential - Internal Use Only', margin, pageHeight - 20);
+      pdf.text(`Page ${pageNum}`, pageWidth / 2, pageHeight - 20, { align: 'center' });
+      pdf.text(new Date().toLocaleDateString(), pageWidth - margin, pageHeight - 20, { align: 'right' });
+    };
+
+    // Helper: Check page break
+    const checkPageBreak = (neededSpace: number = lineHeight) => {
+      if (yPosition + neededSpace > pageHeight - margin - 40) {
+        addPageFooter(currentPage);
+        pdf.addPage();
+        currentPage++;
+        yPosition = 70;
+        addPageHeader(currentPage);
+        return true;
+      }
+      return false;
+    };
+
+    // ========== COVER PAGE ==========
+    pdf.addImage(buntingLogo, 'PNG', (pageWidth - 120) / 2, 80, 120, 40);
+    
+    yPosition = 180;
+    pdf.setFontSize(32);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(...colors.primary);
+    pdf.text('SURVEY ANALYSIS REPORT', pageWidth / 2, yPosition, { align: 'center' });
+    
+    yPosition += 20;
+    pdf.setDrawColor(...colors.purple);
+    pdf.setLineWidth(3);
+    pdf.line(pageWidth / 2 - 150, yPosition, pageWidth / 2 + 150, yPosition);
+    
+    yPosition += 50;
+    pdf.setFontSize(16);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(...colors.text);
+    pdf.text('Comprehensive Employee Survey Results', pageWidth / 2, yPosition, { align: 'center' });
+    
+    yPosition += 80;
+    pdf.setFontSize(12);
+    pdf.setTextColor(...colors.textLight);
+    pdf.text(`Total Responses: ${metrics.totalResponses}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 25;
+    pdf.text(`Generated: ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 25;
+    pdf.text(`Survey Period: October 15 - November 23, 2025`, pageWidth / 2, yPosition, { align: 'center' });
+    
+    yPosition = pageHeight - 80;
+    pdf.setDrawColor(...colors.divider);
+    pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 20;
+    pdf.setFontSize(10);
+    pdf.text('Confidential - Internal Use Only', pageWidth / 2, yPosition, { align: 'center' });
+
+    // ========== EXECUTIVE SUMMARY PAGE ==========
+    pdf.addPage();
+    currentPage++;
+    yPosition = 70;
+    addPageHeader(currentPage);
+    
+    pdf.setFontSize(24);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(...colors.purple);
+    pdf.text('Executive Summary', margin, yPosition);
+    yPosition += 40;
+
+    // Key Metrics Dashboard (4 boxes)
+    const boxWidth = (pageWidth - 2 * margin - 20) / 2;
+    const boxHeight = 80;
+    const boxGap = 20;
+
+    const metricsBoxes = [
+      { label: 'Total Responses', value: metrics.totalResponses.toString(), color: colors.purple },
+      { label: 'Engagement Score', value: metrics.avgEngagement.toFixed(1), color: colors.pink },
+      { label: 'Avg Completion', value: `${Math.round(metrics.avgCompletionTime)}m`, color: colors.green },
+      { label: 'Comments Received', value: metrics.commentsCount.toString(), color: colors.orange }
+    ];
+
+    metricsBoxes.forEach((box, idx) => {
+      const row = Math.floor(idx / 2);
+      const col = idx % 2;
+      const boxX = margin + col * (boxWidth + boxGap);
+      const boxY = yPosition + row * (boxHeight + boxGap);
+
+      // Box background with light tint
+      pdf.setFillColor(box.color[0], box.color[1], box.color[2]);
+      pdf.setGState(pdf.GState({ opacity: 0.1 }));
+      pdf.roundedRect(boxX, boxY, boxWidth, boxHeight, 8, 8, 'F');
+      pdf.setGState(pdf.GState({ opacity: 1 }));
+
+      // Value
+      pdf.setFontSize(32);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('Survey Analysis Report', margin, yPosition);
-      yPosition += 40;
+      pdf.setTextColor(...box.color);
+      pdf.text(box.value, boxX + 20, boxY + 45);
 
-      // Metadata
-      pdf.setFontSize(10);
+      // Label
+      pdf.setFontSize(12);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(`Generated: ${new Date(result.metadata.generatedAt).toLocaleString()}`, margin, yPosition);
-      yPosition += lineHeight;
-      pdf.text(`Total Responses: ${result.metadata.totalResponses}`, margin, yPosition);
-      yPosition += lineHeight;
-      if (result.metadata.validResponses) {
-        pdf.text(`Valid Responses: ${result.metadata.validResponses} (${result.metadata.responseRate?.toFixed(1)}% quality)`, margin, yPosition);
-        yPosition += lineHeight;
-      }
-      if (result.metadata.commentsCount !== undefined) {
-        pdf.text(`Comments: ${result.metadata.commentsCount}`, margin, yPosition);
-        yPosition += lineHeight;
-      }
-      yPosition += 30;
+      pdf.setTextColor(...colors.text);
+      pdf.text(box.label, boxX + 20, boxY + 65);
+    });
 
-      // Analysis content with markdown formatting
-      renderMarkdownToPDF(result.analysis);
+    yPosition += (boxHeight * 2) + boxGap + 40;
+    addPageFooter(currentPage);
 
-      return pdf.output('blob');
+    // ========== DEMOGRAPHICS PAGE ==========
+    pdf.addPage();
+    currentPage++;
+    yPosition = 70;
+    addPageHeader(currentPage);
+
+    pdf.setFontSize(24);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(...colors.purple);
+    pdf.text('Demographic Breakdown', margin, yPosition);
+    yPosition += 40;
+
+    // Get demographic data
+    const getDemographicData = (field: 'continent' | 'division' | 'role') => {
+      const counts = new Map<string, number>();
+      responses.forEach(r => {
+        const val = r[field];
+        if (val) counts.set(val, (counts.get(val) || 0) + 1);
+      });
+      return Array.from(counts.entries()).map(([name, value]) => ({ name, value }));
+    };
+
+    const continentData = getDemographicData('continent');
+    const divisionData = getDemographicData('division');
+    const roleData = getDemographicData('role');
+
+    // Display demographic stats as text lists
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(...colors.text);
+    pdf.text('By Continent:', margin, yPosition);
+    yPosition += 20;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    continentData.forEach(item => {
+      checkPageBreak(20);
+      const percentage = ((item.value / metrics.totalResponses) * 100).toFixed(1);
+      pdf.text(`• ${item.name}: ${item.value} responses (${percentage}%)`, margin + 20, yPosition);
+      yPosition += 18;
+    });
+
+    yPosition += 10;
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('By Division:', margin, yPosition);
+    yPosition += 20;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    divisionData.forEach(item => {
+      checkPageBreak(20);
+      const percentage = ((item.value / metrics.totalResponses) * 100).toFixed(1);
+      pdf.text(`• ${item.name}: ${item.value} responses (${percentage}%)`, margin + 20, yPosition);
+      yPosition += 18;
+    });
+
+    yPosition += 10;
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('By Role:', margin, yPosition);
+    yPosition += 20;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    roleData.forEach(item => {
+      checkPageBreak(20);
+      const percentage = ((item.value / metrics.totalResponses) * 100).toFixed(1);
+      pdf.text(`• ${item.name}: ${item.value} responses (${percentage}%)`, margin + 20, yPosition);
+      yPosition += 18;
+    });
+
+    addPageFooter(currentPage);
+
+    // ========== AI ANALYSIS CONTENT ==========
+    pdf.addPage();
+    currentPage++;
+    yPosition = 70;
+    addPageHeader(currentPage);
+
+    pdf.setFontSize(24);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(...colors.purple);
+    pdf.text('Detailed Analysis', margin, yPosition);
+    yPosition += 40;
+
+    // Helper function to render markdown
+    const renderMarkdownToPDF = (text: string) => {
+      const lines = text.split('\n');
+      
+      for (let line of lines) {
+        checkPageBreak(lineHeight + 5);
+        
+        if (line.startsWith('#### ')) {
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...colors.text);
+          pdf.text(line.substring(5), margin, yPosition);
+          yPosition += 20;
+        } else if (line.startsWith('### ')) {
+          pdf.setFontSize(14);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...colors.purple);
+          pdf.text(line.substring(4), margin, yPosition);
+          yPosition += 24;
+        } else if (line.startsWith('## ')) {
+          pdf.setFontSize(16);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...colors.purple);
+          pdf.text(line.substring(3), margin, yPosition);
+          yPosition += 28;
+        } else if (line.startsWith('# ')) {
+          pdf.setFontSize(18);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...colors.purple);
+          pdf.text(line.substring(2), margin, yPosition);
+          yPosition += 30;
+        } else if (line.startsWith('- ') || line.startsWith('• ')) {
+          pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(...colors.text);
+          const bulletText = line.substring(2).replace(/\*\*/g, '').replace(/\*/g, '');
+          const splitLines = pdf.splitTextToSize(`• ${bulletText}`, pageWidth - 2 * margin - 20);
+          splitLines.forEach((splitLine: string) => {
+            checkPageBreak(lineHeight);
+            pdf.text(splitLine, margin + 20, yPosition);
+            yPosition += lineHeight;
+          });
+        } else if (line.match(/^\d+\. /)) {
+          pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(...colors.text);
+          const cleanText = line.replace(/\*\*/g, '').replace(/\*/g, '');
+          const splitLines = pdf.splitTextToSize(cleanText, pageWidth - 2 * margin - 20);
+          splitLines.forEach((splitLine: string) => {
+            checkPageBreak(lineHeight);
+            pdf.text(splitLine, margin + 20, yPosition);
+            yPosition += lineHeight;
+          });
+        } else if (line.trim() === '') {
+          yPosition += lineHeight / 2;
+        } else {
+          pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(...colors.text);
+          const cleanText = line.replace(/\*\*/g, '').replace(/\*/g, '').replace(/`/g, '');
+          const splitLines = pdf.splitTextToSize(cleanText, pageWidth - 2 * margin);
+          splitLines.forEach((splitLine: string) => {
+            checkPageBreak(lineHeight);
+            pdf.text(splitLine, margin, yPosition);
+            yPosition += lineHeight;
+          });
+        }
+      }
+    };
+
+    // Render analysis content
+    renderMarkdownToPDF(result.analysis);
+
+    // Add final footer
+    addPageFooter(currentPage);
+
+    return pdf.output('blob');
   };
 
   const exportAnalysisToPDF = () => {
@@ -341,7 +515,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         
         toast({
           title: "Export Successful",
-          description: "AI analysis exported to PDF with formatting successfully.",
+          description: "AI analysis exported to PDF successfully.",
         });
       });
     } catch (error: any) {
@@ -353,8 +527,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
       });
     }
   };
-
-  
 
   return (
     <>
@@ -442,13 +614,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
                   <p className="text-sm text-green-800">
                     <strong>Analysis Ready:</strong> Generated on {' '}
                     {new Date(analysisResult.metadata.generatedAt).toLocaleDateString()} for {' '}
-                    {analysisResult.metadata.totalResponses} responses 
-                    {analysisResult.metadata.validResponses && 
-                      ` (${analysisResult.metadata.validResponses} complete, ${analysisResult.metadata.responseRate?.toFixed(1)}% quality)`
-                    }
-                    {analysisResult.metadata.commentsCount !== undefined && 
-                      `, ${analysisResult.metadata.commentsCount} comments`
-                    }.
+                    {analysisResult.metadata.totalResponses} responses.
                   </p>
                 </div>
               )}
@@ -479,19 +645,9 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    {report.pdf_url && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => window.open(report.pdf_url, '_blank')}
-                      >
-                        <DownloadIcon className="h-3 w-3 mr-1" />
-                        PDF
-                      </Button>
-                    )}
-                    <Button
+                    <Button 
+                      variant="outline" 
                       size="sm"
-                      variant="ghost"
                       onClick={() => {
                         setAnalysisResult({
                           analysis: report.analysis_text,
@@ -505,6 +661,16 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
                     >
                       View
                     </Button>
+                    {report.pdf_url && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.open(report.pdf_url, '_blank')}
+                      >
+                        <DownloadIcon className="h-3 w-3 mr-1" />
+                        PDF
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -513,59 +679,33 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         </Card>
       )}
 
-      {/* Analysis Results Dialog */}
+      {/* Analysis Dialog */}
       <Dialog open={showAnalysisDialog} onOpenChange={setShowAnalysisDialog}>
         <DialogContent className="max-w-4xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <BrainCircuitIcon className="h-5 w-5" />
-              AI Survey Analysis Results
-              {analysisResult && (
-                <Badge variant="secondary" className="ml-2">
-                  {analysisResult.metadata.totalResponses} responses
-                </Badge>
-              )}
+              <SparklesIcon className="h-5 w-5" />
+              AI Analysis Results
             </DialogTitle>
           </DialogHeader>
-          
-          {analysisResult && (
-            <ScrollArea className="max-h-[60vh]">
-              <div className="space-y-6 pr-4">
-                {/* Metadata */}
-                <div className="border-b pb-4">
-                  <div className="grid grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <strong>Generated:</strong> {' '}
-                      {new Date(analysisResult.metadata.generatedAt).toLocaleString()}
-                    </div>
-                    <div>
-                      <strong>Total Responses:</strong> {analysisResult.metadata.totalResponses}
-                    </div>
+          <ScrollArea className="h-[60vh] pr-4">
+            {analysisResult && (
+              <div className="space-y-4">
+                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Analysis Metadata</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p>Total Responses: {analysisResult.metadata.totalResponses}</p>
+                    <p>Generated: {new Date(analysisResult.metadata.generatedAt).toLocaleString()}</p>
                   </div>
                 </div>
-
-                {/* Analysis Content */}
-                <div className="prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground">
-                  <ReactMarkdown
-                    components={{
-                      h1: ({ children }) => <h1 className="text-2xl font-bold mt-6 mb-4 text-foreground">{children}</h1>,
-                      h2: ({ children }) => <h2 className="text-xl font-semibold mt-5 mb-3 text-foreground">{children}</h2>,
-                      h3: ({ children }) => <h3 className="text-lg font-medium mt-4 mb-2 text-foreground">{children}</h3>,
-                      p: ({ children }) => <p className="mb-3 leading-relaxed text-foreground">{children}</p>,
-                      ul: ({ children }) => <ul className="mb-4 pl-6 space-y-1">{children}</ul>,
-                      ol: ({ children }) => <ol className="mb-4 pl-6 space-y-1 list-decimal">{children}</ol>,
-                      li: ({ children }) => <li className="text-foreground">{children}</li>,
-                      strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
-                      code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-sm font-mono">{children}</code>,
-                      blockquote: ({ children }) => <blockquote className="border-l-4 border-primary pl-4 italic my-4 text-muted-foreground">{children}</blockquote>,
-                    }}
-                  >
-                    {analysisResult.analysis}
-                  </ReactMarkdown>
+                <div className="prose prose-sm max-w-none">
+                  <ReactMarkdown>{analysisResult.analysis}</ReactMarkdown>
                 </div>
               </div>
-            </ScrollArea>
-          )}
+            )}
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </>
