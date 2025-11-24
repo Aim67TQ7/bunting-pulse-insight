@@ -427,27 +427,29 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
       const lines = text.split('\n');
       
       for (let line of lines) {
-        checkPageBreak(lineHeight + 5);
-        
         if (line.startsWith('#### ')) {
+          checkPageBreak(20);
           pdf.setFontSize(12);
           pdf.setFont('helvetica', 'bold');
           pdf.setTextColor(...colors.text);
           pdf.text(line.substring(5), margin, yPosition);
           yPosition += 20;
         } else if (line.startsWith('### ')) {
+          checkPageBreak(24);
           pdf.setFontSize(14);
           pdf.setFont('helvetica', 'bold');
           pdf.setTextColor(...colors.purple);
           pdf.text(line.substring(4), margin, yPosition);
           yPosition += 24;
         } else if (line.startsWith('## ')) {
+          checkPageBreak(28);
           pdf.setFontSize(16);
           pdf.setFont('helvetica', 'bold');
           pdf.setTextColor(...colors.purple);
           pdf.text(line.substring(3), margin, yPosition);
           yPosition += 28;
         } else if (line.startsWith('# ')) {
+          checkPageBreak(30);
           pdf.setFontSize(18);
           pdf.setFont('helvetica', 'bold');
           pdf.setTextColor(...colors.purple);
