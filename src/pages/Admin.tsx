@@ -9,6 +9,7 @@ import { ArrowLeftIcon, ShieldCheckIcon, KeyRoundIcon } from "lucide-react";
 import DynamicSurveyDashboard from "@/components/DynamicSurveyDashboard";
 import { QuestionLevelAnalytics } from "@/components/QuestionLevelAnalytics";
 import { AIAnalysisSectionWrapper } from "@/components/AIAnalysisSectionWrapper";
+import { ChatWithDataSection } from "@/components/ChatWithDataSection";
 import buntingLogo from "@/assets/bunting-logo.png";
 import magnetLogo from "@/assets/magnet-applications-logo.png";
 import {
@@ -220,7 +221,7 @@ export const Admin = ({
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
         <Tabs defaultValue="dashboard" className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-3 h-auto">
+          <TabsList className="grid w-full grid-cols-4 h-auto">
             <TabsTrigger value="dashboard" className="text-xs sm:text-sm py-2 sm:py-2.5">
               <span className="hidden sm:inline">Dashboard</span>
               <span className="sm:hidden">Data</span>
@@ -232,6 +233,10 @@ export const Admin = ({
             <TabsTrigger value="ai-analysis" className="text-xs sm:text-sm py-2 sm:py-2.5">
               <span className="hidden sm:inline">AI Analysis</span>
               <span className="sm:hidden">AI</span>
+            </TabsTrigger>
+            <TabsTrigger value="chat-data" className="text-xs sm:text-sm py-2 sm:py-2.5">
+              <span className="hidden sm:inline">Chat with Data</span>
+              <span className="sm:hidden">Chat</span>
             </TabsTrigger>
           </TabsList>
 
@@ -245,6 +250,10 @@ export const Admin = ({
 
           <TabsContent value="ai-analysis" className="space-y-6">
             <AIAnalysisSectionWrapper />
+          </TabsContent>
+
+          <TabsContent value="chat-data" className="space-y-6">
+            <ChatWithDataSection />
           </TabsContent>
         </Tabs>
       </main>
