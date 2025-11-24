@@ -459,8 +459,12 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           pdf.setTextColor(...colors.text);
           const bulletText = line.substring(2).replace(/\*\*/g, '').replace(/\*/g, '');
           const splitLines = pdf.splitTextToSize(`• ${bulletText}`, pageWidth - 2 * margin - 20);
+          
+          // Check if we have space for ALL lines before rendering
+          const totalHeight = splitLines.length * lineHeight;
+          checkPageBreak(totalHeight + 5);
+          
           splitLines.forEach((splitLine: string) => {
-            checkPageBreak(lineHeight);
             pdf.text(splitLine, margin + 20, yPosition);
             yPosition += lineHeight;
           });
@@ -470,8 +474,12 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           pdf.setTextColor(...colors.text);
           const cleanText = line.replace(/\*\*/g, '').replace(/\*/g, '');
           const splitLines = pdf.splitTextToSize(cleanText, pageWidth - 2 * margin - 20);
+          
+          // Check if we have space for ALL lines before rendering
+          const totalHeight = splitLines.length * lineHeight;
+          checkPageBreak(totalHeight + 5);
+          
           splitLines.forEach((splitLine: string) => {
-            checkPageBreak(lineHeight);
             pdf.text(splitLine, margin + 20, yPosition);
             yPosition += lineHeight;
           });
@@ -483,8 +491,12 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           pdf.setTextColor(...colors.text);
           const cleanText = line.replace(/\*\*/g, '').replace(/\*/g, '').replace(/`/g, '');
           const splitLines = pdf.splitTextToSize(cleanText, pageWidth - 2 * margin);
+          
+          // Check if we have space for ALL lines before rendering
+          const totalHeight = splitLines.length * lineHeight;
+          checkPageBreak(totalHeight + 5);
+          
           splitLines.forEach((splitLine: string) => {
-            checkPageBreak(lineHeight);
             pdf.text(splitLine, margin, yPosition);
             yPosition += lineHeight;
           });
@@ -523,6 +535,65 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
       toast({
         title: "Export Failed",
         description: error.message || "Failed to export analysis to PDF.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const downloadSavedReport = async (report: any) => {
+    try {
+      // Try to fetch PDF from storage first
+      if (report.pdf_url) {
+        const response = await fetch(report.pdf_url);
+        if (response.ok) {
+          const blob = await response.blob();
+          if (blob.size > 1000) { // Validate PDF is not empty
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `survey-analysis-${new Date(report.created_at).toLocaleDateString()}.pdf`;
+            link.click();
+            URL.revokeObjectURL(url);
+            toast({
+              title: "Download Successful",
+              description: "Report downloaded successfully.",
+            });
+            return;
+          }
+        }
+      }
+
+      // Fallback: Regenerate PDF from saved analysis text
+      toast({
+        title: "Regenerating PDF",
+        description: "Creating PDF from saved report...",
+      });
+
+      const result: AnalysisResult = {
+        analysis: report.analysis_text,
+        metadata: {
+          totalResponses: report.total_responses,
+          generatedAt: report.generated_at,
+        }
+      };
+
+      const blob = await generatePDFBlob(result);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `survey-analysis-${new Date(report.created_at).toLocaleDateString()}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Download Successful",
+        description: "Report regenerated and downloaded successfully.",
+      });
+    } catch (error: any) {
+      console.error('Error downloading report:', error);
+      toast({
+        title: "Download Failed",
+        description: error.message || "Failed to download report. Please try again.",
         variant: "destructive",
       });
     }
@@ -661,16 +732,14 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
                     >
                       View
                     </Button>
-                    {report.pdf_url && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => window.open(report.pdf_url, '_blank')}
-                      >
-                        <DownloadIcon className="h-3 w-3 mr-1" />
-                        PDF
-                      </Button>
-                    )}
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => downloadSavedReport(report)}
+                    >
+                      <DownloadIcon className="h-3 w-3 mr-1" />
+                      PDF
+                    </Button>
                   </div>
                 </div>
               ))}
