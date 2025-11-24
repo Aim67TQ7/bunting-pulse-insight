@@ -333,7 +333,25 @@ ${multiselectResponses.length > 0 ? `\n## Multiple Choice Selections\n${multisel
       throw new Error(`AI API error: ${aiResponse.status}`);
     }
     const data = await aiResponse.json();
-    const analysis = data.choices[0].message.content;
+    let analysis = data.choices[0].message.content;
+    
+    // Remove AI-generated meta-commentary at the end
+    // Strip out any trailing sentences that start with conversational phrases like "If you want", "Would you like", etc.
+    const metaCommentPatterns = [
+      /\n\n?If you (want|would like|need).*$/s,
+      /\n\n?Would you like.*$/s,
+      /\n\n?I can (also|additionally|further).*$/s,
+      /\n\n?Let me know if.*$/s,
+      /\n\n?Please let me know.*$/s,
+      /\n\n?Feel free to.*$/s
+    ];
+    
+    for (const pattern of metaCommentPatterns) {
+      analysis = analysis.replace(pattern, '');
+    }
+    
+    // Trim any trailing whitespace
+    analysis = analysis.trim();
 
     return new Response(JSON.stringify({ success: true, analysis }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (error) {
