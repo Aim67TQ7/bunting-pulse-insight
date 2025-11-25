@@ -23,7 +23,7 @@ export const AIAnalysisSectionWrapper = () => {
   const { toast } = useToast();
   
   // Survey close date - must match SurveyTimer.tsx
-  const SURVEY_END = new Date("2025-11-23T23:59:59-06:00"); // 11:59 PM Newton KS time Nov 23
+  const SURVEY_END = new Date("2025-11-30T23:59:59+00:00"); // 11:59 PM UK time Nov 30
   const isSurveyComplete = new Date() > SURVEY_END;
 
   useEffect(() => {
