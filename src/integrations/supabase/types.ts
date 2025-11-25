@@ -2679,6 +2679,257 @@ export type Database = {
         }
         Relationships: []
       }
+      rvw_organizations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          subscription_tier: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          subscription_tier?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          subscription_tier?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rvw_review_cycles: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          org_id: string
+          start_date: string
+          status: Database["public"]["Enums"]["rvw_cycle_status"]
+          template_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          org_id: string
+          start_date: string
+          status?: Database["public"]["Enums"]["rvw_cycle_status"]
+          template_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          org_id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["rvw_cycle_status"]
+          template_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rvw_review_cycles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "rvw_organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rvw_review_cycles_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "rvw_review_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rvw_review_responses: {
+        Row: {
+          author_role: Database["public"]["Enums"]["rvw_author_role"]
+          created_at: string
+          id: string
+          question_id: string
+          review_id: string
+          updated_at: string
+          value_boolean: boolean | null
+          value_goal_progress: number | null
+          value_rating: number | null
+          value_text: string | null
+        }
+        Insert: {
+          author_role: Database["public"]["Enums"]["rvw_author_role"]
+          created_at?: string
+          id?: string
+          question_id: string
+          review_id: string
+          updated_at?: string
+          value_boolean?: boolean | null
+          value_goal_progress?: number | null
+          value_rating?: number | null
+          value_text?: string | null
+        }
+        Update: {
+          author_role?: Database["public"]["Enums"]["rvw_author_role"]
+          created_at?: string
+          id?: string
+          question_id?: string
+          review_id?: string
+          updated_at?: string
+          value_boolean?: boolean | null
+          value_goal_progress?: number | null
+          value_rating?: number | null
+          value_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rvw_review_responses_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "rvw_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rvw_review_templates: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          org_id: string
+          questions_json: Json
+          template_type: Database["public"]["Enums"]["rvw_template_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          org_id: string
+          questions_json?: Json
+          template_type: Database["public"]["Enums"]["rvw_template_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          org_id?: string
+          questions_json?: Json
+          template_type?: Database["public"]["Enums"]["rvw_template_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rvw_review_templates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "rvw_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rvw_reviews: {
+        Row: {
+          created_at: string
+          cycle_id: string
+          employee_id: string
+          employee_submitted_at: string | null
+          id: string
+          manager_submitted_at: string | null
+          reviewer_id: string
+          signed_at: string | null
+          status: Database["public"]["Enums"]["rvw_review_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cycle_id: string
+          employee_id: string
+          employee_submitted_at?: string | null
+          id?: string
+          manager_submitted_at?: string | null
+          reviewer_id: string
+          signed_at?: string | null
+          status?: Database["public"]["Enums"]["rvw_review_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cycle_id?: string
+          employee_id?: string
+          employee_submitted_at?: string | null
+          id?: string
+          manager_submitted_at?: string | null
+          reviewer_id?: string
+          signed_at?: string | null
+          status?: Database["public"]["Enums"]["rvw_review_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rvw_reviews_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "rvw_review_cycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rvw_user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          job_title: string | null
+          manager_id: string | null
+          org_id: string
+          role: Database["public"]["Enums"]["rvw_user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_title?: string | null
+          manager_id?: string | null
+          org_id: string
+          role: Database["public"]["Enums"]["rvw_user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_title?: string | null
+          manager_id?: string | null
+          org_id?: string
+          role?: Database["public"]["Enums"]["rvw_user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rvw_user_roles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "rvw_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales_tools: {
         Row: {
           coming_soon: boolean | null
@@ -3561,11 +3812,23 @@ export type Database = {
         Args: { user1_id: string; user2_id: string }
         Returns: string
       }
+      get_user_rvw_org_id: { Args: { _user_id: string }; Returns: string }
+      has_rvw_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["rvw_user_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_user_role: {
         Args: { role_param: string; user_id_param: string }
         Returns: boolean
       }
       is_demo_user: { Args: { user_email: string }; Returns: boolean }
+      is_rvw_manager_of: {
+        Args: { _employee_id: string; _manager_id: string }
+        Returns: boolean
+      }
       log_admin_action: {
         Args: {
           action_type: string
@@ -3662,6 +3925,11 @@ export type Database = {
         | "md_flow_calculator"
         | "five_s"
         | "fmea"
+      rvw_author_role: "manager" | "employee"
+      rvw_cycle_status: "draft" | "active" | "closed"
+      rvw_review_status: "draft" | "pending_approval" | "published" | "signed"
+      rvw_template_type: "hourly" | "salaried"
+      rvw_user_role: "admin" | "manager" | "employee"
       scroll_pattern_type: "continuous" | "fade" | "slide"
       training_data_scope: "user" | "global"
       vote_type: "up" | "down"
@@ -3812,6 +4080,11 @@ export const Constants = {
         "five_s",
         "fmea",
       ],
+      rvw_author_role: ["manager", "employee"],
+      rvw_cycle_status: ["draft", "active", "closed"],
+      rvw_review_status: ["draft", "pending_approval", "published", "signed"],
+      rvw_template_type: ["hourly", "salaried"],
+      rvw_user_role: ["admin", "manager", "employee"],
       scroll_pattern_type: ["continuous", "fade", "slide"],
       training_data_scope: ["user", "global"],
       vote_type: ["up", "down"],

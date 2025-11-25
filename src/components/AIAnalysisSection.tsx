@@ -442,11 +442,19 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           pdf.text(line.substring(4), margin, yPosition);
           yPosition += 24;
         } else if (line.startsWith('## ')) {
-          checkPageBreak(28);
+          const headerText = line.substring(3);
+          // Start new page for numbered sections >= 2 (e.g., "2. Key Sentiment", "3. eNPS")
+          const numberedSectionMatch = headerText.match(/^(\d+)\./);
+          if (numberedSectionMatch && parseInt(numberedSectionMatch[1]) >= 2) {
+            pdf.addPage();
+            yPosition = margin;
+          } else {
+            checkPageBreak(28);
+          }
           pdf.setFontSize(16);
           pdf.setFont('helvetica', 'bold');
           pdf.setTextColor(...colors.purple);
-          pdf.text(line.substring(3), margin, yPosition);
+          pdf.text(headerText, margin, yPosition);
           yPosition += 28;
         } else if (line.startsWith('# ')) {
           checkPageBreak(30);
