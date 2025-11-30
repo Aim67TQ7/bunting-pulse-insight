@@ -6,8 +6,8 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('Lovable AI key not configured');
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    if (!OPENAI_API_KEY) throw new Error('OpenAI API key not configured');
 
     const { surveyData, testMode = false, model, customPrompt } = await req.json();
     if (!surveyData?.length) throw new Error('No survey data');
@@ -311,25 +311,25 @@ ${multiselectResponses.length > 0 ? `\n## Multiple Choice Selections\n${multisel
     // Use custom prompt if provided in test mode, otherwise use default
     const prompt = (testMode && customPrompt) ? customPrompt : defaultPrompt;
     
-    // Use specified model in test mode, otherwise use openai/gpt-5-mini for production
-    const modelToUse = (testMode && model) ? model : 'openai/gpt-5-mini';
+    // Use specified model in test mode, otherwise use gpt-4o-mini for production
+    const modelToUse = (testMode && model) ? model : 'gpt-4o-mini';
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: modelToUse,
         messages: [
           { role: 'system', content: 'You are a senior HR analytics consultant and organizational psychologist. You analyze employee survey data to deliver executive-grade insights for manufacturing leadership teams. Your reports are candid, data-driven, and strategically actionable. You identify systemic issues, recognize demographic patterns, and prioritize recommendations that balance quick wins with long-term organizational health. You cite specific data points, quote employee feedback, and provide context from industry benchmarks. Your tone is direct but diplomatic, avoiding jargon while remaining suitable for C-suite presentations.' },
           { role: 'user', content: prompt }
         ],
-        max_completion_tokens: 12000
+        max_tokens: 12000
       })
     });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error('Lovable AI error:', aiResponse.status, errorText);
+      console.error('OpenAI API error:', aiResponse.status, errorText);
       throw new Error(`AI API error: ${aiResponse.status}`);
     }
     const data = await aiResponse.json();
