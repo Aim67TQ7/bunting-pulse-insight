@@ -183,6 +183,17 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
     let yPosition = margin;
     let currentPage = 1;
 
+    // Fetch question configuration
+    const { data: questions, error: questionsError } = await supabase
+      .from('survey_question_config')
+      .select('*')
+      .order('section', { ascending: true })
+      .order('display_order', { ascending: true });
+    
+    if (questionsError) {
+      console.error('Error fetching questions:', questionsError);
+    }
+
     // Brand colors (RGB for jsPDF)
     const colors = {
       primary: [59, 130, 246] as [number, number, number],
@@ -516,6 +527,403 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
 
     // Render analysis content
     renderMarkdownToPDF(result.analysis);
+
+    // ========== APPENDIX: DETAILED QUESTION ANALYSIS ==========
+    if (questions && questions.length > 0) {
+      // Appendix Cover Page
+      pdf.addPage();
+      currentPage++;
+      yPosition = 70;
+      addPageHeader(currentPage);
+
+      pdf.setFontSize(28);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...colors.purple);
+      pdf.text('Appendix', margin, yPosition);
+      yPosition += 40;
+      
+      pdf.setFontSize(18);
+      pdf.setTextColor(...colors.text);
+      pdf.text('Detailed Question Analysis', margin, yPosition);
+      yPosition += 30;
+
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(...colors.textLight);
+      const introText = pdf.splitTextToSize(
+        'This appendix provides a granular breakdown of each survey question, including score distributions, response counts, and verbatim employee comments. Each question has been analyzed to provide actionable insights.',
+        pageWidth - 2 * margin
+      );
+      introText.forEach((line: string) => {
+        pdf.text(line, margin, yPosition);
+        yPosition += lineHeight;
+      });
+
+      addPageFooter(currentPage);
+
+      // Helper: Render section header
+      const renderSectionHeader = (sectionName: string) => {
+        pdf.addPage();
+        currentPage++;
+        yPosition = 70;
+        addPageHeader(currentPage);
+
+        pdf.setFontSize(20);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...colors.purple);
+        pdf.text(sectionName, margin, yPosition);
+        yPosition += 35;
+
+        pdf.setDrawColor(...colors.divider);
+        pdf.setLineWidth(1);
+        pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+        yPosition += 20;
+      };
+
+      // Helper: Render rating question
+      const renderRatingQuestion = (question: any, questionResponses: any[]) => {
+        checkPageBreak(100);
+
+        // Question text
+        pdf.setFontSize(13);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...colors.text);
+        const questionText = question.labels?.en || question.question_id;
+        const splitQuestion = pdf.splitTextToSize(questionText, pageWidth - 2 * margin);
+        splitQuestion.forEach((line: string) => {
+          checkPageBreak(lineHeight);
+          pdf.text(line, margin, yPosition);
+          yPosition += lineHeight;
+        });
+        yPosition += 10;
+
+        // Calculate metrics
+        const ratings = questionResponses.map(r => r.answer_value?.rating || 0).filter(r => r > 0);
+        const avgRating = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length) : 0;
+        const ratingCounts = [1, 2, 3, 4, 5].map(rating => ({
+          rating,
+          count: ratings.filter(r => r === rating).length,
+          percentage: ratings.length > 0 ? ((ratings.filter(r => r === rating).length / ratings.length) * 100) : 0
+        }));
+
+        // Key metrics box
+        checkPageBreak(70);
+        pdf.setFillColor(colors.purple[0], colors.purple[1], colors.purple[2]);
+        pdf.setGState(pdf.GState({ opacity: 0.1 }));
+        pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 60, 5, 5, 'F');
+        pdf.setGState(pdf.GState({ opacity: 1 }));
+
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...colors.purple);
+        pdf.text('Key Metrics', margin + 15, yPosition + 20);
+
+        pdf.setFontSize(24);
+        pdf.text(avgRating.toFixed(2), margin + 15, yPosition + 45);
+        
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(...colors.text);
+        pdf.text('Average Score', margin + 80, yPosition + 45);
+
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(`${ratings.length} Responses`, pageWidth - margin - 120, yPosition + 30);
+
+        yPosition += 70;
+
+        // Score distribution
+        checkPageBreak(140);
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...colors.text);
+        pdf.text('Score Distribution:', margin, yPosition);
+        yPosition += 20;
+
+        const barMaxWidth = pageWidth - 2 * margin - 150;
+        ratingCounts.forEach(({ rating, count, percentage }) => {
+          checkPageBreak(25);
+          
+          // Rating emoji
+          const emojis = ['', '😞', '😕', '😐', '😊', '😄'];
+          pdf.setFontSize(10);
+          pdf.text(`${emojis[rating]} ${rating}`, margin + 10, yPosition);
+          
+          // Bar
+          const barWidth = Math.max(5, (percentage / 100) * barMaxWidth);
+          const barColors = [
+            [220, 38, 38],   // red-600 (1)
+            [251, 146, 60],  // orange-400 (2)
+            [250, 204, 21],  // yellow-400 (3)
+            [34, 197, 94],   // green-500 (4)
+            [16, 185, 129]   // emerald-500 (5)
+          ];
+          
+          pdf.setFillColor(...(barColors[rating - 1] as [number, number, number]));
+          pdf.roundedRect(margin + 60, yPosition - 10, barWidth, 15, 3, 3, 'F');
+          
+          // Count and percentage
+          pdf.setFontSize(9);
+          pdf.setTextColor(...colors.text);
+          pdf.text(`${count} (${percentage.toFixed(1)}%)`, margin + 70 + barWidth, yPosition);
+          
+          yPosition += 22;
+        });
+
+        yPosition += 10;
+
+        // Comments
+        const comments = questionResponses
+          .filter(r => r.answer_value?.comment)
+          .map(r => ({ rating: r.answer_value?.rating || 0, comment: r.answer_value?.comment }));
+        
+        if (comments.length > 0) {
+          checkPageBreak(40);
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...colors.text);
+          pdf.text(`Employee Comments (${comments.length}):`, margin, yPosition);
+          yPosition += 20;
+
+          comments.slice(0, 15).forEach(({ rating, comment }) => {
+            const commentHeight = 60;
+            checkPageBreak(commentHeight);
+
+            // Comment box
+            pdf.setFillColor(248, 250, 252);
+            pdf.roundedRect(margin + 10, yPosition - 5, pageWidth - 2 * margin - 20, commentHeight, 3, 3, 'F');
+            pdf.setDrawColor(...colors.divider);
+            pdf.roundedRect(margin + 10, yPosition - 5, pageWidth - 2 * margin - 20, commentHeight, 3, 3, 'S');
+
+            // Rating badge
+            const emojis = ['', '😞', '😕', '😐', '😊', '😄'];
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(...colors.purple);
+            pdf.text(`${emojis[rating]} ${rating}/5`, margin + 20, yPosition + 10);
+
+            // Comment text
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(...colors.text);
+            const commentLines = pdf.splitTextToSize(comment, pageWidth - 2 * margin - 50);
+            commentLines.slice(0, 3).forEach((line: string, idx: number) => {
+              pdf.text(line, margin + 20, yPosition + 25 + (idx * 12));
+            });
+
+            yPosition += commentHeight + 8;
+          });
+
+          if (comments.length > 15) {
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'italic');
+            pdf.setTextColor(...colors.textLight);
+            pdf.text(`+ ${comments.length - 15} more comments...`, margin + 10, yPosition);
+            yPosition += 15;
+          }
+        }
+
+        yPosition += 15;
+      };
+
+      // Helper: Render multiselect question
+      const renderMultiselectQuestion = (question: any, questionResponses: any[]) => {
+        checkPageBreak(80);
+
+        // Question text
+        pdf.setFontSize(13);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...colors.text);
+        const questionText = question.labels?.en || question.question_id;
+        const splitQuestion = pdf.splitTextToSize(questionText, pageWidth - 2 * margin);
+        splitQuestion.forEach((line: string) => {
+          checkPageBreak(lineHeight);
+          pdf.text(line, margin, yPosition);
+          yPosition += lineHeight;
+        });
+        yPosition += 10;
+
+        // Calculate option counts
+        const optionCounts = new Map<string, number>();
+        questionResponses.forEach(r => {
+          const selections = r.answer_value?.selections || [];
+          selections.forEach((sel: string) => {
+            optionCounts.set(sel, (optionCounts.get(sel) || 0) + 1);
+          });
+        });
+
+        const totalSelections = Array.from(optionCounts.values()).reduce((a, b) => a + b, 0);
+
+        // Summary box
+        checkPageBreak(60);
+        pdf.setFillColor(colors.pink[0], colors.pink[1], colors.pink[2]);
+        pdf.setGState(pdf.GState({ opacity: 0.1 }));
+        pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 55, 5, 5, 'F');
+        pdf.setGState(pdf.GState({ opacity: 1 }));
+
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...colors.pink);
+        pdf.text('Response Summary', margin + 15, yPosition + 20);
+
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(...colors.text);
+        pdf.text(`${questionResponses.length} Respondents`, margin + 15, yPosition + 38);
+        pdf.text(`${totalSelections} Total Selections`, pageWidth - margin - 150, yPosition + 38);
+
+        yPosition += 65;
+
+        // Option breakdown
+        checkPageBreak(40);
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...colors.text);
+        pdf.text('Option Breakdown:', margin, yPosition);
+        yPosition += 20;
+
+        const barMaxWidth = pageWidth - 2 * margin - 200;
+        const sortedOptions = Array.from(optionCounts.entries())
+          .sort((a, b) => b[1] - a[1]);
+
+        sortedOptions.forEach(([option, count]) => {
+          checkPageBreak(25);
+          
+          const percentage = questionResponses.length > 0 ? (count / questionResponses.length) * 100 : 0;
+          const barWidth = Math.max(5, (percentage / 100) * barMaxWidth);
+          
+          // Option label
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(...colors.text);
+          const optionLabel = option.length > 30 ? option.substring(0, 27) + '...' : option;
+          pdf.text(optionLabel, margin + 10, yPosition);
+          
+          // Bar
+          pdf.setFillColor(...colors.purple);
+          pdf.roundedRect(margin + 200, yPosition - 10, barWidth, 15, 3, 3, 'F');
+          
+          // Count and percentage
+          pdf.setFontSize(9);
+          pdf.text(`${count} (${percentage.toFixed(1)}%)`, margin + 210 + barWidth, yPosition);
+          
+          yPosition += 22;
+        });
+
+        yPosition += 15;
+      };
+
+      // Helper: Render text question
+      const renderTextQuestion = (question: any, questionResponses: any[]) => {
+        checkPageBreak(80);
+
+        // Question text
+        pdf.setFontSize(13);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...colors.text);
+        const questionText = question.labels?.en || question.question_id;
+        const splitQuestion = pdf.splitTextToSize(questionText, pageWidth - 2 * margin);
+        splitQuestion.forEach((line: string) => {
+          checkPageBreak(lineHeight);
+          pdf.text(line, margin, yPosition);
+          yPosition += lineHeight;
+        });
+        yPosition += 10;
+
+        const textResponses = questionResponses
+          .filter(r => r.answer_value?.text)
+          .map(r => r.answer_value?.text);
+
+        // Summary
+        checkPageBreak(60);
+        pdf.setFillColor(colors.green[0], colors.green[1], colors.green[2]);
+        pdf.setGState(pdf.GState({ opacity: 0.1 }));
+        pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 50, 5, 5, 'F');
+        pdf.setGState(pdf.GState({ opacity: 1 }));
+
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...colors.green);
+        pdf.text(`${textResponses.length} Comments Received`, margin + 15, yPosition + 30);
+
+        yPosition += 60;
+
+        // Render comments
+        if (textResponses.length > 0) {
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...colors.text);
+          pdf.text('Employee Feedback:', margin, yPosition);
+          yPosition += 20;
+
+          textResponses.slice(0, 20).forEach((text) => {
+            const commentHeight = 55;
+            checkPageBreak(commentHeight);
+
+            // Comment box
+            pdf.setFillColor(248, 250, 252);
+            pdf.roundedRect(margin + 10, yPosition - 5, pageWidth - 2 * margin - 20, commentHeight, 3, 3, 'F');
+            pdf.setDrawColor(...colors.divider);
+            pdf.roundedRect(margin + 10, yPosition - 5, pageWidth - 2 * margin - 20, commentHeight, 3, 3, 'S');
+
+            // Comment text
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(...colors.text);
+            const commentLines = pdf.splitTextToSize(text, pageWidth - 2 * margin - 40);
+            commentLines.slice(0, 3).forEach((line: string, idx: number) => {
+              pdf.text(line, margin + 20, yPosition + 15 + (idx * 12));
+            });
+
+            yPosition += commentHeight + 8;
+          });
+
+          if (textResponses.length > 20) {
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'italic');
+            pdf.setTextColor(...colors.textLight);
+            pdf.text(`+ ${textResponses.length - 20} more comments...`, margin + 10, yPosition);
+            yPosition += 15;
+          }
+        }
+
+        yPosition += 15;
+      };
+
+      // Group questions by section
+      const sections = new Map<string, any[]>();
+      questions.forEach(q => {
+        const section = q.section || 'Other';
+        if (!sections.has(section)) {
+          sections.set(section, []);
+        }
+        sections.get(section)!.push(q);
+      });
+
+      // Render each section
+      for (const [sectionName, sectionQuestions] of Array.from(sections.entries())) {
+        renderSectionHeader(sectionName);
+
+        sectionQuestions.forEach(question => {
+          // Get responses for this question
+          const questionResponses = responses.flatMap(r => 
+            r.responses_jsonb
+              .filter((q: any) => q.question_id === question.question_id)
+              .map((q: any) => ({ question_id: q.question_id, question_type: q.question_type, answer_value: q.answer_value }))
+          );
+
+          if (question.question_type === 'rating') {
+            renderRatingQuestion(question, questionResponses);
+          } else if (question.question_type === 'multiselect') {
+            renderMultiselectQuestion(question, questionResponses);
+          } else if (question.question_type === 'text') {
+            renderTextQuestion(question, questionResponses);
+          }
+        });
+
+        addPageFooter(currentPage);
+      }
+    }
 
     // Add final footer
     addPageFooter(currentPage);
