@@ -311,8 +311,21 @@ ${multiselectResponses.length > 0 ? `\n## Multiple Choice Selections\n${multisel
     // Use custom prompt if provided in test mode, otherwise use default
     const prompt = (testMode && customPrompt) ? customPrompt : defaultPrompt;
     
+    // Map model names from Lovable AI format to OpenAI format
+    const mapModelName = (modelName: string): string => {
+      // Strip prefixes and map to OpenAI models
+      if (modelName.includes('gpt-5-mini') || modelName.includes('gemini-2.5-flash')) {
+        return 'gpt-4o-mini';
+      }
+      if (modelName.includes('gpt-5') || modelName.includes('gemini-2.5-pro')) {
+        return 'gpt-4o';
+      }
+      // Remove any prefix (openai/, google/, etc.)
+      return modelName.replace(/^(openai|google)\//, '');
+    };
+    
     // Use specified model in test mode, otherwise use gpt-4o-mini for production
-    const modelToUse = (testMode && model) ? model : 'gpt-4o-mini';
+    const modelToUse = (testMode && model) ? mapModelName(model) : 'gpt-4o-mini';
 
     const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
