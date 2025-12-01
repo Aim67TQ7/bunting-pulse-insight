@@ -1289,15 +1289,8 @@ export const AIAnalysisSection = ({
         <CardContent>
           <div className="space-y-4">
             <div className="bg-muted/50 rounded-lg p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="h-2 w-2 rounded-full bg-primary"></div>
-                <span className="font-medium">Comprehensive AI Analysis</span>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Generate an in-depth analysis of survey results using advanced AI. The analysis includes:
-                executive summary, regional comparisons, division breakdowns, role-based insights, 
-                score pattern analysis, sentiment analysis of comments, and strategic recommendations.
-              </p>
+              
+              
               
               {!isSurveyComplete && <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <p className="text-sm text-blue-800">
