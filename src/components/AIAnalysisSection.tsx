@@ -466,13 +466,14 @@ export const AIAnalysisSection = ({
           yPosition += 24;
         } else if (line.startsWith('## ')) {
           const headerText = line.substring(3);
-          // Start new page for numbered sections >= 2 (e.g., "2. Key Sentiment", "3. eNPS")
-          const numberedSectionMatch = headerText.match(/^(\d+)\./);
-          if (numberedSectionMatch && parseInt(numberedSectionMatch[1]) >= 2) {
+          // Start new page for ALL major sections if we're more than 30% down the page
+          // This ensures clean section breaks and prevents orphaned headers
+          if (yPosition > margin + (pageHeight - 2 * margin) * 0.3) {
             pdf.addPage();
             yPosition = margin;
           } else {
-            checkPageBreak(28);
+            // Ensure space for header + at least 100px of content
+            checkPageBreak(128);
           }
           pdf.setFontSize(16);
           pdf.setFont('helvetica', 'bold');
@@ -514,13 +515,20 @@ export const AIAnalysisSection = ({
             pdf.text(splitLine, margin + 20, yPosition);
             yPosition += lineHeight;
           });
+        } else if (line.trim() === '---' || line.trim() === '***' || line.trim() === '___') {
+          // Handle markdown horizontal rules - render as visual divider
+          yPosition += 10;
+          pdf.setDrawColor(...colors.divider);
+          pdf.setLineWidth(0.5);
+          pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+          yPosition += 15;
         } else if (line.trim() === '') {
           yPosition += lineHeight / 2;
         } else {
           pdf.setFontSize(11);
           pdf.setFont('helvetica', 'normal');
           pdf.setTextColor(...colors.text);
-          const cleanText = line.replace(/\*\*/g, '').replace(/\*/g, '').replace(/`/g, '');
+          const cleanText = line.replace(/\*\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/`/g, '').replace(/_/g, '');
           const splitLines = pdf.splitTextToSize(cleanText, pageWidth - 2 * margin);
 
           // Check if we have space for ALL lines before rendering
