@@ -159,7 +159,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
       
       toast({
         title: "Analysis Complete",
-        description: `Comprehensive analysis generated and saved for ${data.metadata.totalResponses} responses.`,
+        description: `Comprehensive analysis generated and saved for ${result.metadata.totalResponses} responses.`,
       });
 
     } catch (error: any) {

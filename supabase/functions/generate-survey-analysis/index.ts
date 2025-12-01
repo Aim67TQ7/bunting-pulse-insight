@@ -370,31 +370,65 @@ ${initialAnalysis}
 
 Please provide the complete enhanced report maintaining the exact same section structure but with significantly deeper insights, root cause analysis, and strategic recommendations integrated into each section.`;
 
-    const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'Content-Type': 'application/json' 
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 8000,
-        temperature: 0.7,
-        messages: [
-          { role: 'user', content: claudePrompt }
-        ]
-      })
-    });
+    const claudeStart = Date.now();
+    let analysis = initialAnalysis as string;
 
-    if (!claudeResponse.ok) {
-      const errorText = await claudeResponse.text();
-      console.error('Claude API error:', claudeResponse.status, errorText);
-      throw new Error(`Claude API error: ${claudeResponse.status}`);
+    try {
+      const claudeFetchPromise = (async () => {
+        const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 
+            'x-api-key': ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01',
+            'Content-Type': 'application/json' 
+          },
+          body: JSON.stringify({
+            model: 'claude-3-5-haiku-20241022',
+            max_tokens: 4000,
+            temperature: 0.7,
+            messages: [
+              { role: 'user', content: claudePrompt }
+            ]
+          })
+        });
+
+        if (!claudeResponse.ok) {
+          const errorText = await claudeResponse.text();
+          console.error('Claude API error:', claudeResponse.status, errorText);
+          throw new Error(`Claude API error: ${claudeResponse.status}`);
+        }
+
+        const claudeData = await claudeResponse.json();
+        return claudeData.content[0].text as string;
+      })();
+
+      const timeoutMs = 90000;
+      const claudeText = await Promise.race<string>([
+        claudeFetchPromise,
+        new Promise<string>((_, reject) =>
+          setTimeout(() => reject(new Error('Claude analysis timed out')), timeoutMs)
+        )
+      ]);
+
+      analysis = claudeText;
+      const claudeDuration = Date.now() - claudeStart;
+      console.log(
+        'Part 2 complete. Enhanced analysis length:',
+        analysis.length,
+        'characters in',
+        claudeDuration,
+        'ms'
+      );
+    } catch (claudeError) {
+      const claudeDuration = Date.now() - claudeStart;
+      console.error(
+        'Claude deep dive failed or timed out after',
+        claudeDuration,
+        'ms. Falling back to GPT-4o analysis only.',
+        claudeError
+      );
+      analysis = `${initialAnalysis}\n\n---\n\n> Note: A deeper AI enhancement step could not be completed due to a technical issue or timeout. This report reflects the initial GPT-4o executive analysis.`;
     }
-    const claudeData = await claudeResponse.json();
-    let analysis = claudeData.content[0].text;
-    console.log('Part 2 complete. Enhanced analysis length:', analysis.length, 'characters');
     
     // Remove AI-generated meta-commentary at the end
     const metaCommentPatterns = [
