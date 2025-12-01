@@ -580,7 +580,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         yPosition += 20;
       };
 
-      // Helper: Render rating question
+      // Helper: Render rating question with continent/division breakdowns
       const renderRatingQuestion = (question: any, questionResponses: any[]) => {
         checkPageBreak(100);
 
@@ -597,7 +597,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         });
         yPosition += 10;
 
-        // Calculate metrics
+        // Calculate overall metrics
         const ratings = questionResponses.map(r => r.answer_value?.rating || 0).filter(r => r > 0);
         const avgRating = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length) : 0;
         const ratingCounts = [1, 2, 3, 4, 5].map(rating => ({
@@ -723,10 +723,100 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           }
         }
 
+        // ========== CONTINENTAL BREAKDOWN ==========
+        checkPageBreak(60);
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...colors.purple);
+        pdf.text('Continental Breakdown:', margin, yPosition);
+        yPosition += 20;
+
+        const continentGroups = new Map<string, number[]>();
+        responses.forEach(response => {
+          const continent = response.continent || 'Unknown';
+          const questionResponse = response.responses_jsonb.find(
+            (r: any) => r.question_id === question.question_id && r.answer_value?.rating
+          );
+          if (questionResponse?.answer_value?.rating) {
+            if (!continentGroups.has(continent)) {
+              continentGroups.set(continent, []);
+            }
+            continentGroups.get(continent)!.push(questionResponse.answer_value.rating);
+          }
+        });
+
+        Array.from(continentGroups.entries()).forEach(([continent, continentRatings]) => {
+          checkPageBreak(25);
+          const avg = continentRatings.reduce((a, b) => a + b, 0) / continentRatings.length;
+          const count = continentRatings.length;
+          
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...colors.text);
+          pdf.text(`${continent}:`, margin + 10, yPosition);
+          
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(`${avg.toFixed(2)}/5.0 (${count} responses)`, margin + 100, yPosition);
+          
+          // Mini bar visualization
+          const barWidth = Math.max(5, (avg / 5) * 150);
+          const barColor = avg >= 4 ? colors.green : avg >= 3 ? [250, 204, 21] as [number, number, number] : [220, 38, 38] as [number, number, number];
+          pdf.setFillColor(...barColor);
+          pdf.roundedRect(margin + 280, yPosition - 8, barWidth, 12, 2, 2, 'F');
+          
+          yPosition += 22;
+        });
+
         yPosition += 15;
+
+        // ========== DIVISIONAL BREAKDOWN ==========
+        checkPageBreak(60);
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...colors.purple);
+        pdf.text('Divisional Breakdown:', margin, yPosition);
+        yPosition += 20;
+
+        const divisionGroups = new Map<string, number[]>();
+        responses.forEach(response => {
+          const division = response.division || 'Unknown';
+          const questionResponse = response.responses_jsonb.find(
+            (r: any) => r.question_id === question.question_id && r.answer_value?.rating
+          );
+          if (questionResponse?.answer_value?.rating) {
+            if (!divisionGroups.has(division)) {
+              divisionGroups.set(division, []);
+            }
+            divisionGroups.get(division)!.push(questionResponse.answer_value.rating);
+          }
+        });
+
+        Array.from(divisionGroups.entries()).forEach(([division, divisionRatings]) => {
+          checkPageBreak(25);
+          const avg = divisionRatings.reduce((a, b) => a + b, 0) / divisionRatings.length;
+          const count = divisionRatings.length;
+          
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...colors.text);
+          pdf.text(`${division}:`, margin + 10, yPosition);
+          
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(`${avg.toFixed(2)}/5.0 (${count} responses)`, margin + 100, yPosition);
+          
+          // Mini bar visualization
+          const barWidth = Math.max(5, (avg / 5) * 150);
+          const barColor = avg >= 4 ? colors.green : avg >= 3 ? [250, 204, 21] as [number, number, number] : [220, 38, 38] as [number, number, number];
+          pdf.setFillColor(...barColor);
+          pdf.roundedRect(margin + 280, yPosition - 8, barWidth, 12, 2, 2, 'F');
+          
+          yPosition += 22;
+        });
+
+        yPosition += 25;
       };
 
-      // Helper: Render multiselect question
+      // Helper: Render multiselect question with continent/division breakdowns
       const renderMultiselectQuestion = (question: any, questionResponses: any[]) => {
         checkPageBreak(80);
 
@@ -811,9 +901,109 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         });
 
         yPosition += 15;
+
+        // ========== CONTINENTAL BREAKDOWN ==========
+        checkPageBreak(60);
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...colors.purple);
+        pdf.text('Continental Breakdown:', margin, yPosition);
+        yPosition += 20;
+
+        const continentMultiselect = new Map<string, Map<string, number>>();
+        responses.forEach(response => {
+          const continent = response.continent || 'Unknown';
+          const questionResponse = response.responses_jsonb.find(
+            (r: any) => r.question_id === question.question_id && r.answer_value?.selections
+          );
+          if (questionResponse?.answer_value?.selections) {
+            if (!continentMultiselect.has(continent)) {
+              continentMultiselect.set(continent, new Map());
+            }
+            const continentOptions = continentMultiselect.get(continent)!;
+            questionResponse.answer_value.selections.forEach((sel: string) => {
+              continentOptions.set(sel, (continentOptions.get(sel) || 0) + 1);
+            });
+          }
+        });
+
+        Array.from(continentMultiselect.entries()).forEach(([continent, options]) => {
+          checkPageBreak(50);
+          const topSelections = Array.from(options.entries())
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3);
+          
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...colors.text);
+          pdf.text(`${continent}:`, margin + 10, yPosition);
+          yPosition += 15;
+          
+          topSelections.forEach(([option, count]) => {
+            checkPageBreak(18);
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'normal');
+            const optionLabel = option.length > 40 ? option.substring(0, 37) + '...' : option;
+            pdf.text(`  • ${optionLabel} (${count})`, margin + 20, yPosition);
+            yPosition += 15;
+          });
+          yPosition += 5;
+        });
+
+        yPosition += 10;
+
+        // ========== DIVISIONAL BREAKDOWN ==========
+        checkPageBreak(60);
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...colors.purple);
+        pdf.text('Divisional Breakdown:', margin, yPosition);
+        yPosition += 20;
+
+        const divisionMultiselect = new Map<string, Map<string, number>>();
+        responses.forEach(response => {
+          const division = response.division || 'Unknown';
+          const questionResponse = response.responses_jsonb.find(
+            (r: any) => r.question_id === question.question_id && r.answer_value?.selections
+          );
+          if (questionResponse?.answer_value?.selections) {
+            if (!divisionMultiselect.has(division)) {
+              divisionMultiselect.set(division, new Map());
+            }
+            const divisionOptions = divisionMultiselect.get(division)!;
+            questionResponse.answer_value.selections.forEach((sel: string) => {
+              divisionOptions.set(sel, (divisionOptions.get(sel) || 0) + 1);
+            });
+          }
+        });
+
+        Array.from(divisionMultiselect.entries()).forEach(([division, options]) => {
+          checkPageBreak(50);
+          const topSelections = Array.from(options.entries())
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3);
+          
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...colors.text);
+          pdf.text(`${division}:`, margin + 10, yPosition);
+          yPosition += 15;
+          
+          topSelections.forEach(([option, count]) => {
+            checkPageBreak(18);
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'normal');
+            const optionLabel = option.length > 40 ? option.substring(0, 37) + '...' : option;
+            pdf.text(`  • ${optionLabel} (${count})`, margin + 20, yPosition);
+            yPosition += 15;
+          });
+          yPosition += 5;
+        });
+
+        yPosition += 25;
       };
 
-      // Helper: Render text question
+      // Helper: Render text question with continent/division breakdowns
       const renderTextQuestion = (question: any, questionResponses: any[]) => {
         checkPageBreak(80);
 
@@ -887,7 +1077,131 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           }
         }
 
-        yPosition += 15;
+        yPosition += 25;
+
+        // ========== CONTINENTAL BREAKDOWN ==========
+        checkPageBreak(60);
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...colors.purple);
+        pdf.text('Comments by Continent:', margin, yPosition);
+        yPosition += 20;
+
+        const continentTexts = new Map<string, string[]>();
+        responses.forEach(response => {
+          const continent = response.continent || 'Unknown';
+          const questionResponse = response.responses_jsonb.find(
+            (r: any) => r.question_id === question.question_id && r.answer_value?.text
+          );
+          if (questionResponse?.answer_value?.text) {
+            if (!continentTexts.has(continent)) {
+              continentTexts.set(continent, []);
+            }
+            continentTexts.get(continent)!.push(questionResponse.answer_value.text);
+          }
+        });
+
+        Array.from(continentTexts.entries()).forEach(([continent, texts]) => {
+          checkPageBreak(40);
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...colors.text);
+          pdf.text(`${continent} (${texts.length} comments):`, margin + 10, yPosition);
+          yPosition += 18;
+          
+          texts.slice(0, 3).forEach((text) => {
+            const commentHeight = 45;
+            checkPageBreak(commentHeight);
+
+            pdf.setFillColor(248, 250, 252);
+            pdf.roundedRect(margin + 20, yPosition - 5, pageWidth - 2 * margin - 30, commentHeight, 3, 3, 'F');
+            pdf.setDrawColor(...colors.divider);
+            pdf.roundedRect(margin + 20, yPosition - 5, pageWidth - 2 * margin - 30, commentHeight, 3, 3, 'S');
+
+            pdf.setFontSize(8);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(...colors.text);
+            const commentLines = pdf.splitTextToSize(text, pageWidth - 2 * margin - 50);
+            commentLines.slice(0, 3).forEach((line: string, idx: number) => {
+              pdf.text(line, margin + 30, yPosition + 12 + (idx * 10));
+            });
+
+            yPosition += commentHeight + 5;
+          });
+          
+          if (texts.length > 3) {
+            pdf.setFontSize(8);
+            pdf.setFont('helvetica', 'italic');
+            pdf.setTextColor(...colors.textLight);
+            pdf.text(`+ ${texts.length - 3} more comments`, margin + 20, yPosition);
+            yPosition += 12;
+          }
+          yPosition += 8;
+        });
+
+        yPosition += 10;
+
+        // ========== DIVISIONAL BREAKDOWN ==========
+        checkPageBreak(60);
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...colors.purple);
+        pdf.text('Comments by Division:', margin, yPosition);
+        yPosition += 20;
+
+        const divisionTexts = new Map<string, string[]>();
+        responses.forEach(response => {
+          const division = response.division || 'Unknown';
+          const questionResponse = response.responses_jsonb.find(
+            (r: any) => r.question_id === question.question_id && r.answer_value?.text
+          );
+          if (questionResponse?.answer_value?.text) {
+            if (!divisionTexts.has(division)) {
+              divisionTexts.set(division, []);
+            }
+            divisionTexts.get(division)!.push(questionResponse.answer_value.text);
+          }
+        });
+
+        Array.from(divisionTexts.entries()).forEach(([division, texts]) => {
+          checkPageBreak(40);
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...colors.text);
+          pdf.text(`${division} (${texts.length} comments):`, margin + 10, yPosition);
+          yPosition += 18;
+          
+          texts.slice(0, 3).forEach((text) => {
+            const commentHeight = 45;
+            checkPageBreak(commentHeight);
+
+            pdf.setFillColor(248, 250, 252);
+            pdf.roundedRect(margin + 20, yPosition - 5, pageWidth - 2 * margin - 30, commentHeight, 3, 3, 'F');
+            pdf.setDrawColor(...colors.divider);
+            pdf.roundedRect(margin + 20, yPosition - 5, pageWidth - 2 * margin - 30, commentHeight, 3, 3, 'S');
+
+            pdf.setFontSize(8);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(...colors.text);
+            const commentLines = pdf.splitTextToSize(text, pageWidth - 2 * margin - 50);
+            commentLines.slice(0, 3).forEach((line: string, idx: number) => {
+              pdf.text(line, margin + 30, yPosition + 12 + (idx * 10));
+            });
+
+            yPosition += commentHeight + 5;
+          });
+          
+          if (texts.length > 3) {
+            pdf.setFontSize(8);
+            pdf.setFont('helvetica', 'italic');
+            pdf.setTextColor(...colors.textLight);
+            pdf.text(`+ ${texts.length - 3} more comments`, margin + 20, yPosition);
+            yPosition += 12;
+          }
+          yPosition += 8;
+        });
+
+        yPosition += 25;
       };
 
       // Group questions by section

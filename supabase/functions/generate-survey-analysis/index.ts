@@ -7,7 +7,9 @@ serve(async (req) => {
 
   try {
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
     if (!OPENAI_API_KEY) throw new Error('OpenAI API key not configured');
+    if (!ANTHROPIC_API_KEY) throw new Error('Anthropic API key not configured');
 
     const { surveyData, testMode = false, model, customPrompt } = await req.json();
     if (!surveyData?.length) throw new Error('No survey data');
@@ -311,45 +313,104 @@ ${multiselectResponses.length > 0 ? `\n## Multiple Choice Selections\n${multisel
     // Use custom prompt if provided in test mode, otherwise use default
     const prompt = (testMode && customPrompt) ? customPrompt : defaultPrompt;
     
-    // Map model names from Lovable AI format to OpenAI format
-    const mapModelName = (modelName: string): string => {
-      // Strip prefixes and map to OpenAI models
-      if (modelName.includes('gpt-5-mini') || modelName.includes('gemini-2.5-flash')) {
-        return 'gpt-4o-mini';
-      }
-      if (modelName.includes('gpt-5') || modelName.includes('gemini-2.5-pro')) {
-        return 'gpt-4o';
-      }
-      // Remove any prefix (openai/, google/, etc.)
-      return modelName.replace(/^(openai|google)\//, '');
-    };
+    console.log('Starting 2-part analysis: GPT-4o -> Claude');
     
-    // Use specified model in test mode, otherwise use gpt-4o-mini for production
-    const modelToUse = (testMode && model) ? mapModelName(model) : 'gpt-4o-mini';
-
-    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // ============ PART 1: GPT-4o Initial Analysis ============
+    console.log('Part 1: Running GPT-4o initial analysis...');
+    const gpt4oResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: modelToUse,
+        model: 'gpt-4o',
         messages: [
-          { role: 'system', content: 'You are a senior HR analytics consultant and organizational psychologist. You analyze employee survey data to deliver executive-grade insights for manufacturing leadership teams. Your reports are candid, data-driven, and strategically actionable. You identify systemic issues, recognize demographic patterns, and prioritize recommendations that balance quick wins with long-term organizational health. You cite specific data points, quote employee feedback, and provide context from industry benchmarks. Your tone is direct but diplomatic, avoiding jargon while remaining suitable for C-suite presentations.' },
+          { role: 'system', content: 'You are a senior HR analytics consultant. Analyze employee survey data and deliver a comprehensive, data-driven executive report. Be candid, strategic, and cite specific metrics.' },
           { role: 'user', content: prompt }
         ],
         max_tokens: 12000
       })
     });
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('OpenAI API error:', aiResponse.status, errorText);
-      throw new Error(`AI API error: ${aiResponse.status}`);
+    if (!gpt4oResponse.ok) {
+      const errorText = await gpt4oResponse.text();
+      console.error('GPT-4o API error:', gpt4oResponse.status, errorText);
+      throw new Error(`GPT-4o API error: ${gpt4oResponse.status}`);
     }
-    const data = await aiResponse.json();
-    let analysis = data.choices[0].message.content;
+    const gpt4oData = await gpt4oResponse.json();
+    const initialAnalysis = gpt4oData.choices[0].message.content;
+    console.log('Part 1 complete. Analysis length:', initialAnalysis.length, 'characters');
+
+    // ============ PART 2: Claude Deep Dive Analysis ============
+    console.log('Part 2: Running Claude deep dive analysis with higher temperature...');
+    
+    const claudePrompt = `You are an expert organizational psychologist conducting a deep-dive analysis of employee survey results.
+
+You have been provided with an initial analysis from a colleague (shown below). Your task is to:
+
+1. **Expand and Deepen Insights**: Go beyond surface-level observations. Identify hidden patterns, systemic root causes, and psychological dynamics that may not be immediately obvious.
+
+2. **Provide Comprehensive Category Analysis**: For each major category in the survey (Engagement, Leadership, Communication, Resources, Culture, etc.), provide:
+   - Detailed sentiment analysis
+   - Specific strengths and weaknesses with evidence
+   - Root cause analysis of issues
+   - Psychological and organizational factors at play
+   - Actionable recommendations with implementation strategies
+
+3. **Continental and Divisional Insights**: Provide nuanced analysis of geographic and divisional differences, exploring cultural, operational, or structural factors that may explain variations.
+
+4. **Strategic Recommendations**: Offer prioritized, concrete action plans with timelines, resources needed, and expected outcomes.
+
+**Important**: Your analysis should be comprehensive, insightful, and add significant value beyond the initial analysis. Think deeply about organizational dynamics, employee psychology, and strategic implications.
+
+---
+
+## INITIAL ANALYSIS FROM COLLEAGUE:
+
+${initialAnalysis}
+
+---
+
+## YOUR COMPREHENSIVE DEEP-DIVE ANALYSIS:
+
+Please provide your enhanced, comprehensive analysis with deeper insights into each category, continental/divisional breakdowns, and strategic recommendations. Structure your response to build upon and enhance the initial analysis.`;
+
+    const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 16000,
+        temperature: 0.9,
+        messages: [
+          { role: 'user', content: claudePrompt }
+        ]
+      })
+    });
+
+    if (!claudeResponse.ok) {
+      const errorText = await claudeResponse.text();
+      console.error('Claude API error:', claudeResponse.status, errorText);
+      throw new Error(`Claude API error: ${claudeResponse.status}`);
+    }
+    const claudeData = await claudeResponse.json();
+    const deepAnalysis = claudeData.content[0].text;
+    console.log('Part 2 complete. Deep analysis length:', deepAnalysis.length, 'characters');
+
+    // Combine both analyses
+    let analysis = `# PART 1: INITIAL ANALYSIS (GPT-4o)
+
+${initialAnalysis}
+
+---
+
+# PART 2: COMPREHENSIVE DEEP DIVE (Claude Sonnet)
+
+${deepAnalysis}`;
     
     // Remove AI-generated meta-commentary at the end
-    // Strip out any trailing sentences that start with conversational phrases like "If you want", "Would you like", etc.
     const metaCommentPatterns = [
       /\n\n?If you (want|would like|need).*$/s,
       /\n\n?Would you like.*$/s,
@@ -363,8 +424,8 @@ ${multiselectResponses.length > 0 ? `\n## Multiple Choice Selections\n${multisel
       analysis = analysis.replace(pattern, '');
     }
     
-    // Trim any trailing whitespace
     analysis = analysis.trim();
+    console.log('2-part analysis complete. Total length:', analysis.length, 'characters');
 
     return new Response(JSON.stringify({ success: true, analysis }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (error) {
