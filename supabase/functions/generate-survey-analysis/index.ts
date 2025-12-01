@@ -393,7 +393,7 @@ Please provide the complete enhanced report maintaining the exact same section s
       throw new Error(`Claude API error: ${claudeResponse.status}`);
     }
     const claudeData = await claudeResponse.json();
-    const analysis = claudeData.content[0].text;
+    let analysis = claudeData.content[0].text;
     console.log('Part 2 complete. Enhanced analysis length:', analysis.length, 'characters');
     
     // Remove AI-generated meta-commentary at the end
