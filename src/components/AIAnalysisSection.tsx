@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from 'react-markdown';
 import jsPDF from 'jspdf';
 import buntingLogo from '@/assets/bunting-logo.png';
-
 interface AIAnalysisSurveyResponse {
   id: string;
   continent: string;
@@ -24,12 +23,10 @@ interface AIAnalysisSurveyResponse {
     answer_value: any;
   }[];
 }
-
 interface AIAnalysisSectionProps {
   responses: AIAnalysisSurveyResponse[];
   isSurveyComplete: boolean;
 }
-
 interface AnalysisResult {
   analysis: string;
   metadata: {
@@ -41,26 +38,29 @@ interface AnalysisResult {
     generatedAt: string;
   };
 }
-
-export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSectionProps) => {
+export const AIAnalysisSection = ({
+  responses,
+  isSurveyComplete
+}: AIAnalysisSectionProps) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
   const [savedReports, setSavedReports] = useState<any[]>([]);
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
 
   // Load existing reports on mount
   useEffect(() => {
     loadSavedReports();
   }, []);
-
   const loadSavedReports = async () => {
-    const { data, error } = await supabase
-      .from('survey_analysis_reports')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(5);
-
+    const {
+      data,
+      error
+    } = await supabase.from('survey_analysis_reports').select('*').order('created_at', {
+      ascending: false
+    }).limit(5);
     if (!error && data) {
       setSavedReports(data);
       // If there's a recent report, set it as the current analysis
@@ -69,111 +69,102 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           analysis: data[0].analysis_text,
           metadata: {
             totalResponses: data[0].total_responses,
-            generatedAt: data[0].generated_at,
+            generatedAt: data[0].generated_at
           }
         });
       }
     }
   };
-
   const generateAnalysis = async () => {
     if (responses.length === 0) {
       toast({
         title: "No Data Available",
         description: "Cannot generate analysis without survey responses.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     setIsAnalyzing(true);
     console.log('Starting AI analysis for', responses.length, 'responses');
-
     try {
-      const { data, error } = await supabase.functions.invoke('generate-survey-analysis', {
-        body: { surveyData: responses }
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('generate-survey-analysis', {
+        body: {
+          surveyData: responses
+        }
       });
-
       if (error) {
         console.error('Edge function error:', error);
         throw new Error(error.message || 'Failed to generate analysis');
       }
-
       if (!data.success) {
         throw new Error(data.error || 'Analysis generation failed');
       }
-
       console.log('Analysis generated successfully');
-      
+
       // Create properly structured result with metadata
       const result: AnalysisResult = {
         analysis: data.analysis,
         metadata: {
           totalResponses: responses.length,
-          generatedAt: new Date().toISOString(),
+          generatedAt: new Date().toISOString()
         }
       };
-      
       setAnalysisResult(result);
 
       // Generate and upload PDF
       const pdfBlob = await generatePDFBlob(result, responses);
       const fileName = `survey-analysis-${Date.now()}-${crypto.randomUUID()}.pdf`;
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('pdfs')
-        .upload(fileName, pdfBlob, {
-          contentType: 'application/pdf',
-          cacheControl: '3600',
-          upsert: false
-        });
-
+      const {
+        data: uploadData,
+        error: uploadError
+      } = await supabase.storage.from('pdfs').upload(fileName, pdfBlob, {
+        contentType: 'application/pdf',
+        cacheControl: '3600',
+        upsert: false
+      });
       if (uploadError) {
         console.error('Error uploading PDF:', uploadError);
         toast({
           title: "PDF Upload Failed",
           description: "Analysis saved but PDF upload failed. You can still export manually.",
-          variant: "destructive",
+          variant: "destructive"
         });
       }
-
       const pdfUrl = uploadData ? supabase.storage.from('pdfs').getPublicUrl(fileName).data.publicUrl : null;
 
       // Save to database with PDF URL
-      const { error: saveError } = await supabase
-        .from('survey_analysis_reports')
-        .insert({
-          analysis_text: result.analysis,
-          total_responses: result.metadata.totalResponses,
-          generated_at: result.metadata.generatedAt,
-          pdf_url: pdfUrl,
-        });
-
+      const {
+        error: saveError
+      } = await supabase.from('survey_analysis_reports').insert({
+        analysis_text: result.analysis,
+        total_responses: result.metadata.totalResponses,
+        generated_at: result.metadata.generatedAt,
+        pdf_url: pdfUrl
+      });
       if (saveError) {
         console.error('Error saving analysis:', saveError);
       } else {
         loadSavedReports(); // Reload reports list
       }
-
       setShowAnalysisDialog(true);
-      
       toast({
         title: "Analysis Complete",
-        description: `Comprehensive analysis generated and saved for ${result.metadata.totalResponses} responses.`,
+        description: `Comprehensive analysis generated and saved for ${result.metadata.totalResponses} responses.`
       });
-
     } catch (error: any) {
       console.error('Error generating analysis:', error);
       toast({
-        title: "Analysis Failed", 
+        title: "Analysis Failed",
         description: error.message || "Failed to generate AI analysis. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsAnalyzing(false);
     }
   };
-
   const generatePDFBlob = async (result: AnalysisResult, responsesData?: AIAnalysisSurveyResponse[]): Promise<Blob> => {
     const pdf = new jsPDF('p', 'pt', 'a4');
     const pageWidth = pdf.internal.pageSize.width;
@@ -187,12 +178,14 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
     const pdfResponses = responsesData || responses;
 
     // Fetch question configuration
-    const { data: questions, error: questionsError } = await supabase
-      .from('survey_question_config')
-      .select('*')
-      .order('section', { ascending: true })
-      .order('display_order', { ascending: true });
-    
+    const {
+      data: questions,
+      error: questionsError
+    } = await supabase.from('survey_question_config').select('*').order('section', {
+      ascending: true
+    }).order('display_order', {
+      ascending: true
+    });
     if (questionsError) {
       console.error('Error fetching questions:', questionsError);
     }
@@ -212,20 +205,17 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
     // Calculate metrics
     const calculateMetrics = () => {
       const totalResponses = responses.length;
-      const ratingResponses = responses.flatMap(r => 
-        r.responses_jsonb.filter((q: any) => q.question_type === 'rating')
-      );
-      const avgEngagement = ratingResponses.length > 0
-        ? ratingResponses.reduce((sum, r: any) => sum + (r.answer_value?.rating || 0), 0) / ratingResponses.length
-        : 0;
+      const ratingResponses = responses.flatMap(r => r.responses_jsonb.filter((q: any) => q.question_type === 'rating'));
+      const avgEngagement = ratingResponses.length > 0 ? ratingResponses.reduce((sum, r: any) => sum + (r.answer_value?.rating || 0), 0) / ratingResponses.length : 0;
       const avgCompletionTime = responses.reduce((sum, r) => sum + (r.completion_time_seconds || 0), 0) / totalResponses / 60;
-      const commentsCount = responses.filter(r => 
-        r.responses_jsonb.some((q: any) => q.question_type === 'text' && q.answer_value?.text)
-      ).length;
-
-      return { totalResponses, avgEngagement, avgCompletionTime, commentsCount };
+      const commentsCount = responses.filter(r => r.responses_jsonb.some((q: any) => q.question_type === 'text' && q.answer_value?.text)).length;
+      return {
+        totalResponses,
+        avgEngagement,
+        avgCompletionTime,
+        commentsCount
+      };
     };
-
     const metrics = calculateMetrics();
 
     // Helper: Page header
@@ -245,8 +235,12 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
       pdf.setFontSize(8);
       pdf.setTextColor(...colors.textLight);
       pdf.text('Confidential - Internal Use Only', margin, pageHeight - 20);
-      pdf.text(`Page ${pageNum}`, pageWidth / 2, pageHeight - 20, { align: 'center' });
-      pdf.text(new Date().toLocaleDateString(), pageWidth - margin, pageHeight - 20, { align: 'right' });
+      pdf.text(`Page ${pageNum}`, pageWidth / 2, pageHeight - 20, {
+        align: 'center'
+      });
+      pdf.text(new Date().toLocaleDateString(), pageWidth - margin, pageHeight - 20, {
+        align: 'right'
+      });
     };
 
     // Helper: Check page break
@@ -264,46 +258,56 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
 
     // ========== COVER PAGE ==========
     pdf.addImage(buntingLogo, 'PNG', (pageWidth - 120) / 2, 80, 120, 40);
-    
     yPosition = 180;
     pdf.setFontSize(32);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(...colors.primary);
-    pdf.text('SURVEY ANALYSIS REPORT', pageWidth / 2, yPosition, { align: 'center' });
-    
+    pdf.text('SURVEY ANALYSIS REPORT', pageWidth / 2, yPosition, {
+      align: 'center'
+    });
     yPosition += 20;
     pdf.setDrawColor(...colors.purple);
     pdf.setLineWidth(3);
     pdf.line(pageWidth / 2 - 150, yPosition, pageWidth / 2 + 150, yPosition);
-    
     yPosition += 50;
     pdf.setFontSize(16);
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(...colors.text);
-    pdf.text('Comprehensive Employee Survey Results', pageWidth / 2, yPosition, { align: 'center' });
-    
+    pdf.text('Comprehensive Employee Survey Results', pageWidth / 2, yPosition, {
+      align: 'center'
+    });
     yPosition += 80;
     pdf.setFontSize(12);
     pdf.setTextColor(...colors.textLight);
-    pdf.text(`Total Responses: ${metrics.totalResponses}`, pageWidth / 2, yPosition, { align: 'center' });
+    pdf.text(`Total Responses: ${metrics.totalResponses}`, pageWidth / 2, yPosition, {
+      align: 'center'
+    });
     yPosition += 25;
-    pdf.text(`Generated: ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`, pageWidth / 2, yPosition, { align: 'center' });
+    pdf.text(`Generated: ${new Date().toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    })}`, pageWidth / 2, yPosition, {
+      align: 'center'
+    });
     yPosition += 25;
-    pdf.text(`Survey Period: October 15 - November 23, 2025`, pageWidth / 2, yPosition, { align: 'center' });
-    
+    pdf.text(`Survey Period: October 15 - November 23, 2025`, pageWidth / 2, yPosition, {
+      align: 'center'
+    });
     yPosition = pageHeight - 80;
     pdf.setDrawColor(...colors.divider);
     pdf.line(margin, yPosition, pageWidth - margin, yPosition);
     yPosition += 20;
     pdf.setFontSize(10);
-    pdf.text('Confidential - Internal Use Only', pageWidth / 2, yPosition, { align: 'center' });
+    pdf.text('Confidential - Internal Use Only', pageWidth / 2, yPosition, {
+      align: 'center'
+    });
 
     // ========== EXECUTIVE SUMMARY PAGE ==========
     pdf.addPage();
     currentPage++;
     yPosition = 70;
     addPageHeader(currentPage);
-    
     pdf.setFontSize(24);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(...colors.purple);
@@ -314,14 +318,23 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
     const boxWidth = (pageWidth - 2 * margin - 20) / 2;
     const boxHeight = 80;
     const boxGap = 20;
-
-    const metricsBoxes = [
-      { label: 'Total Responses', value: metrics.totalResponses.toString(), color: colors.purple },
-      { label: 'Engagement Score', value: metrics.avgEngagement.toFixed(1), color: colors.pink },
-      { label: 'Avg Completion', value: `${Math.round(metrics.avgCompletionTime)}m`, color: colors.green },
-      { label: 'Comments Received', value: metrics.commentsCount.toString(), color: colors.orange }
-    ];
-
+    const metricsBoxes = [{
+      label: 'Total Responses',
+      value: metrics.totalResponses.toString(),
+      color: colors.purple
+    }, {
+      label: 'Engagement Score',
+      value: metrics.avgEngagement.toFixed(1),
+      color: colors.pink
+    }, {
+      label: 'Avg Completion',
+      value: `${Math.round(metrics.avgCompletionTime)}m`,
+      color: colors.green
+    }, {
+      label: 'Comments Received',
+      value: metrics.commentsCount.toString(),
+      color: colors.orange
+    }];
     metricsBoxes.forEach((box, idx) => {
       const row = Math.floor(idx / 2);
       const col = idx % 2;
@@ -330,9 +343,13 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
 
       // Box background with light tint
       pdf.setFillColor(box.color[0], box.color[1], box.color[2]);
-      pdf.setGState(pdf.GState({ opacity: 0.1 }));
+      pdf.setGState(pdf.GState({
+        opacity: 0.1
+      }));
       pdf.roundedRect(boxX, boxY, boxWidth, boxHeight, 8, 8, 'F');
-      pdf.setGState(pdf.GState({ opacity: 1 }));
+      pdf.setGState(pdf.GState({
+        opacity: 1
+      }));
 
       // Value
       pdf.setFontSize(32);
@@ -346,8 +363,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
       pdf.setTextColor(...colors.text);
       pdf.text(box.label, boxX + 20, boxY + 65);
     });
-
-    yPosition += (boxHeight * 2) + boxGap + 40;
+    yPosition += boxHeight * 2 + boxGap + 40;
     addPageFooter(currentPage);
 
     // ========== DEMOGRAPHICS PAGE ==========
@@ -355,7 +371,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
     currentPage++;
     yPosition = 70;
     addPageHeader(currentPage);
-
     pdf.setFontSize(24);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(...colors.purple);
@@ -369,9 +384,11 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         const val = r[field];
         if (val) counts.set(val, (counts.get(val) || 0) + 1);
       });
-      return Array.from(counts.entries()).map(([name, value]) => ({ name, value }));
+      return Array.from(counts.entries()).map(([name, value]) => ({
+        name,
+        value
+      }));
     };
-
     const continentData = getDemographicData('continent');
     const divisionData = getDemographicData('division');
     const roleData = getDemographicData('role');
@@ -382,46 +399,40 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
     pdf.setTextColor(...colors.text);
     pdf.text('By Continent:', margin, yPosition);
     yPosition += 20;
-
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'normal');
     continentData.forEach(item => {
       checkPageBreak(20);
-      const percentage = ((item.value / metrics.totalResponses) * 100).toFixed(1);
+      const percentage = (item.value / metrics.totalResponses * 100).toFixed(1);
       pdf.text(`• ${item.name}: ${item.value} responses (${percentage}%)`, margin + 20, yPosition);
       yPosition += 18;
     });
-
     yPosition += 10;
     pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
     pdf.text('By Division:', margin, yPosition);
     yPosition += 20;
-
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'normal');
     divisionData.forEach(item => {
       checkPageBreak(20);
-      const percentage = ((item.value / metrics.totalResponses) * 100).toFixed(1);
+      const percentage = (item.value / metrics.totalResponses * 100).toFixed(1);
       pdf.text(`• ${item.name}: ${item.value} responses (${percentage}%)`, margin + 20, yPosition);
       yPosition += 18;
     });
-
     yPosition += 10;
     pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
     pdf.text('By Role:', margin, yPosition);
     yPosition += 20;
-
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'normal');
     roleData.forEach(item => {
       checkPageBreak(20);
-      const percentage = ((item.value / metrics.totalResponses) * 100).toFixed(1);
+      const percentage = (item.value / metrics.totalResponses * 100).toFixed(1);
       pdf.text(`• ${item.name}: ${item.value} responses (${percentage}%)`, margin + 20, yPosition);
       yPosition += 18;
     });
-
     addPageFooter(currentPage);
 
     // ========== AI ANALYSIS CONTENT ==========
@@ -429,7 +440,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
     currentPage++;
     yPosition = 70;
     addPageHeader(currentPage);
-
     pdf.setFontSize(24);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(...colors.purple);
@@ -439,7 +449,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
     // Helper function to render markdown
     const renderMarkdownToPDF = (text: string) => {
       const lines = text.split('\n');
-      
       for (let line of lines) {
         if (line.startsWith('#### ')) {
           checkPageBreak(20);
@@ -483,11 +492,10 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           pdf.setTextColor(...colors.text);
           const bulletText = line.substring(2).replace(/\*\*/g, '').replace(/\*/g, '');
           const splitLines = pdf.splitTextToSize(`• ${bulletText}`, pageWidth - 2 * margin - 20);
-          
+
           // Check if we have space for ALL lines before rendering
           const totalHeight = splitLines.length * lineHeight;
           checkPageBreak(totalHeight + 5);
-          
           splitLines.forEach((splitLine: string) => {
             pdf.text(splitLine, margin + 20, yPosition);
             yPosition += lineHeight;
@@ -498,11 +506,10 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           pdf.setTextColor(...colors.text);
           const cleanText = line.replace(/\*\*/g, '').replace(/\*/g, '');
           const splitLines = pdf.splitTextToSize(cleanText, pageWidth - 2 * margin - 20);
-          
+
           // Check if we have space for ALL lines before rendering
           const totalHeight = splitLines.length * lineHeight;
           checkPageBreak(totalHeight + 5);
-          
           splitLines.forEach((splitLine: string) => {
             pdf.text(splitLine, margin + 20, yPosition);
             yPosition += lineHeight;
@@ -515,11 +522,10 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           pdf.setTextColor(...colors.text);
           const cleanText = line.replace(/\*\*/g, '').replace(/\*/g, '').replace(/`/g, '');
           const splitLines = pdf.splitTextToSize(cleanText, pageWidth - 2 * margin);
-          
+
           // Check if we have space for ALL lines before rendering
           const totalHeight = splitLines.length * lineHeight;
           checkPageBreak(totalHeight + 5);
-          
           splitLines.forEach((splitLine: string) => {
             pdf.text(splitLine, margin, yPosition);
             yPosition += lineHeight;
@@ -538,30 +544,23 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
       currentPage++;
       yPosition = 70;
       addPageHeader(currentPage);
-
       pdf.setFontSize(28);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(...colors.purple);
       pdf.text('Appendix', margin, yPosition);
       yPosition += 40;
-      
       pdf.setFontSize(18);
       pdf.setTextColor(...colors.text);
       pdf.text('Detailed Question Analysis', margin, yPosition);
       yPosition += 30;
-
       pdf.setFontSize(11);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(...colors.textLight);
-      const introText = pdf.splitTextToSize(
-        'This appendix provides a granular breakdown of each survey question, including score distributions, response counts, and verbatim employee comments. Each question has been analyzed to provide actionable insights.',
-        pageWidth - 2 * margin
-      );
+      const introText = pdf.splitTextToSize('This appendix provides a granular breakdown of each survey question, including score distributions, response counts, and verbatim employee comments. Each question has been analyzed to provide actionable insights.', pageWidth - 2 * margin);
       introText.forEach((line: string) => {
         pdf.text(line, margin, yPosition);
         yPosition += lineHeight;
       });
-
       addPageFooter(currentPage);
 
       // Helper: Render section header
@@ -570,13 +569,11 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         currentPage++;
         yPosition = 70;
         addPageHeader(currentPage);
-
         pdf.setFontSize(20);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(...colors.purple);
         pdf.text(sectionName, margin, yPosition);
         yPosition += 35;
-
         pdf.setDrawColor(...colors.divider);
         pdf.setLineWidth(1);
         pdf.line(margin, yPosition, pageWidth - margin, yPosition);
@@ -602,37 +599,36 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
 
         // Calculate overall metrics
         const ratings = questionResponses.map(r => r.answer_value?.rating || 0).filter(r => r > 0);
-        const avgRating = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length) : 0;
+        const avgRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
         const ratingCounts = [1, 2, 3, 4, 5].map(rating => ({
           rating,
           count: ratings.filter(r => r === rating).length,
-          percentage: ratings.length > 0 ? ((ratings.filter(r => r === rating).length / ratings.length) * 100) : 0
+          percentage: ratings.length > 0 ? ratings.filter(r => r === rating).length / ratings.length * 100 : 0
         }));
 
         // Key metrics box
         checkPageBreak(70);
         pdf.setFillColor(colors.purple[0], colors.purple[1], colors.purple[2]);
-        pdf.setGState(pdf.GState({ opacity: 0.1 }));
+        pdf.setGState(pdf.GState({
+          opacity: 0.1
+        }));
         pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 60, 5, 5, 'F');
-        pdf.setGState(pdf.GState({ opacity: 1 }));
-
+        pdf.setGState(pdf.GState({
+          opacity: 1
+        }));
         pdf.setFontSize(11);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(...colors.purple);
         pdf.text('Key Metrics', margin + 15, yPosition + 20);
-
         pdf.setFontSize(24);
         pdf.text(avgRating.toFixed(2), margin + 15, yPosition + 45);
-        
         pdf.setFontSize(10);
         pdf.setFont('helvetica', 'normal');
         pdf.setTextColor(...colors.text);
         pdf.text('Average Score', margin + 80, yPosition + 45);
-
         pdf.setFontSize(11);
         pdf.setFont('helvetica', 'bold');
         pdf.text(`${ratings.length} Responses`, pageWidth - margin - 120, yPosition + 30);
-
         yPosition += 70;
 
         // Score distribution
@@ -642,45 +638,48 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         pdf.setTextColor(...colors.text);
         pdf.text('Score Distribution:', margin, yPosition);
         yPosition += 20;
-
         const barMaxWidth = pageWidth - 2 * margin - 150;
-        ratingCounts.forEach(({ rating, count, percentage }) => {
+        ratingCounts.forEach(({
+          rating,
+          count,
+          percentage
+        }) => {
           checkPageBreak(25);
-          
+
           // Rating emoji
           const emojis = ['', '😞', '😕', '😐', '😊', '😄'];
           pdf.setFontSize(10);
           pdf.text(`${emojis[rating]} ${rating}`, margin + 10, yPosition);
-          
+
           // Bar
-          const barWidth = Math.max(5, (percentage / 100) * barMaxWidth);
-          const barColors = [
-            [220, 38, 38],   // red-600 (1)
-            [251, 146, 60],  // orange-400 (2)
-            [250, 204, 21],  // yellow-400 (3)
-            [34, 197, 94],   // green-500 (4)
-            [16, 185, 129]   // emerald-500 (5)
+          const barWidth = Math.max(5, percentage / 100 * barMaxWidth);
+          const barColors = [[220, 38, 38],
+          // red-600 (1)
+          [251, 146, 60],
+          // orange-400 (2)
+          [250, 204, 21],
+          // yellow-400 (3)
+          [34, 197, 94],
+          // green-500 (4)
+          [16, 185, 129] // emerald-500 (5)
           ];
-          
           pdf.setFillColor(...(barColors[rating - 1] as [number, number, number]));
           pdf.roundedRect(margin + 60, yPosition - 10, barWidth, 15, 3, 3, 'F');
-          
+
           // Count and percentage
           pdf.setFontSize(9);
           pdf.setTextColor(...colors.text);
           pdf.text(`${count} (${percentage.toFixed(1)}%)`, margin + 70 + barWidth, yPosition);
-          
           yPosition += 22;
         });
-
         yPosition += 10;
 
         // Comments - prioritize low scores (1-2) first
-        const comments = questionResponses
-          .filter(r => r.answer_value?.comment)
-          .map(r => ({ rating: r.answer_value?.rating || 0, comment: r.answer_value?.comment }))
-          .sort((a, b) => a.rating - b.rating); // Sort by rating ascending (low scores first)
-        
+        const comments = questionResponses.filter(r => r.answer_value?.comment).map(r => ({
+          rating: r.answer_value?.rating || 0,
+          comment: r.answer_value?.comment
+        })).sort((a, b) => a.rating - b.rating); // Sort by rating ascending (low scores first)
+
         if (comments.length > 0) {
           checkPageBreak(40);
           pdf.setFontSize(12);
@@ -690,7 +689,10 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           yPosition += 20;
 
           // Show ALL comments (no limit)
-          comments.forEach(({ rating, comment }) => {
+          comments.forEach(({
+            rating,
+            comment
+          }) => {
             const commentHeight = 60;
             checkPageBreak(commentHeight);
 
@@ -713,9 +715,8 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
             pdf.setTextColor(...colors.text);
             const commentLines = pdf.splitTextToSize(comment, pageWidth - 2 * margin - 50);
             commentLines.slice(0, 3).forEach((line: string, idx: number) => {
-              pdf.text(line, margin + 20, yPosition + 25 + (idx * 12));
+              pdf.text(line, margin + 20, yPosition + 25 + idx * 12);
             });
-
             yPosition += commentHeight + 8;
           });
         }
@@ -727,13 +728,10 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         pdf.setTextColor(...colors.purple);
         pdf.text('Continental Breakdown:', margin, yPosition);
         yPosition += 20;
-
         const continentGroups = new Map<string, number[]>();
         pdfResponses.forEach(response => {
           const continent = response.continent || 'Unknown';
-          const questionResponse = response.responses_jsonb.find(
-            (r: any) => r.question_id === question.question_id && r.answer_value?.rating
-          );
+          const questionResponse = response.responses_jsonb.find((r: any) => r.question_id === question.question_id && r.answer_value?.rating);
           if (questionResponse?.answer_value?.rating) {
             if (!continentGroups.has(continent)) {
               continentGroups.set(continent, []);
@@ -741,29 +739,24 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
             continentGroups.get(continent)!.push(questionResponse.answer_value.rating);
           }
         });
-
         Array.from(continentGroups.entries()).forEach(([continent, continentRatings]) => {
           checkPageBreak(25);
           const avg = continentRatings.reduce((a, b) => a + b, 0) / continentRatings.length;
           const count = continentRatings.length;
-          
           pdf.setFontSize(10);
           pdf.setFont('helvetica', 'bold');
           pdf.setTextColor(...colors.text);
           pdf.text(`${continent}:`, margin + 10, yPosition);
-          
           pdf.setFont('helvetica', 'normal');
           pdf.text(`${avg.toFixed(2)}/5.0 (${count} responses)`, margin + 100, yPosition);
-          
+
           // Mini bar visualization
-          const barWidth = Math.max(5, (avg / 5) * 150);
+          const barWidth = Math.max(5, avg / 5 * 150);
           const barColor = avg >= 4 ? colors.green : avg >= 3 ? [250, 204, 21] as [number, number, number] : [220, 38, 38] as [number, number, number];
           pdf.setFillColor(...barColor);
           pdf.roundedRect(margin + 280, yPosition - 8, barWidth, 12, 2, 2, 'F');
-          
           yPosition += 22;
         });
-
         yPosition += 15;
 
         // ========== DIVISIONAL BREAKDOWN ==========
@@ -773,13 +766,10 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         pdf.setTextColor(...colors.purple);
         pdf.text('Divisional Breakdown:', margin, yPosition);
         yPosition += 20;
-
         const divisionGroups = new Map<string, number[]>();
         pdfResponses.forEach(response => {
           const division = response.division || 'Unknown';
-          const questionResponse = response.responses_jsonb.find(
-            (r: any) => r.question_id === question.question_id && r.answer_value?.rating
-          );
+          const questionResponse = response.responses_jsonb.find((r: any) => r.question_id === question.question_id && r.answer_value?.rating);
           if (questionResponse?.answer_value?.rating) {
             if (!divisionGroups.has(division)) {
               divisionGroups.set(division, []);
@@ -787,29 +777,24 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
             divisionGroups.get(division)!.push(questionResponse.answer_value.rating);
           }
         });
-
         Array.from(divisionGroups.entries()).forEach(([division, divisionRatings]) => {
           checkPageBreak(25);
           const avg = divisionRatings.reduce((a, b) => a + b, 0) / divisionRatings.length;
           const count = divisionRatings.length;
-          
           pdf.setFontSize(10);
           pdf.setFont('helvetica', 'bold');
           pdf.setTextColor(...colors.text);
           pdf.text(`${division}:`, margin + 10, yPosition);
-          
           pdf.setFont('helvetica', 'normal');
           pdf.text(`${avg.toFixed(2)}/5.0 (${count} responses)`, margin + 100, yPosition);
-          
+
           // Mini bar visualization
-          const barWidth = Math.max(5, (avg / 5) * 150);
+          const barWidth = Math.max(5, avg / 5 * 150);
           const barColor = avg >= 4 ? colors.green : avg >= 3 ? [250, 204, 21] as [number, number, number] : [220, 38, 38] as [number, number, number];
           pdf.setFillColor(...barColor);
           pdf.roundedRect(margin + 280, yPosition - 8, barWidth, 12, 2, 2, 'F');
-          
           yPosition += 22;
         });
-
         yPosition += 25;
       };
 
@@ -838,27 +823,27 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
             optionCounts.set(sel, (optionCounts.get(sel) || 0) + 1);
           });
         });
-
         const totalSelections = Array.from(optionCounts.values()).reduce((a, b) => a + b, 0);
 
         // Summary box
         checkPageBreak(60);
         pdf.setFillColor(colors.pink[0], colors.pink[1], colors.pink[2]);
-        pdf.setGState(pdf.GState({ opacity: 0.1 }));
+        pdf.setGState(pdf.GState({
+          opacity: 0.1
+        }));
         pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 55, 5, 5, 'F');
-        pdf.setGState(pdf.GState({ opacity: 1 }));
-
+        pdf.setGState(pdf.GState({
+          opacity: 1
+        }));
         pdf.setFontSize(11);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(...colors.pink);
         pdf.text('Response Summary', margin + 15, yPosition + 20);
-
         pdf.setFontSize(10);
         pdf.setFont('helvetica', 'normal');
         pdf.setTextColor(...colors.text);
         pdf.text(`${questionResponses.length} Respondents`, margin + 15, yPosition + 38);
         pdf.text(`${totalSelections} Total Selections`, pageWidth - margin - 150, yPosition + 38);
-
         yPosition += 65;
 
         // Option breakdown
@@ -868,35 +853,29 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         pdf.setTextColor(...colors.text);
         pdf.text('Option Breakdown:', margin, yPosition);
         yPosition += 20;
-
         const barMaxWidth = pageWidth - 2 * margin - 200;
-        const sortedOptions = Array.from(optionCounts.entries())
-          .sort((a, b) => b[1] - a[1]);
-
+        const sortedOptions = Array.from(optionCounts.entries()).sort((a, b) => b[1] - a[1]);
         sortedOptions.forEach(([option, count]) => {
           checkPageBreak(25);
-          
-          const percentage = questionResponses.length > 0 ? (count / questionResponses.length) * 100 : 0;
-          const barWidth = Math.max(5, (percentage / 100) * barMaxWidth);
-          
+          const percentage = questionResponses.length > 0 ? count / questionResponses.length * 100 : 0;
+          const barWidth = Math.max(5, percentage / 100 * barMaxWidth);
+
           // Option label
           pdf.setFontSize(9);
           pdf.setFont('helvetica', 'normal');
           pdf.setTextColor(...colors.text);
           const optionLabel = option.length > 30 ? option.substring(0, 27) + '...' : option;
           pdf.text(optionLabel, margin + 10, yPosition);
-          
+
           // Bar
           pdf.setFillColor(...colors.purple);
           pdf.roundedRect(margin + 200, yPosition - 10, barWidth, 15, 3, 3, 'F');
-          
+
           // Count and percentage
           pdf.setFontSize(9);
           pdf.text(`${count} (${percentage.toFixed(1)}%)`, margin + 210 + barWidth, yPosition);
-          
           yPosition += 22;
         });
-
         yPosition += 15;
 
         // ========== CONTINENTAL BREAKDOWN ==========
@@ -906,13 +885,10 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         pdf.setTextColor(...colors.purple);
         pdf.text('Continental Breakdown:', margin, yPosition);
         yPosition += 20;
-
         const continentMultiselect = new Map<string, Map<string, number>>();
         pdfResponses.forEach(response => {
           const continent = response.continent || 'Unknown';
-          const questionResponse = response.responses_jsonb.find(
-            (r: any) => r.question_id === question.question_id && r.answer_value?.selections
-          );
+          const questionResponse = response.responses_jsonb.find((r: any) => r.question_id === question.question_id && r.answer_value?.selections);
           if (questionResponse?.answer_value?.selections) {
             if (!continentMultiselect.has(continent)) {
               continentMultiselect.set(continent, new Map());
@@ -923,19 +899,14 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
             });
           }
         });
-
         Array.from(continentMultiselect.entries()).forEach(([continent, options]) => {
           checkPageBreak(50);
-          const topSelections = Array.from(options.entries())
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 3);
-          
+          const topSelections = Array.from(options.entries()).sort((a, b) => b[1] - a[1]).slice(0, 3);
           pdf.setFontSize(10);
           pdf.setFont('helvetica', 'bold');
           pdf.setTextColor(...colors.text);
           pdf.text(`${continent}:`, margin + 10, yPosition);
           yPosition += 15;
-          
           topSelections.forEach(([option, count]) => {
             checkPageBreak(18);
             pdf.setFontSize(9);
@@ -946,7 +917,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           });
           yPosition += 5;
         });
-
         yPosition += 10;
 
         // ========== DIVISIONAL BREAKDOWN ==========
@@ -956,13 +926,10 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         pdf.setTextColor(...colors.purple);
         pdf.text('Divisional Breakdown:', margin, yPosition);
         yPosition += 20;
-
         const divisionMultiselect = new Map<string, Map<string, number>>();
         pdfResponses.forEach(response => {
           const division = response.division || 'Unknown';
-          const questionResponse = response.responses_jsonb.find(
-            (r: any) => r.question_id === question.question_id && r.answer_value?.selections
-          );
+          const questionResponse = response.responses_jsonb.find((r: any) => r.question_id === question.question_id && r.answer_value?.selections);
           if (questionResponse?.answer_value?.selections) {
             if (!divisionMultiselect.has(division)) {
               divisionMultiselect.set(division, new Map());
@@ -973,19 +940,14 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
             });
           }
         });
-
         Array.from(divisionMultiselect.entries()).forEach(([division, options]) => {
           checkPageBreak(50);
-          const topSelections = Array.from(options.entries())
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 3);
-          
+          const topSelections = Array.from(options.entries()).sort((a, b) => b[1] - a[1]).slice(0, 3);
           pdf.setFontSize(10);
           pdf.setFont('helvetica', 'bold');
           pdf.setTextColor(...colors.text);
           pdf.text(`${division}:`, margin + 10, yPosition);
           yPosition += 15;
-          
           topSelections.forEach(([option, count]) => {
             checkPageBreak(18);
             pdf.setFontSize(9);
@@ -996,7 +958,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           });
           yPosition += 5;
         });
-
         yPosition += 25;
       };
 
@@ -1016,23 +977,22 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           yPosition += lineHeight;
         });
         yPosition += 10;
-
-        const textResponses = questionResponses
-          .filter(r => r.answer_value?.text)
-          .map(r => r.answer_value?.text);
+        const textResponses = questionResponses.filter(r => r.answer_value?.text).map(r => r.answer_value?.text);
 
         // Summary
         checkPageBreak(60);
         pdf.setFillColor(colors.green[0], colors.green[1], colors.green[2]);
-        pdf.setGState(pdf.GState({ opacity: 0.1 }));
+        pdf.setGState(pdf.GState({
+          opacity: 0.1
+        }));
         pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 50, 5, 5, 'F');
-        pdf.setGState(pdf.GState({ opacity: 1 }));
-
+        pdf.setGState(pdf.GState({
+          opacity: 1
+        }));
         pdf.setFontSize(11);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(...colors.green);
         pdf.text(`${textResponses.length} Comments Received`, margin + 15, yPosition + 30);
-
         yPosition += 60;
 
         // Render comments
@@ -1042,8 +1002,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           pdf.setTextColor(...colors.text);
           pdf.text('Employee Feedback:', margin, yPosition);
           yPosition += 20;
-
-          textResponses.slice(0, 20).forEach((text) => {
+          textResponses.slice(0, 20).forEach(text => {
             const commentHeight = 55;
             checkPageBreak(commentHeight);
 
@@ -1059,12 +1018,10 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
             pdf.setTextColor(...colors.text);
             const commentLines = pdf.splitTextToSize(text, pageWidth - 2 * margin - 40);
             commentLines.slice(0, 3).forEach((line: string, idx: number) => {
-              pdf.text(line, margin + 20, yPosition + 15 + (idx * 12));
+              pdf.text(line, margin + 20, yPosition + 15 + idx * 12);
             });
-
             yPosition += commentHeight + 8;
           });
-
           if (textResponses.length > 20) {
             pdf.setFontSize(9);
             pdf.setFont('helvetica', 'italic');
@@ -1073,7 +1030,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
             yPosition += 15;
           }
         }
-
         yPosition += 25;
 
         // ========== CONTINENTAL BREAKDOWN ==========
@@ -1083,13 +1039,10 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         pdf.setTextColor(...colors.purple);
         pdf.text('Comments by Continent:', margin, yPosition);
         yPosition += 20;
-
         const continentTexts = new Map<string, string[]>();
         pdfResponses.forEach(response => {
           const continent = response.continent || 'Unknown';
-          const questionResponse = response.responses_jsonb.find(
-            (r: any) => r.question_id === question.question_id && r.answer_value?.text
-          );
+          const questionResponse = response.responses_jsonb.find((r: any) => r.question_id === question.question_id && r.answer_value?.text);
           if (questionResponse?.answer_value?.text) {
             if (!continentTexts.has(continent)) {
               continentTexts.set(continent, []);
@@ -1097,7 +1050,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
             continentTexts.get(continent)!.push(questionResponse.answer_value.text);
           }
         });
-
         Array.from(continentTexts.entries()).forEach(([continent, texts]) => {
           checkPageBreak(40);
           pdf.setFontSize(10);
@@ -1105,27 +1057,22 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           pdf.setTextColor(...colors.text);
           pdf.text(`${continent} (${texts.length} comments):`, margin + 10, yPosition);
           yPosition += 18;
-          
-          texts.slice(0, 3).forEach((text) => {
+          texts.slice(0, 3).forEach(text => {
             const commentHeight = 45;
             checkPageBreak(commentHeight);
-
             pdf.setFillColor(248, 250, 252);
             pdf.roundedRect(margin + 20, yPosition - 5, pageWidth - 2 * margin - 30, commentHeight, 3, 3, 'F');
             pdf.setDrawColor(...colors.divider);
             pdf.roundedRect(margin + 20, yPosition - 5, pageWidth - 2 * margin - 30, commentHeight, 3, 3, 'S');
-
             pdf.setFontSize(8);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(...colors.text);
             const commentLines = pdf.splitTextToSize(text, pageWidth - 2 * margin - 50);
             commentLines.slice(0, 3).forEach((line: string, idx: number) => {
-              pdf.text(line, margin + 30, yPosition + 12 + (idx * 10));
+              pdf.text(line, margin + 30, yPosition + 12 + idx * 10);
             });
-
             yPosition += commentHeight + 5;
           });
-          
           if (texts.length > 3) {
             pdf.setFontSize(8);
             pdf.setFont('helvetica', 'italic');
@@ -1135,7 +1082,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           }
           yPosition += 8;
         });
-
         yPosition += 10;
 
         // ========== DIVISIONAL BREAKDOWN ==========
@@ -1145,13 +1091,10 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         pdf.setTextColor(...colors.purple);
         pdf.text('Comments by Division:', margin, yPosition);
         yPosition += 20;
-
         const divisionTexts = new Map<string, string[]>();
         pdfResponses.forEach(response => {
           const division = response.division || 'Unknown';
-          const questionResponse = response.responses_jsonb.find(
-            (r: any) => r.question_id === question.question_id && r.answer_value?.text
-          );
+          const questionResponse = response.responses_jsonb.find((r: any) => r.question_id === question.question_id && r.answer_value?.text);
           if (questionResponse?.answer_value?.text) {
             if (!divisionTexts.has(division)) {
               divisionTexts.set(division, []);
@@ -1159,7 +1102,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
             divisionTexts.get(division)!.push(questionResponse.answer_value.text);
           }
         });
-
         Array.from(divisionTexts.entries()).forEach(([division, texts]) => {
           checkPageBreak(40);
           pdf.setFontSize(10);
@@ -1167,27 +1109,22 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           pdf.setTextColor(...colors.text);
           pdf.text(`${division} (${texts.length} comments):`, margin + 10, yPosition);
           yPosition += 18;
-          
-          texts.slice(0, 3).forEach((text) => {
+          texts.slice(0, 3).forEach(text => {
             const commentHeight = 45;
             checkPageBreak(commentHeight);
-
             pdf.setFillColor(248, 250, 252);
             pdf.roundedRect(margin + 20, yPosition - 5, pageWidth - 2 * margin - 30, commentHeight, 3, 3, 'F');
             pdf.setDrawColor(...colors.divider);
             pdf.roundedRect(margin + 20, yPosition - 5, pageWidth - 2 * margin - 30, commentHeight, 3, 3, 'S');
-
             pdf.setFontSize(8);
             pdf.setFont('helvetica', 'normal');
             pdf.setTextColor(...colors.text);
             const commentLines = pdf.splitTextToSize(text, pageWidth - 2 * margin - 50);
             commentLines.slice(0, 3).forEach((line: string, idx: number) => {
-              pdf.text(line, margin + 30, yPosition + 12 + (idx * 10));
+              pdf.text(line, margin + 30, yPosition + 12 + idx * 10);
             });
-
             yPosition += commentHeight + 5;
           });
-          
           if (texts.length > 3) {
             pdf.setFontSize(8);
             pdf.setFont('helvetica', 'italic');
@@ -1197,7 +1134,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           }
           yPosition += 8;
         });
-
         yPosition += 25;
       };
 
@@ -1214,7 +1150,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
       // Render each section
       for (const [sectionName, sectionQuestions] of Array.from(sections.entries())) {
         renderSectionHeader(sectionName);
-
         sectionQuestions.forEach((question, index) => {
           // Add page break before each question (except the first in the section)
           if (index > 0) {
@@ -1224,12 +1159,11 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           }
 
           // Get responses for this question
-          const questionResponses = responses.flatMap(r => 
-            r.responses_jsonb
-              .filter((q: any) => q.question_id === question.question_id)
-              .map((q: any) => ({ question_id: q.question_id, question_type: q.question_type, answer_value: q.answer_value }))
-          );
-
+          const questionResponses = responses.flatMap(r => r.responses_jsonb.filter((q: any) => q.question_id === question.question_id).map((q: any) => ({
+            question_id: q.question_id,
+            question_type: q.question_type,
+            answer_value: q.answer_value
+          })));
           if (question.question_type === 'rating') {
             renderRatingQuestion(question, questionResponses);
           } else if (question.question_type === 'multiselect') {
@@ -1238,20 +1172,16 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
             renderTextQuestion(question, questionResponses);
           }
         });
-
         addPageFooter(currentPage);
       }
     }
 
     // Add final footer
     addPageFooter(currentPage);
-
     return pdf.output('blob');
   };
-
   const exportAnalysisToPDF = () => {
     if (!analysisResult) return;
-
     try {
       generatePDFBlob(analysisResult, responses).then(blob => {
         const url = URL.createObjectURL(blob);
@@ -1260,10 +1190,9 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         link.download = 'survey-ai-analysis.pdf';
         link.click();
         URL.revokeObjectURL(url);
-        
         toast({
           title: "Export Successful",
-          description: "AI analysis exported to PDF successfully.",
+          description: "AI analysis exported to PDF successfully."
         });
       });
     } catch (error: any) {
@@ -1271,11 +1200,10 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
       toast({
         title: "Export Failed",
         description: error.message || "Failed to export analysis to PDF.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const downloadSavedReport = async (report: any) => {
     try {
       // Try to fetch PDF from storage first
@@ -1283,7 +1211,8 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         const response = await fetch(report.pdf_url);
         if (response.ok) {
           const blob = await response.blob();
-          if (blob.size > 1000) { // Validate PDF is not empty
+          if (blob.size > 1000) {
+            // Validate PDF is not empty
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -1292,7 +1221,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
             URL.revokeObjectURL(url);
             toast({
               title: "Download Successful",
-              description: "Report downloaded successfully.",
+              description: "Report downloaded successfully."
             });
             return;
           }
@@ -1302,17 +1231,15 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
       // Fallback: Regenerate PDF from saved analysis text
       toast({
         title: "Regenerating PDF",
-        description: "Creating PDF from saved report...",
+        description: "Creating PDF from saved report..."
       });
-
       const result: AnalysisResult = {
         analysis: report.analysis_text,
         metadata: {
           totalResponses: report.total_responses,
-          generatedAt: report.generated_at,
+          generatedAt: report.generated_at
         }
       };
-
       const blob = await generatePDFBlob(result, responses);
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -1320,68 +1247,49 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
       link.download = `survey-analysis-${new Date(report.created_at).toLocaleDateString()}.pdf`;
       link.click();
       URL.revokeObjectURL(url);
-
       toast({
         title: "Download Successful",
-        description: "Report regenerated and downloaded successfully.",
+        description: "Report regenerated and downloaded successfully."
       });
     } catch (error: any) {
       console.error('Error downloading report:', error);
       toast({
         title: "Download Failed",
         description: error.message || "Failed to download report. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
-  return (
-    <>
+  return <>
       <Card className="mb-8">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <BrainCircuitIcon className="h-5 w-5" />
               AI-Powered Analysis
-              {analysisResult && (
-                <Badge variant="default">
+              {analysisResult && <Badge variant="default">
                   <SparklesIcon className="h-3 w-3 mr-1" />
                   Ready
-                </Badge>
-              )}
+                </Badge>}
             </CardTitle>
             <div className="flex gap-2">
-              {analysisResult && (
-                <>
+              {analysisResult && <>
                   <Button onClick={exportAnalysisToPDF} variant="outline" size="sm">
                     <DownloadIcon className="h-4 w-4 mr-2" />
                     Export PDF
                   </Button>
-                  <Button 
-                    onClick={() => setShowAnalysisDialog(true)} 
-                    variant="outline" 
-                    size="sm"
-                  >
+                  <Button onClick={() => setShowAnalysisDialog(true)} variant="outline" size="sm">
                     View Analysis
                   </Button>
-                </>
-              )}
-              <Button 
-                onClick={generateAnalysis}
-                disabled={isAnalyzing || responses.length < 5 || !isSurveyComplete}
-                className="bg-primary hover:bg-primary/90"
-              >
-                {isAnalyzing ? (
-                  <>
+                </>}
+              <Button onClick={generateAnalysis} disabled={isAnalyzing || responses.length < 5 || !isSurveyComplete} className="bg-primary hover:bg-primary/90">
+                {isAnalyzing ? <>
                     <RefreshCwIcon className="h-4 w-4 mr-2 animate-spin" />
                     Analyzing...
-                  </>
-                ) : (
-                  <>
+                  </> : <>
                     <SparklesIcon className="h-4 w-4 mr-2" />
                     Generate AI Analysis
-                  </>
-                )}
+                  </>}
               </Button>
             </div>
           </div>
@@ -1399,50 +1307,37 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
                 score pattern analysis, sentiment analysis of comments, and strategic recommendations.
               </p>
               
-              {!isSurveyComplete && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              {!isSurveyComplete && <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <p className="text-sm text-blue-800">
                     <strong>Survey is still active.</strong> AI Analysis will be available after the survey closes on November 23, 2025.
                   </p>
-                </div>
-              )}
+                </div>}
               
-              {responses.length < 5 && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              {responses.length < 5 && <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                   <p className="text-sm text-yellow-800">
                     <strong>Minimum 5 responses required</strong> for AI analysis. 
                     Currently have {responses.length} responses.
                   </p>
-                </div>
-              )}
+                </div>}
 
-              {analysisResult && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              {analysisResult && <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                   <p className="text-sm text-green-800">
                     <strong>Analysis Ready:</strong> Generated on {' '}
                     {new Date(analysisResult.metadata.generatedAt).toLocaleDateString()} for {' '}
                     {analysisResult.metadata.totalResponses} responses.
                   </p>
-                </div>
-              )}
+                </div>}
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Previous Reports */}
-      {savedReports.length > 0 && (
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Previous Reports</CardTitle>
-          </CardHeader>
+      {savedReports.length > 0 && <Card className="mb-8">
+          
           <CardContent>
             <div className="space-y-2">
-              {savedReports.map((report) => (
-                <div 
-                  key={report.id} 
-                  className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
-                >
+              {savedReports.map(report => <div key={report.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                   <div className="flex-1">
                     <p className="text-sm font-medium">
                       {new Date(report.created_at).toLocaleDateString()} - {report.total_responses} responses
@@ -1452,37 +1347,27 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        setAnalysisResult({
-                          analysis: report.analysis_text,
-                          metadata: {
-                            totalResponses: report.total_responses,
-                            generatedAt: report.generated_at,
-                          }
-                        });
-                        setShowAnalysisDialog(true);
-                      }}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => {
+                setAnalysisResult({
+                  analysis: report.analysis_text,
+                  metadata: {
+                    totalResponses: report.total_responses,
+                    generatedAt: report.generated_at
+                  }
+                });
+                setShowAnalysisDialog(true);
+              }}>
                       View
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => downloadSavedReport(report)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => downloadSavedReport(report)}>
                       <DownloadIcon className="h-3 w-3 mr-1" />
                       PDF
                     </Button>
                   </div>
-                </div>
-              ))}
+                </div>)}
             </div>
           </CardContent>
-        </Card>
-      )}
+        </Card>}
 
       {/* Analysis Dialog */}
       <Dialog open={showAnalysisDialog} onOpenChange={setShowAnalysisDialog}>
@@ -1494,8 +1379,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
             </DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[60vh] pr-4">
-            {analysisResult && (
-              <div className="space-y-4">
+            {analysisResult && <div className="space-y-4">
                 <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Analysis Metadata</span>
@@ -1508,11 +1392,9 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
                 <div className="prose prose-sm max-w-none">
                   <ReactMarkdown>{analysisResult.analysis}</ReactMarkdown>
                 </div>
-              </div>
-            )}
+              </div>}
           </ScrollArea>
         </DialogContent>
       </Dialog>
-    </>
-  );
+    </>;
 };
