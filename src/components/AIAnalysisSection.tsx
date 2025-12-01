@@ -686,7 +686,8 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
           pdf.text(`Employee Comments (${comments.length}):`, margin, yPosition);
           yPosition += 20;
 
-          comments.slice(0, 15).forEach(({ rating, comment }) => {
+          // Show ALL comments (no limit)
+          comments.forEach(({ rating, comment }) => {
             const commentHeight = 60;
             checkPageBreak(commentHeight);
 
@@ -714,14 +715,6 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
 
             yPosition += commentHeight + 8;
           });
-
-          if (comments.length > 15) {
-            pdf.setFontSize(9);
-            pdf.setFont('helvetica', 'italic');
-            pdf.setTextColor(...colors.textLight);
-            pdf.text(`+ ${comments.length - 15} more comments...`, margin + 10, yPosition);
-            yPosition += 15;
-          }
         }
 
         // ========== CONTINENTAL BREAKDOWN ==========
