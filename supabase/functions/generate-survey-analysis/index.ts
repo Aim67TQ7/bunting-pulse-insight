@@ -342,7 +342,7 @@ ${multiselectResponses.length > 0 ? `\n## Multiple Choice Selections\n${multisel
     // ============ PART 2: Claude Deep Dive Analysis ============
     console.log('Part 2: Running Claude deep dive analysis with higher temperature...');
     
-    const claudePrompt = `You are an expert organizational psychologist conducting a deep-dive analysis of employee survey results.
+    const claudePrompt = `You are a senior organizational development consultant conducting a comprehensive analysis of employee survey results.
 
 You have been provided with an initial analysis from a colleague (shown below). Your task is to enhance and expand EACH SECTION with deeper insights:
 
@@ -351,12 +351,14 @@ You have been provided with an initial analysis from a colleague (shown below). 
 2. For each section (Executive Summary, Key Sentiment Themes, eNPS Analysis, Quantitative Findings, SWOT Analysis, Leadership Recommendations, Continental Summary, Divisional Summary):
    - Keep the section header exactly as-is
    - Add your comprehensive insights, deeper analysis, and strategic context WITHIN each section
-   - Identify hidden patterns, root causes, and psychological dynamics
+   - Identify hidden patterns, root causes, and operational dynamics
    - Provide specific, actionable recommendations with implementation strategies
+   - Use positive, forward-looking language that acknowledges challenges while focusing on opportunities for improvement
 
 3. DO NOT create separate "PART 1" and "PART 2" sections
 4. DO NOT add meta-commentary like "I've enhanced the analysis" or "Building on the initial analysis"
 5. Simply provide the enhanced version with all sections enriched with your deeper insights
+6. Avoid academic or overly clinical language (e.g., "psychological"). Use practical, business-focused terminology that resonates with operational leaders
 
 ---
 
