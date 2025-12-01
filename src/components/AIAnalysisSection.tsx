@@ -174,7 +174,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
     }
   };
 
-  const generatePDFBlob = async (result: AnalysisResult): Promise<Blob> => {
+  const generatePDFBlob = async (result: AnalysisResult, responsesData?: AIAnalysisSurveyResponse[]): Promise<Blob> => {
     const pdf = new jsPDF('p', 'pt', 'a4');
     const pageWidth = pdf.internal.pageSize.width;
     const pageHeight = pdf.internal.pageSize.height;
@@ -182,6 +182,9 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
     const lineHeight = 18;
     let yPosition = margin;
     let currentPage = 1;
+
+    // Use provided responses or fall back to component prop
+    const pdfResponses = responsesData || responses;
 
     // Fetch question configuration
     const { data: questions, error: questionsError } = await supabase
@@ -362,7 +365,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
     // Get demographic data
     const getDemographicData = (field: 'continent' | 'division' | 'role') => {
       const counts = new Map<string, number>();
-      responses.forEach(r => {
+      pdfResponses.forEach(r => {
         const val = r[field];
         if (val) counts.set(val, (counts.get(val) || 0) + 1);
       });
@@ -726,7 +729,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         yPosition += 20;
 
         const continentGroups = new Map<string, number[]>();
-        responses.forEach(response => {
+        pdfResponses.forEach(response => {
           const continent = response.continent || 'Unknown';
           const questionResponse = response.responses_jsonb.find(
             (r: any) => r.question_id === question.question_id && r.answer_value?.rating
@@ -772,7 +775,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         yPosition += 20;
 
         const divisionGroups = new Map<string, number[]>();
-        responses.forEach(response => {
+        pdfResponses.forEach(response => {
           const division = response.division || 'Unknown';
           const questionResponse = response.responses_jsonb.find(
             (r: any) => r.question_id === question.question_id && r.answer_value?.rating
@@ -905,7 +908,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         yPosition += 20;
 
         const continentMultiselect = new Map<string, Map<string, number>>();
-        responses.forEach(response => {
+        pdfResponses.forEach(response => {
           const continent = response.continent || 'Unknown';
           const questionResponse = response.responses_jsonb.find(
             (r: any) => r.question_id === question.question_id && r.answer_value?.selections
@@ -955,7 +958,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         yPosition += 20;
 
         const divisionMultiselect = new Map<string, Map<string, number>>();
-        responses.forEach(response => {
+        pdfResponses.forEach(response => {
           const division = response.division || 'Unknown';
           const questionResponse = response.responses_jsonb.find(
             (r: any) => r.question_id === question.question_id && r.answer_value?.selections
@@ -1082,7 +1085,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         yPosition += 20;
 
         const continentTexts = new Map<string, string[]>();
-        responses.forEach(response => {
+        pdfResponses.forEach(response => {
           const continent = response.continent || 'Unknown';
           const questionResponse = response.responses_jsonb.find(
             (r: any) => r.question_id === question.question_id && r.answer_value?.text
@@ -1144,7 +1147,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         yPosition += 20;
 
         const divisionTexts = new Map<string, string[]>();
-        responses.forEach(response => {
+        pdfResponses.forEach(response => {
           const division = response.division || 'Unknown';
           const questionResponse = response.responses_jsonb.find(
             (r: any) => r.question_id === question.question_id && r.answer_value?.text
@@ -1310,7 +1313,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
         }
       };
 
-      const blob = await generatePDFBlob(result);
+      const blob = await generatePDFBlob(result, responses);
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
