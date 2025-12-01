@@ -117,7 +117,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
       setAnalysisResult(result);
 
       // Generate and upload PDF
-      const pdfBlob = await generatePDFBlob(result);
+      const pdfBlob = await generatePDFBlob(result, responses);
       const fileName = `survey-analysis-${Date.now()}-${crypto.randomUUID()}.pdf`;
       
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -1253,7 +1253,7 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
     if (!analysisResult) return;
 
     try {
-      generatePDFBlob(analysisResult).then(blob => {
+      generatePDFBlob(analysisResult, responses).then(blob => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
