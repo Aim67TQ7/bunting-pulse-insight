@@ -344,34 +344,31 @@ ${multiselectResponses.length > 0 ? `\n## Multiple Choice Selections\n${multisel
     
     const claudePrompt = `You are an expert organizational psychologist conducting a deep-dive analysis of employee survey results.
 
-You have been provided with an initial analysis from a colleague (shown below). Your task is to:
+You have been provided with an initial analysis from a colleague (shown below). Your task is to enhance and expand EACH SECTION with deeper insights:
 
-1. **Expand and Deepen Insights**: Go beyond surface-level observations. Identify hidden patterns, systemic root causes, and psychological dynamics that may not be immediately obvious.
+**CRITICAL INSTRUCTIONS:**
+1. Maintain the EXACT same section structure and headers from the initial analysis
+2. For each section (Executive Summary, Key Sentiment Themes, eNPS Analysis, Quantitative Findings, SWOT Analysis, Leadership Recommendations, Continental Summary, Divisional Summary):
+   - Keep the section header exactly as-is
+   - Add your comprehensive insights, deeper analysis, and strategic context WITHIN each section
+   - Identify hidden patterns, root causes, and psychological dynamics
+   - Provide specific, actionable recommendations with implementation strategies
 
-2. **Provide Comprehensive Category Analysis**: For each major category in the survey (Engagement, Leadership, Communication, Resources, Culture, etc.), provide:
-   - Detailed sentiment analysis
-   - Specific strengths and weaknesses with evidence
-   - Root cause analysis of issues
-   - Psychological and organizational factors at play
-   - Actionable recommendations with implementation strategies
-
-3. **Continental and Divisional Insights**: Provide nuanced analysis of geographic and divisional differences, exploring cultural, operational, or structural factors that may explain variations.
-
-4. **Strategic Recommendations**: Offer prioritized, concrete action plans with timelines, resources needed, and expected outcomes.
-
-**Important**: Your analysis should be comprehensive, insightful, and add significant value beyond the initial analysis. Think deeply about organizational dynamics, employee psychology, and strategic implications.
+3. DO NOT create separate "PART 1" and "PART 2" sections
+4. DO NOT add meta-commentary like "I've enhanced the analysis" or "Building on the initial analysis"
+5. Simply provide the enhanced version with all sections enriched with your deeper insights
 
 ---
 
-## INITIAL ANALYSIS FROM COLLEAGUE:
+## INITIAL ANALYSIS TO ENHANCE:
 
 ${initialAnalysis}
 
 ---
 
-## YOUR COMPREHENSIVE DEEP-DIVE ANALYSIS:
+## YOUR ENHANCED COMPREHENSIVE ANALYSIS:
 
-Please provide your enhanced, comprehensive analysis with deeper insights into each category, continental/divisional breakdowns, and strategic recommendations. Structure your response to build upon and enhance the initial analysis.`;
+Please provide the complete enhanced report maintaining the exact same section structure but with significantly deeper insights, root cause analysis, and strategic recommendations integrated into each section.`;
 
     const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -396,19 +393,8 @@ Please provide your enhanced, comprehensive analysis with deeper insights into e
       throw new Error(`Claude API error: ${claudeResponse.status}`);
     }
     const claudeData = await claudeResponse.json();
-    const deepAnalysis = claudeData.content[0].text;
-    console.log('Part 2 complete. Deep analysis length:', deepAnalysis.length, 'characters');
-
-    // Combine both analyses
-    let analysis = `# PART 1: INITIAL ANALYSIS (GPT-4o)
-
-${initialAnalysis}
-
----
-
-# PART 2: COMPREHENSIVE DEEP DIVE (Claude Sonnet)
-
-${deepAnalysis}`;
+    const analysis = claudeData.content[0].text;
+    console.log('Part 2 complete. Enhanced analysis length:', analysis.length, 'characters');
     
     // Remove AI-generated meta-commentary at the end
     const metaCommentPatterns = [
