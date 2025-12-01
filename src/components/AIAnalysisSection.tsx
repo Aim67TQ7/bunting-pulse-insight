@@ -672,10 +672,11 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
 
         yPosition += 10;
 
-        // Comments
+        // Comments - prioritize low scores (1-2) first
         const comments = questionResponses
           .filter(r => r.answer_value?.comment)
-          .map(r => ({ rating: r.answer_value?.rating || 0, comment: r.answer_value?.comment }));
+          .map(r => ({ rating: r.answer_value?.rating || 0, comment: r.answer_value?.comment }))
+          .sort((a, b) => a.rating - b.rating); // Sort by rating ascending (low scores first)
         
         if (comments.length > 0) {
           checkPageBreak(40);
@@ -1218,7 +1219,14 @@ export const AIAnalysisSection = ({ responses, isSurveyComplete }: AIAnalysisSec
       for (const [sectionName, sectionQuestions] of Array.from(sections.entries())) {
         renderSectionHeader(sectionName);
 
-        sectionQuestions.forEach(question => {
+        sectionQuestions.forEach((question, index) => {
+          // Add page break before each question (except the first in the section)
+          if (index > 0) {
+            pdf.addPage();
+            currentPage++;
+            yPosition = margin + 10;
+          }
+
           // Get responses for this question
           const questionResponses = responses.flatMap(r => 
             r.responses_jsonb
