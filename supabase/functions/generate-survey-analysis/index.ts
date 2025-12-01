@@ -326,7 +326,7 @@ ${multiselectResponses.length > 0 ? `\n## Multiple Choice Selections\n${multisel
           { role: 'system', content: 'You are a senior HR analytics consultant. Analyze employee survey data and deliver a comprehensive, data-driven executive report. Be candid, strategic, and cite specific metrics.' },
           { role: 'user', content: prompt }
         ],
-        max_tokens: 12000
+        max_tokens: 8000
       })
     });
 
@@ -382,8 +382,8 @@ Please provide your enhanced, comprehensive analysis with deeper insights into e
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
-        max_tokens: 16000,
-        temperature: 0.9,
+        max_tokens: 8000,
+        temperature: 0.7,
         messages: [
           { role: 'user', content: claudePrompt }
         ]
