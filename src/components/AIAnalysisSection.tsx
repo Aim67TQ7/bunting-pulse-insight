@@ -1282,15 +1282,7 @@ export const AIAnalysisSection = ({
                     View Analysis
                   </Button>
                 </>}
-              <Button onClick={generateAnalysis} disabled={isAnalyzing || responses.length < 5 || !isSurveyComplete} className="bg-primary hover:bg-primary/90">
-                {isAnalyzing ? <>
-                    <RefreshCwIcon className="h-4 w-4 mr-2 animate-spin" />
-                    Analyzing...
-                  </> : <>
-                    <SparklesIcon className="h-4 w-4 mr-2" />
-                    Generate AI Analysis
-                  </>}
-              </Button>
+              
             </div>
           </div>
         </CardHeader>
@@ -1333,41 +1325,7 @@ export const AIAnalysisSection = ({
       </Card>
 
       {/* Previous Reports */}
-      {savedReports.length > 0 && <Card className="mb-8">
-          
-          <CardContent>
-            <div className="space-y-2">
-              {savedReports.map(report => <div key={report.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">
-                      {new Date(report.created_at).toLocaleDateString()} - {report.total_responses} responses
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Generated: {new Date(report.generated_at).toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => {
-                setAnalysisResult({
-                  analysis: report.analysis_text,
-                  metadata: {
-                    totalResponses: report.total_responses,
-                    generatedAt: report.generated_at
-                  }
-                });
-                setShowAnalysisDialog(true);
-              }}>
-                      View
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => downloadSavedReport(report)}>
-                      <DownloadIcon className="h-3 w-3 mr-1" />
-                      PDF
-                    </Button>
-                  </div>
-                </div>)}
-            </div>
-          </CardContent>
-        </Card>}
+      {savedReports.length > 0}
 
       {/* Analysis Dialog */}
       <Dialog open={showAnalysisDialog} onOpenChange={setShowAnalysisDialog}>
