@@ -865,93 +865,51 @@ export type Database = {
       Employee_id: {
         Row: {
           accountEnabled: boolean | null
-          ageGroup: string | null
           alternateEmailAddress: string | null
           city: string | null
-          companyName: string | null
-          consentProvidedForMinor: string | null
-          country: string | null
           createdDateTime: string | null
-          creationType: string | null
           department: string | null
-          directorySynced: string | null
           displayName: string | null
           employee_id: string
-          givenName: string | null
-          identityIssuer: string | null
           invitationState: string | null
           jobTitle: string | null
-          legalAgeGroupClassification: string | null
           mobilePhone: string | null
-          officeLocation: string | null
-          postalCode: string | null
-          state: string | null
-          streetAddress: string | null
           surname: string | null
           telephoneNumber: string | null
-          usageLocation: string | null
           user_id: string | null
           userPrincipalName: string
           userType: string | null
         }
         Insert: {
           accountEnabled?: boolean | null
-          ageGroup?: string | null
           alternateEmailAddress?: string | null
           city?: string | null
-          companyName?: string | null
-          consentProvidedForMinor?: string | null
-          country?: string | null
           createdDateTime?: string | null
-          creationType?: string | null
           department?: string | null
-          directorySynced?: string | null
           displayName?: string | null
           employee_id?: string
-          givenName?: string | null
-          identityIssuer?: string | null
           invitationState?: string | null
           jobTitle?: string | null
-          legalAgeGroupClassification?: string | null
           mobilePhone?: string | null
-          officeLocation?: string | null
-          postalCode?: string | null
-          state?: string | null
-          streetAddress?: string | null
           surname?: string | null
           telephoneNumber?: string | null
-          usageLocation?: string | null
           user_id?: string | null
           userPrincipalName: string
           userType?: string | null
         }
         Update: {
           accountEnabled?: boolean | null
-          ageGroup?: string | null
           alternateEmailAddress?: string | null
           city?: string | null
-          companyName?: string | null
-          consentProvidedForMinor?: string | null
-          country?: string | null
           createdDateTime?: string | null
-          creationType?: string | null
           department?: string | null
-          directorySynced?: string | null
           displayName?: string | null
           employee_id?: string
-          givenName?: string | null
-          identityIssuer?: string | null
           invitationState?: string | null
           jobTitle?: string | null
-          legalAgeGroupClassification?: string | null
           mobilePhone?: string | null
-          officeLocation?: string | null
-          postalCode?: string | null
-          state?: string | null
-          streetAddress?: string | null
           surname?: string | null
           telephoneNumber?: string | null
-          usageLocation?: string | null
           user_id?: string | null
           userPrincipalName?: string
           userType?: string | null
@@ -1152,6 +1110,62 @@ export type Database = {
         }
         Relationships: []
       }
+      emps: {
+        Row: {
+          badge_number: string | null
+          created_at: string
+          department: string | null
+          display_name: string | null
+          employee_id: string | null
+          gdpr_consent_given: boolean | null
+          gdpr_consent_timestamp: string | null
+          id: string
+          job_level: Database["public"]["Enums"]["job_level"] | null
+          location: Database["public"]["Enums"]["employee_location"] | null
+          manager_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          badge_number?: string | null
+          created_at?: string
+          department?: string | null
+          display_name?: string | null
+          employee_id?: string | null
+          gdpr_consent_given?: boolean | null
+          gdpr_consent_timestamp?: string | null
+          id?: string
+          job_level?: Database["public"]["Enums"]["job_level"] | null
+          location?: Database["public"]["Enums"]["employee_location"] | null
+          manager_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          badge_number?: string | null
+          created_at?: string
+          department?: string | null
+          display_name?: string | null
+          employee_id?: string | null
+          gdpr_consent_given?: boolean | null
+          gdpr_consent_timestamp?: string | null
+          id?: string
+          job_level?: Database["public"]["Enums"]["job_level"] | null
+          location?: Database["public"]["Enums"]["employee_location"] | null
+          manager_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emps_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "emps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entities: {
         Row: {
           created_at: string | null
@@ -1167,6 +1181,66 @@ export type Database = {
           created_at?: string | null
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      EpoxyMix: {
+        Row: {
+          "Cup A": string | null
+          "Cup B": string | null
+          "Daily Check": string | null
+          Employee: number | null
+          Humidity_1: string | null
+          Humidity_2: string | null
+          "Part A": string | null
+          "Part B": string | null
+          Ratio: string | null
+          "Ratio Check": string | null
+          Sensor_Timestamp: string | null
+          Shutdown: string | null
+          Startup: string | null
+          Temperature_1: string | null
+          Temperature_2: string | null
+          Timestamp: string | null
+          UUID: string
+        }
+        Insert: {
+          "Cup A"?: string | null
+          "Cup B"?: string | null
+          "Daily Check"?: string | null
+          Employee?: number | null
+          Humidity_1?: string | null
+          Humidity_2?: string | null
+          "Part A"?: string | null
+          "Part B"?: string | null
+          Ratio?: string | null
+          "Ratio Check"?: string | null
+          Sensor_Timestamp?: string | null
+          Shutdown?: string | null
+          Startup?: string | null
+          Temperature_1?: string | null
+          Temperature_2?: string | null
+          Timestamp?: string | null
+          UUID: string
+        }
+        Update: {
+          "Cup A"?: string | null
+          "Cup B"?: string | null
+          "Daily Check"?: string | null
+          Employee?: number | null
+          Humidity_1?: string | null
+          Humidity_2?: string | null
+          "Part A"?: string | null
+          "Part B"?: string | null
+          Ratio?: string | null
+          "Ratio Check"?: string | null
+          Sensor_Timestamp?: string | null
+          Shutdown?: string | null
+          Startup?: string | null
+          Temperature_1?: string | null
+          Temperature_2?: string | null
+          Timestamp?: string | null
+          UUID?: string
         }
         Relationships: []
       }
@@ -4388,6 +4462,30 @@ export type Database = {
         }
         Returns: undefined
       }
+      upsert_emp_record:
+        | {
+            Args: {
+              p_department?: string
+              p_display_name: string
+              p_job_level?: string
+              p_location: string
+              p_manager_id?: string
+              p_user_id: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_badge_number?: string
+              p_department?: string
+              p_display_name: string
+              p_job_level?: string
+              p_location: string
+              p_manager_id?: string
+              p_user_id: string
+            }
+            Returns: string
+          }
       validate_iframe_session: {
         Args: { token_hash_param: string }
         Returns: {
@@ -4400,6 +4498,12 @@ export type Database = {
     Enums: {
       app_type: "application" | "calculator" | "sales_tool" | "report"
       document_type: "contact" | "company" | "sales" | "purchase_order"
+      employee_location:
+        | "Newton"
+        | "DuBois"
+        | "Redditch"
+        | "Berkhamsted"
+        | "Home-Office"
       function_type:
         | "magnetism_calculator"
         | "five_why"
@@ -4412,6 +4516,7 @@ export type Database = {
         | "md_flow_calculator"
         | "five_s"
         | "fmea"
+      job_level: "Executive" | "Manager" | "Supervisor" | "Lead" | "Employee"
       rvw_author_role: "manager" | "employee"
       rvw_cycle_status: "draft" | "active" | "closed"
       rvw_review_status: "draft" | "pending_approval" | "published" | "signed"
@@ -4554,6 +4659,13 @@ export const Constants = {
     Enums: {
       app_type: ["application", "calculator", "sales_tool", "report"],
       document_type: ["contact", "company", "sales", "purchase_order"],
+      employee_location: [
+        "Newton",
+        "DuBois",
+        "Redditch",
+        "Berkhamsted",
+        "Home-Office",
+      ],
       function_type: [
         "magnetism_calculator",
         "five_why",
@@ -4567,6 +4679,7 @@ export const Constants = {
         "five_s",
         "fmea",
       ],
+      job_level: ["Executive", "Manager", "Supervisor", "Lead", "Employee"],
       rvw_author_role: ["manager", "employee"],
       rvw_cycle_status: ["draft", "active", "closed"],
       rvw_review_status: ["draft", "pending_approval", "published", "signed"],

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AIAnalysisSection } from "./AIAnalysisSection";
+import { FilteredAIAnalysis } from "./FilteredAIAnalysis";
 
 interface AIAnalysisSurveyResponse {
   id: string;
@@ -10,6 +11,7 @@ interface AIAnalysisSurveyResponse {
   role: string | null;
   submitted_at: string;
   completion_time_seconds: number | null;
+  additional_comments?: string | null;
   responses_jsonb: Array<{
     question_id: string;
     question_type: string;
@@ -35,7 +37,7 @@ export const AIAnalysisSectionWrapper = () => {
     try {
       const { data: surveyData, error } = await supabase
         .from('employee_survey_responses')
-        .select('id, responses_jsonb, continent, division, role, submitted_at, completion_time_seconds')
+        .select('id, responses_jsonb, continent, division, role, submitted_at, completion_time_seconds, additional_comments')
         .eq('is_draft', false)
         .order('submitted_at', { ascending: false });
       
@@ -48,6 +50,7 @@ export const AIAnalysisSectionWrapper = () => {
         role: survey.role,
         submitted_at: survey.submitted_at,
         completion_time_seconds: survey.completion_time_seconds,
+        additional_comments: survey.additional_comments,
         responses_jsonb: (survey.responses_jsonb as any[] || []).map((answer: any) => ({
           question_id: answer.question_id,
           question_type: answer.question_type,
@@ -67,5 +70,12 @@ export const AIAnalysisSectionWrapper = () => {
 
   if (loading) return <div className="p-8">Loading AI Analysis...</div>;
 
-  return <AIAnalysisSection responses={responses} isSurveyComplete={isSurveyComplete} />;
+  return (
+    <div className="space-y-6">
+      <AIAnalysisSection responses={responses} isSurveyComplete={isSurveyComplete} />
+      
+      {/* Filtered Analysis with Claude */}
+      <FilteredAIAnalysis responses={responses} />
+    </div>
+  );
 };
