@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.chat-with-survey-data]
 verify_jwt = false
+
+[functions.generate-filtered-analysis]
+verify_jwt = false
