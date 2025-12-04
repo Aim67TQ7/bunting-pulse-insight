@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AIAnalysisSection } from "./AIAnalysisSection";
 import { FilteredAIAnalysis } from "./FilteredAIAnalysis";
+import { WordReportGenerator } from "./WordReportGenerator";
 
 interface AIAnalysisSurveyResponse {
   id: string;
@@ -76,6 +77,9 @@ export const AIAnalysisSectionWrapper = () => {
       
       {/* Filtered Analysis with Claude */}
       <FilteredAIAnalysis responses={responses} />
+      
+      {/* Word Report Generator with Claude */}
+      <WordReportGenerator responses={responses} />
     </div>
   );
 };
