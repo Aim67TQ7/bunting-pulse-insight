@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AIAnalysisSection } from "./AIAnalysisSection";
-import { FilteredAIAnalysis } from "./FilteredAIAnalysis";
-import { WordReportGenerator } from "./WordReportGenerator";
 
 interface AIAnalysisSurveyResponse {
   id: string;
@@ -74,12 +72,6 @@ export const AIAnalysisSectionWrapper = () => {
   return (
     <div className="space-y-6">
       <AIAnalysisSection responses={responses} isSurveyComplete={isSurveyComplete} />
-      
-      {/* Filtered Analysis with Claude */}
-      <FilteredAIAnalysis responses={responses} />
-      
-      {/* Word Report Generator with Claude */}
-      <WordReportGenerator responses={responses} />
     </div>
   );
 };

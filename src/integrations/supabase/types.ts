@@ -745,6 +745,54 @@ export type Database = {
         }
         Relationships: []
       }
+      customers_uk: {
+        Row: {
+          Customer: string | null
+          QuotedAmtLastYear: number | null
+          QuotesLastYear: number | null
+          sales2022: string | null
+          sales2023: string | null
+          sales2024: string | null
+          sales2025: string | null
+          salesFourYear: string | null
+          ship_to_address: string | null
+          ship_to_latitude: string | null
+          ship_to_longitude: string | null
+          ship_to_name: string | null
+          UK_uuid: string
+        }
+        Insert: {
+          Customer?: string | null
+          QuotedAmtLastYear?: number | null
+          QuotesLastYear?: number | null
+          sales2022?: string | null
+          sales2023?: string | null
+          sales2024?: string | null
+          sales2025?: string | null
+          salesFourYear?: string | null
+          ship_to_address?: string | null
+          ship_to_latitude?: string | null
+          ship_to_longitude?: string | null
+          ship_to_name?: string | null
+          UK_uuid?: string
+        }
+        Update: {
+          Customer?: string | null
+          QuotedAmtLastYear?: number | null
+          QuotesLastYear?: number | null
+          sales2022?: string | null
+          sales2023?: string | null
+          sales2024?: string | null
+          sales2025?: string | null
+          salesFourYear?: string | null
+          ship_to_address?: string | null
+          ship_to_latitude?: string | null
+          ship_to_longitude?: string | null
+          ship_to_name?: string | null
+          UK_uuid?: string
+        }
+        Relationships: []
+      }
       dashboard_cards: {
         Row: {
           author_name: string | null
@@ -1067,48 +1115,71 @@ export type Database = {
       }
       employees: {
         Row: {
+          benefit_class: string | null
+          business_unit: string | null
           created_at: string
           department: string | null
-          email: string | null
-          employee_id: string
-          employment_type: string
-          first_name: string
-          hire_date: string
+          employee_number: string | null
+          hire_date: string | null
           id: string
           is_active: boolean
-          last_name: string
-          position: string | null
+          job_title: string | null
+          location: string | null
+          name_first: string
+          name_last: string
+          reports_to: string
           updated_at: string
+          user_email: string | null
+          user_id: string | null
+          work_category: string | null
         }
         Insert: {
+          benefit_class?: string | null
+          business_unit?: string | null
           created_at?: string
           department?: string | null
-          email?: string | null
-          employee_id: string
-          employment_type?: string
-          first_name: string
-          hire_date: string
+          employee_number?: string | null
+          hire_date?: string | null
           id?: string
           is_active?: boolean
-          last_name: string
-          position?: string | null
+          job_title?: string | null
+          location?: string | null
+          name_first: string
+          name_last: string
+          reports_to?: string
           updated_at?: string
+          user_email?: string | null
+          user_id?: string | null
+          work_category?: string | null
         }
         Update: {
+          benefit_class?: string | null
+          business_unit?: string | null
           created_at?: string
           department?: string | null
-          email?: string | null
-          employee_id?: string
-          employment_type?: string
-          first_name?: string
-          hire_date?: string
+          employee_number?: string | null
+          hire_date?: string | null
           id?: string
           is_active?: boolean
-          last_name?: string
-          position?: string | null
+          job_title?: string | null
+          location?: string | null
+          name_first?: string
+          name_last?: string
+          reports_to?: string
           updated_at?: string
+          user_email?: string | null
+          user_id?: string | null
+          work_category?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "employees_reports_to_fkey"
+            columns: ["reports_to"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       emps: {
         Row: {
@@ -1116,11 +1187,11 @@ export type Database = {
           created_at: string
           department: string | null
           display_name: string | null
-          employee_id: string | null
           gdpr_consent_given: boolean | null
           gdpr_consent_timestamp: string | null
           id: string
           job_level: Database["public"]["Enums"]["job_level"] | null
+          job_title: string | null
           location: Database["public"]["Enums"]["employee_location"] | null
           manager_id: string | null
           updated_at: string
@@ -1131,11 +1202,11 @@ export type Database = {
           created_at?: string
           department?: string | null
           display_name?: string | null
-          employee_id?: string | null
           gdpr_consent_given?: boolean | null
           gdpr_consent_timestamp?: string | null
           id?: string
           job_level?: Database["public"]["Enums"]["job_level"] | null
+          job_title?: string | null
           location?: Database["public"]["Enums"]["employee_location"] | null
           manager_id?: string | null
           updated_at?: string
@@ -1146,11 +1217,11 @@ export type Database = {
           created_at?: string
           department?: string | null
           display_name?: string | null
-          employee_id?: string | null
           gdpr_consent_given?: boolean | null
           gdpr_consent_timestamp?: string | null
           id?: string
           job_level?: Database["public"]["Enums"]["job_level"] | null
+          job_title?: string | null
           location?: Database["public"]["Enums"]["employee_location"] | null
           manager_id?: string | null
           updated_at?: string
@@ -1280,6 +1351,248 @@ export type Database = {
           resolved_at?: string | null
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      forklift_checklist_questions: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          label: string | null
+          question_text: string
+          sort_order: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          label?: string | null
+          question_text: string
+          sort_order?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          label?: string | null
+          question_text?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      forklift_checklist_responses: {
+        Row: {
+          admin_notes: string | null
+          id: string
+          question_id: string
+          status: string
+          submission_id: string
+          timestamp: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          id?: string
+          question_id: string
+          status: string
+          submission_id: string
+          timestamp?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          id?: string
+          question_id?: string
+          status?: string
+          submission_id?: string
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forklift_checklist_responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "forklift_checklist_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forklift_checklist_responses_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "forklift_checklist_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forklift_checklist_submissions: {
+        Row: {
+          badge_number: string
+          forklift_id: string
+          has_failures: boolean | null
+          id: string
+          submitted_at: string | null
+        }
+        Insert: {
+          badge_number: string
+          forklift_id: string
+          has_failures?: boolean | null
+          id?: string
+          submitted_at?: string | null
+        }
+        Update: {
+          badge_number?: string
+          forklift_id?: string
+          has_failures?: boolean | null
+          id?: string
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forklift_checklist_submissions_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
+            referencedRelation: "forklift_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forklift_fail_notifications: {
+        Row: {
+          badge_number: string
+          created_at: string | null
+          forklift_name: string
+          id: string
+          is_read: boolean | null
+          question_id: string
+          question_text: string
+          submission_id: string
+        }
+        Insert: {
+          badge_number: string
+          created_at?: string | null
+          forklift_name: string
+          id?: string
+          is_read?: boolean | null
+          question_id: string
+          question_text: string
+          submission_id: string
+        }
+        Update: {
+          badge_number?: string
+          created_at?: string | null
+          forklift_name?: string
+          id?: string
+          is_read?: boolean | null
+          question_id?: string
+          question_text?: string
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forklift_fail_notifications_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "forklift_checklist_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forklift_fail_notifications_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "forklift_checklist_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forklift_qualified_drivers: {
+        Row: {
+          badge_number: string
+          created_at: string | null
+          driver_name: string
+          id: string
+          is_active: boolean | null
+        }
+        Insert: {
+          badge_number: string
+          created_at?: string | null
+          driver_name: string
+          id?: string
+          is_active?: boolean | null
+        }
+        Update: {
+          badge_number?: string
+          created_at?: string | null
+          driver_name?: string
+          id?: string
+          is_active?: boolean | null
+        }
+        Relationships: []
+      }
+      forklift_question_assignments: {
+        Row: {
+          created_at: string | null
+          forklift_id: string
+          id: string
+          question_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          forklift_id: string
+          id?: string
+          question_id: string
+        }
+        Update: {
+          created_at?: string | null
+          forklift_id?: string
+          id?: string
+          question_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forklift_question_assignments_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
+            referencedRelation: "forklift_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forklift_question_assignments_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "forklift_checklist_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forklift_units: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          unit_number: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          unit_number: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          unit_number?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2167,6 +2480,7 @@ export type Database = {
           is_active: boolean | null
           is_company_wide: boolean | null
           original_note_id: string | null
+          target_business_units: string[] | null
           target_departments: string[] | null
           target_facilities: string[] | null
           target_roles: string[] | null
@@ -2183,6 +2497,7 @@ export type Database = {
           is_active?: boolean | null
           is_company_wide?: boolean | null
           original_note_id?: string | null
+          target_business_units?: string[] | null
           target_departments?: string[] | null
           target_facilities?: string[] | null
           target_roles?: string[] | null
@@ -2199,6 +2514,7 @@ export type Database = {
           is_active?: boolean | null
           is_company_wide?: boolean | null
           original_note_id?: string | null
+          target_business_units?: string[] | null
           target_departments?: string[] | null
           target_facilities?: string[] | null
           target_roles?: string[] | null
@@ -2957,6 +3273,276 @@ export type Database = {
         }
         Relationships: []
       }
+      rvw_calibration_sessions: {
+        Row: {
+          attendees: string[] | null
+          created_at: string
+          cycle_id: string
+          facilitator_id: string | null
+          id: string
+          notes: string | null
+          session_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attendees?: string[] | null
+          created_at?: string
+          cycle_id: string
+          facilitator_id?: string | null
+          id?: string
+          notes?: string | null
+          session_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attendees?: string[] | null
+          created_at?: string
+          cycle_id?: string
+          facilitator_id?: string | null
+          id?: string
+          notes?: string | null
+          session_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rvw_calibration_sessions_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "rvw_review_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rvw_calibration_sessions_facilitator_id_fkey"
+            columns: ["facilitator_id"]
+            isOneToOne: false
+            referencedRelation: "emps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rvw_competency_scores: {
+        Row: {
+          competency_type: string
+          created_at: string
+          id: string
+          manager_comments: string | null
+          manager_score: number | null
+          observable_behaviors: string | null
+          review_id: string
+          self_comments: string | null
+          self_score: number | null
+          updated_at: string
+        }
+        Insert: {
+          competency_type: string
+          created_at?: string
+          id?: string
+          manager_comments?: string | null
+          manager_score?: number | null
+          observable_behaviors?: string | null
+          review_id: string
+          self_comments?: string | null
+          self_score?: number | null
+          updated_at?: string
+        }
+        Update: {
+          competency_type?: string
+          created_at?: string
+          id?: string
+          manager_comments?: string | null
+          manager_score?: number | null
+          observable_behaviors?: string | null
+          review_id?: string
+          self_comments?: string | null
+          self_score?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rvw_competency_scores_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "rvw_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rvw_employee_census: {
+        Row: {
+          badge_number: string | null
+          department: string | null
+          email: string | null
+          employee_name: string
+          hire_date: string | null
+          id: string
+          imported_at: string | null
+          job_level: string | null
+          job_title: string | null
+          location: string | null
+          manager_email: string | null
+          manager_name: string | null
+          match_status: string | null
+          matched_emp_id: string | null
+          notes: string | null
+          processed: boolean | null
+        }
+        Insert: {
+          badge_number?: string | null
+          department?: string | null
+          email?: string | null
+          employee_name: string
+          hire_date?: string | null
+          id?: string
+          imported_at?: string | null
+          job_level?: string | null
+          job_title?: string | null
+          location?: string | null
+          manager_email?: string | null
+          manager_name?: string | null
+          match_status?: string | null
+          matched_emp_id?: string | null
+          notes?: string | null
+          processed?: boolean | null
+        }
+        Update: {
+          badge_number?: string | null
+          department?: string | null
+          email?: string | null
+          employee_name?: string
+          hire_date?: string | null
+          id?: string
+          imported_at?: string | null
+          job_level?: string | null
+          job_title?: string | null
+          location?: string | null
+          manager_email?: string | null
+          manager_name?: string | null
+          match_status?: string | null
+          matched_emp_id?: string | null
+          notes?: string | null
+          processed?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rvw_employee_census_matched_emp_id_fkey"
+            columns: ["matched_emp_id"]
+            isOneToOne: false
+            referencedRelation: "emps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rvw_goals: {
+        Row: {
+          actual_result: string | null
+          created_at: string
+          description: string | null
+          id: string
+          manager_comments: string | null
+          manager_score: number | null
+          review_id: string
+          self_comments: string | null
+          self_score: number | null
+          sort_order: number | null
+          target_kpi: string | null
+          title: string
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          actual_result?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          manager_comments?: string | null
+          manager_score?: number | null
+          review_id: string
+          self_comments?: string | null
+          self_score?: number | null
+          sort_order?: number | null
+          target_kpi?: string | null
+          title: string
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          actual_result?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          manager_comments?: string | null
+          manager_score?: number | null
+          review_id?: string
+          self_comments?: string | null
+          self_score?: number | null
+          sort_order?: number | null
+          target_kpi?: string | null
+          title?: string
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rvw_goals_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "rvw_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rvw_matrix_snapshots: {
+        Row: {
+          competency_score: number | null
+          created_at: string
+          cycle_id: string
+          employee_id: string
+          id: string
+          matrix_position: string | null
+          matrix_zone: string | null
+          performance_score: number | null
+        }
+        Insert: {
+          competency_score?: number | null
+          created_at?: string
+          cycle_id: string
+          employee_id: string
+          id?: string
+          matrix_position?: string | null
+          matrix_zone?: string | null
+          performance_score?: number | null
+        }
+        Update: {
+          competency_score?: number | null
+          created_at?: string
+          cycle_id?: string
+          employee_id?: string
+          id?: string
+          matrix_position?: string | null
+          matrix_zone?: string | null
+          performance_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rvw_matrix_snapshots_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "rvw_review_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rvw_matrix_snapshots_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "emps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rvw_organizations: {
         Row: {
           created_at: string
@@ -3113,42 +3699,63 @@ export type Database = {
       }
       rvw_reviews: {
         Row: {
+          achievements: string[] | null
+          calibration_notes: string | null
+          competency_score: number | null
           created_at: string
           cycle_id: string
           employee_id: string
           employee_submitted_at: string | null
+          final_rating: string | null
           id: string
+          improvements: string[] | null
           manager_id: string | null
           manager_submitted_at: string | null
+          performance_score: number | null
           published_at: string | null
           signed_at: string | null
           status: string
+          strengths: string[] | null
           updated_at: string
         }
         Insert: {
+          achievements?: string[] | null
+          calibration_notes?: string | null
+          competency_score?: number | null
           created_at?: string
           cycle_id: string
           employee_id: string
           employee_submitted_at?: string | null
+          final_rating?: string | null
           id?: string
+          improvements?: string[] | null
           manager_id?: string | null
           manager_submitted_at?: string | null
+          performance_score?: number | null
           published_at?: string | null
           signed_at?: string | null
           status?: string
+          strengths?: string[] | null
           updated_at?: string
         }
         Update: {
+          achievements?: string[] | null
+          calibration_notes?: string | null
+          competency_score?: number | null
           created_at?: string
           cycle_id?: string
           employee_id?: string
           employee_submitted_at?: string | null
+          final_rating?: string | null
           id?: string
+          improvements?: string[] | null
           manager_id?: string | null
           manager_submitted_at?: string | null
+          performance_score?: number | null
           published_at?: string | null
           signed_at?: string | null
           status?: string
+          strengths?: string[] | null
           updated_at?: string
         }
         Relationships: [
@@ -3178,6 +3785,7 @@ export type Database = {
       rvw_user_roles: {
         Row: {
           created_at: string
+          employee_id: string | null
           id: string
           job_title: string | null
           manager_id: string | null
@@ -3188,6 +3796,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          employee_id?: string | null
           id?: string
           job_title?: string | null
           manager_id?: string | null
@@ -3198,6 +3807,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          employee_id?: string | null
           id?: string
           job_title?: string | null
           manager_id?: string | null
@@ -3207,6 +3817,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rvw_user_roles_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "emps"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rvw_user_roles_manager_id_fkey1"
             columns: ["manager_id"]
@@ -4365,11 +4982,19 @@ export type Database = {
           userprincipalname: string
         }[]
       }
+      get_employee_job_level: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["job_level"]
+      }
       get_or_create_conversation_id: {
         Args: { user1_id: string; user2_id: string }
         Returns: string
       }
       get_user_rvw_org_id: { Args: { _user_id: string }; Returns: string }
+      has_review_permission: {
+        Args: { _permission: string; _user_id: string }
+        Returns: boolean
+      }
       has_rvw_role: {
         Args: {
           _role: Database["public"]["Enums"]["rvw_user_role"]
@@ -4381,7 +5006,9 @@ export type Database = {
         Args: { role_param: string; user_id_param: string }
         Returns: boolean
       }
+      is_admin_level: { Args: { _user_id: string }; Returns: boolean }
       is_demo_user: { Args: { user_email: string }; Returns: boolean }
+      is_manager_level: { Args: { _user_id: string }; Returns: boolean }
       is_notes_board_admin: {
         Args: { _board_id: string; _employee_id: string }
         Returns: boolean
@@ -4401,11 +5028,11 @@ export type Database = {
         Returns: undefined
       }
       log_application_usage:
+        | { Args: { action: string; app_id: string }; Returns: undefined }
         | {
             Args: { action: string; app_id: string; session_id?: string }
             Returns: string
           }
-        | { Args: { action: string; app_id: string }; Returns: undefined }
       match_documents: {
         Args: {
           match_count: number
@@ -4434,6 +5061,40 @@ export type Database = {
           similarity: number
           user_id: string
         }[]
+      }
+      process_employee_census: {
+        Args: never
+        Returns: {
+          matched_count: number
+          processed_count: number
+          unmatched_count: number
+          updated_managers: number
+        }[]
+      }
+      rvw_calculate_competency_score: {
+        Args: { p_review_id: string }
+        Returns: number
+      }
+      rvw_calculate_performance_score: {
+        Args: { p_review_id: string }
+        Returns: number
+      }
+      rvw_get_employee_id: { Args: { _user_id: string }; Returns: string }
+      rvw_get_matrix_position: {
+        Args: { p_comp_score: number; p_perf_score: number }
+        Returns: string
+      }
+      rvw_get_matrix_zone: {
+        Args: { p_comp_score: number; p_perf_score: number }
+        Returns: string
+      }
+      rvw_is_manager_of_review: {
+        Args: { _review_id: string; _user_id: string }
+        Returns: boolean
+      }
+      rvw_owns_review: {
+        Args: { _review_id: string; _user_id: string }
+        Returns: boolean
       }
       search_product_knowledge: {
         Args: {
