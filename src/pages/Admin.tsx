@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeftIcon, ShieldCheckIcon, KeyRoundIcon } from "lucide-react";
 import DynamicSurveyDashboard from "@/components/DynamicSurveyDashboard";
-import { QuestionLevelAnalytics } from "@/components/QuestionLevelAnalytics";
 import { AIAnalysisSectionWrapper } from "@/components/AIAnalysisSectionWrapper";
 import { SurveyReportGenerator } from "@/components/SurveyReportGenerator";
 import buntingLogo from "@/assets/bunting-logo.png";
@@ -221,14 +220,10 @@ export const Admin = ({
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
         <Tabs defaultValue="dashboard" className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-4 h-auto">
+          <TabsList className="grid w-full grid-cols-3 h-auto">
             <TabsTrigger value="dashboard" className="text-xs sm:text-sm py-2 sm:py-2.5">
               <span className="hidden sm:inline">Dashboard</span>
               <span className="sm:hidden">Data</span>
-            </TabsTrigger>
-            <TabsTrigger value="question-level" className="text-xs sm:text-sm py-2 sm:py-2.5">
-              <span className="hidden sm:inline">Question-Level Analytics</span>
-              <span className="sm:hidden">Questions</span>
             </TabsTrigger>
             <TabsTrigger value="ai-analysis" className="text-xs sm:text-sm py-2 sm:py-2.5">
               <span className="hidden sm:inline">AI Analysis</span>
@@ -242,10 +237,6 @@ export const Admin = ({
 
           <TabsContent value="dashboard" className="space-y-6">
             <DynamicSurveyDashboard onBack={onBack} />
-          </TabsContent>
-
-          <TabsContent value="question-level" className="space-y-6">
-            <QuestionLevelAnalytics onBack={onBack} />
           </TabsContent>
 
           <TabsContent value="ai-analysis" className="space-y-6">
