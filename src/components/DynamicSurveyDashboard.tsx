@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Globe, UsersIcon, TrendingUpIcon, ChevronDownIcon, FilterIcon, ClockIcon } from "lucide-react";
+import { Globe, UsersIcon, TrendingUpIcon, ChevronDownIcon, FilterIcon, ClockIcon, MessageSquareWarning } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -13,7 +13,16 @@ import { useSurveyQuestions } from "@/hooks/useSurveyQuestions";
 import { cn } from "@/lib/utils";
 import buntingLogo from "@/assets/bunting-logo-2.png";
 import magnetApplicationsLogo from "@/assets/magnet-applications-logo-2.png";
+
 const CHART_COLORS = ['hsl(var(--chart-primary))', 'hsl(var(--chart-secondary))', 'hsl(var(--chart-tertiary))', 'hsl(var(--chart-quaternary))', 'hsl(var(--chart-quinary))', 'hsl(var(--chart-senary))', 'hsl(var(--chart-septenary))', 'hsl(var(--chart-octonary))'];
+
+const RATING_EMOJIS: Record<number, string> = {
+  1: '😞',
+  2: '😕',
+  3: '😐',
+  4: '😊',
+  5: '😄'
+};
 interface QuestionResponse {
   id: string;
   response_id: string;
@@ -180,6 +189,23 @@ export default function DynamicSurveyDashboard({
       text: r.answers.get(questionId)?.answer_value?.text,
       date: r.created_at
     })).filter(r => r.text && r.text.trim() !== '');
+  };
+
+  // Get low-score comments (ratings 1-2) for a specific question
+  const getLowScoreComments = (questionId: string) => {
+    return filteredResponses
+      .filter(r => {
+        const answer = r.answers.get(questionId);
+        return answer?.question_type === 'rating' && 
+               answer?.answer_value?.rating <= 2 &&
+               answer?.answer_value?.feedback?.trim();
+      })
+      .map(r => ({
+        rating: r.answers.get(questionId)?.answer_value.rating as number,
+        feedback: r.answers.get(questionId)?.answer_value.feedback as string,
+        date: r.created_at
+      }))
+      .sort((a, b) => a.rating - b.rating); // Show rating 1 before rating 2
   };
   const getSectionQuestions = (section: string) => {
     return questions.filter(q => q.section === section);
@@ -421,8 +447,12 @@ export default function DynamicSurveyDashboard({
                 <CollapsibleContent>
                   <CardContent className="space-y-6">
                     {sectionQuestions.map(question => {
-                  const stats = calculateRatingStats(question.question_id);
-                  return <div key={question.id} className="space-y-2">
+                      const stats = calculateRatingStats(question.question_id);
+                      const lowScoreComments = getLowScoreComments(question.question_id);
+                      const feedbackSectionKey = `feedback-${question.question_id}`;
+                      
+                      return (
+                        <div key={question.id} className="space-y-3 pb-4 border-b border-border last:border-0 last:pb-0">
                           <div className="flex items-center justify-between">
                             <h4 className="font-medium">{getQuestionLabel(question.question_id)}</h4>
                             <div className="flex items-center gap-2">
@@ -439,8 +469,56 @@ export default function DynamicSurveyDashboard({
                               <Bar dataKey="count" fill={CHART_COLORS[0]} />
                             </BarChart>
                           </ResponsiveContainer>
-                        </div>;
-                })}
+                          
+                          {/* Low Score Feedback Section */}
+                          {lowScoreComments.length > 0 && (
+                            <Collapsible 
+                              open={openSections[feedbackSectionKey]} 
+                              onOpenChange={(open) => setOpenSections(prev => ({
+                                ...prev,
+                                [feedbackSectionKey]: open
+                              }))}
+                            >
+                              <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 bg-destructive/10 rounded-lg hover:bg-destructive/15 transition-colors">
+                                <MessageSquareWarning className="h-4 w-4 text-destructive" />
+                                <span className="text-sm font-medium text-destructive">
+                                  Low Score Feedback (Ratings 1-2)
+                                </span>
+                                <Badge variant="destructive" className="ml-auto mr-2">
+                                  {lowScoreComments.length}
+                                </Badge>
+                                <ChevronDownIcon className={cn(
+                                  "h-4 w-4 text-destructive transition-transform",
+                                  openSections[feedbackSectionKey] && "rotate-180"
+                                )} />
+                              </CollapsibleTrigger>
+                              <CollapsibleContent className="pt-3 space-y-2">
+                                {lowScoreComments.map((comment, idx) => (
+                                  <Card key={idx} className="bg-destructive/5 border-destructive/20">
+                                    <CardContent className="pt-3 pb-3">
+                                      <div className="flex items-start gap-3">
+                                        <span className="text-xl">{RATING_EMOJIS[comment.rating]}</span>
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-2 mb-1">
+                                            <Badge variant="outline" className="text-xs border-destructive/30 text-destructive">
+                                              Rating: {comment.rating}
+                                            </Badge>
+                                            <span className="text-xs text-muted-foreground">
+                                              {new Date(comment.date).toLocaleDateString()}
+                                            </span>
+                                          </div>
+                                          <p className="text-sm whitespace-pre-wrap">{comment.feedback}</p>
+                                        </div>
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                ))}
+                              </CollapsibleContent>
+                            </Collapsible>
+                          )}
+                        </div>
+                      );
+                    })}
                   </CardContent>
                 </CollapsibleContent>
               </Collapsible>
