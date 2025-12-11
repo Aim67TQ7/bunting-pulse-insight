@@ -67,6 +67,7 @@ interface AnalysisData {
   region: string;
   total_responses: number;
   question_labels: { [key: string]: string };
+  question_full_text: { [key: string]: string };
   overall_stats: { [key: string]: QuestionStats };
   comments_by_question: { [key: string]: Comment[] };
 }
@@ -96,6 +97,30 @@ const QUESTION_LABELS: { [key: string]: string } = {
   manual_processes_focus: "Manual Processes Focus",
   communication_clarity: "Communication Clarity",
   company_value_alignment: "Company Value Alignment (Text)",
+};
+
+// Full question text for individual question pages
+const QUESTION_FULL_TEXT: { [key: string]: string } = {
+  role_satisfaction: "How satisfied are you with your current role and responsibilities?",
+  recommend_company: "How likely are you to recommend this company as a good place to work?",
+  strategic_confidence: "Do you see yourself working here in the next 2 years?",
+  manager_alignment: "Do supervisors/managers communicate expectations clearly?",
+  performance_awareness: "How effective is leadership at keeping you informed about company performance?",
+  leadership_openness: "Do you feel comfortable raising concerns or providing feedback to management and/or HR?",
+  information_relay: "Do you feel adequately informed about important matters that affect your role and the company?",
+  training_satisfaction: "Do you feel you have received enough training to perform your job safely and effectively?",
+  advancement_opportunities: "Do you have access to learning opportunities that help you build knowledge and skills relevant to your role?",
+  workplace_safety: "Do you feel the company prioritizes safety in the workplace?",
+  team_support: "Do team members cooperate and support each other to get the job done?",
+  team_morale: "How would you describe the morale in your workplace?",
+  pride_in_work: "Do you feel a sense of pride in the work your company produces?",
+  company_pride: "Do you believe the company values the quality of its products and services?",
+  workload_manageability: "Do you feel able to prioritize your tasks and meet key responsibilities in your role?",
+  work_life_balance: "How would you rate your current work/life balance?",
+  tools_equipment_quality: "Do you have the right tools and equipment to do your job well?",
+  manual_processes_focus: "Do you believe processes are designed to maximize efficiency and quality?",
+  communication_clarity: "If you don't have access to email, do you feel your supervisor passes on important information effectively?",
+  company_value_alignment: "What is one change that could improve your daily work experience?",
 };
 
 const QUESTION_ORDER = [
@@ -271,6 +296,7 @@ function buildAnalysisData(
     region,
     total_responses: data.length,
     question_labels: QUESTION_LABELS,
+    question_full_text: QUESTION_FULL_TEXT,
     overall_stats: overallStats,
     comments_by_question: extractComments(data),
   };
@@ -484,17 +510,17 @@ function buildQuestionPage(
   data: AnalysisData,
   question: string
 ): (Paragraph | Table)[] {
-  const label = data.question_labels[question];
+  const fullText = data.question_full_text[question];
   const overall = data.overall_stats[question];
   const comments = data.comments_by_question[question] || [];
 
   const content: (Paragraph | Table)[] = [];
 
-  // Question title - Heading 1
+  // Question title - Heading 1 (use full question text)
   content.push(
     new Paragraph({
       heading: HeadingLevel.HEADING_1,
-      children: [new TextRun(label)],
+      children: [new TextRun(fullText)],
     })
   );
 
