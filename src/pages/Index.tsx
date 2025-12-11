@@ -12,12 +12,15 @@ import { GDPRPrivacyPolicy } from "@/components/GDPRPrivacyPolicy";
 import { DataRightsManager } from "@/components/DataRightsManager";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { SurveyTimer, type SurveyStatus } from "@/components/SurveyTimer";
+import { RevisionHistory } from "@/components/RevisionHistory";
+
 const Index = () => {
   const [currentView, setCurrentView] = useState<"landing" | "survey" | "dashboard" | "admin">("landing");
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showDataRights, setShowDataRights] = useState(false);
   const [surveyStatus, setSurveyStatus] = useState<SurveyStatus>("before-open");
+  const [showRevisionHistory, setShowRevisionHistory] = useState(false);
   const {
     toast
   } = useToast();
@@ -61,7 +64,12 @@ const Index = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-foreground">Bunting Employee Survey</h1>
-              
+              <button 
+                onClick={() => setShowRevisionHistory(true)}
+                className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors"
+              >
+                Rev. 2.16.0
+              </button>
             </div>
             <div className="flex items-center gap-4">
               <Button variant="outline" size="sm" onClick={() => setCurrentView("admin")} className="text-xs">
@@ -151,6 +159,7 @@ const Index = () => {
       {/* GDPR Dialogs */}
       <GDPRPrivacyPolicy open={showPrivacyPolicy} onOpenChange={setShowPrivacyPolicy} />
       <DataRightsManager open={showDataRights} onOpenChange={setShowDataRights} />
+      <RevisionHistory open={showRevisionHistory} onOpenChange={setShowRevisionHistory} />
     </div>;
 };
 export default Index;
