@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileTextIcon, DownloadIcon, FilterIcon, Loader2Icon, CheckCircle2Icon } from "lucide-react";
+import { FileTextIcon, DownloadIcon, FilterIcon, Loader2Icon, CheckCircle2Icon, ArchiveIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -27,6 +27,7 @@ import {
   PageBreak,
 } from "docx";
 import { saveAs } from "file-saver";
+import JSZip from "jszip";
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -963,7 +964,7 @@ export const SurveyReportGenerator = () => {
     }
   };
 
-  // Generate all 6 reports
+  // Generate all 6 reports bundled in a ZIP file
   const generateAllReports = async () => {
     const configs = [
       { region: "North America", division: "Equipment" },
@@ -978,6 +979,9 @@ export const SurveyReportGenerator = () => {
     setGeneratedReports([]);
 
     try {
+      const zip = new JSZip();
+      const generatedFiles: string[] = [];
+
       for (const cfg of configs) {
         const filtered = getFilteredResponses(cfg.region, cfg.division);
         
@@ -996,14 +1000,21 @@ export const SurveyReportGenerator = () => {
         const safeDivision = cfg.division.charAt(0).toUpperCase() + cfg.division.slice(1);
         const fileName = `${regionPrefix}_${safeDivision}_Survey_Report.docx`;
 
-        saveAs(blob, fileName);
+        // Add to ZIP instead of downloading individually
+        zip.file(fileName, blob);
+        generatedFiles.push(fileName);
         setGeneratedReports(prev => [...prev, fileName]);
-        
-        // Small delay between downloads
-        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
-      toast({ title: "All Reports Generated", description: "6 division reports have been downloaded." });
+      // Generate and download the ZIP file
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const dateStr = new Date().toISOString().split('T')[0];
+      saveAs(zipBlob, `Survey_Reports_${dateStr}.zip`);
+
+      toast({ 
+        title: "All Reports Generated", 
+        description: `${generatedFiles.length} reports bundled in ZIP file.` 
+      });
     } catch (error: any) {
       console.error('Error generating reports:', error);
       toast({ title: "Error", description: error.message, variant: "destructive" });
