@@ -9,6 +9,7 @@ import { ArrowLeftIcon, ShieldCheckIcon, KeyRoundIcon } from "lucide-react";
 import DynamicSurveyDashboard from "@/components/DynamicSurveyDashboard";
 import { AIAnalysisSectionWrapper } from "@/components/AIAnalysisSectionWrapper";
 import { SurveyReportGenerator } from "@/components/SurveyReportGenerator";
+import { RevisionHistory } from "@/components/RevisionHistory";
 import buntingLogo from "@/assets/bunting-logo.png";
 import magnetLogo from "@/assets/magnet-applications-logo.png";
 import {
@@ -45,6 +46,7 @@ export const Admin = ({
   const [newPasscode, setNewPasscode] = useState("");
   const [confirmPasscode, setConfirmPasscode] = useState("");
   const [storedPasscode, setStoredPasscode] = useState<string>("");
+  const [showRevisionHistory, setShowRevisionHistory] = useState(false);
   const {
     toast
   } = useToast();
@@ -158,6 +160,12 @@ export const Admin = ({
               <div className="flex items-center gap-2 sm:gap-4">
                 <img src={buntingLogo} alt="Bunting" className="h-8 sm:h-10" />
                 <img src={magnetLogo} alt="Magnet Applications" className="h-8 sm:h-10" />
+                <button 
+                  onClick={() => setShowRevisionHistory(true)}
+                  className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors"
+                >
+                  Rev. 2.16.0
+                </button>
               </div>
               <h1 className="text-lg sm:text-2xl font-bold text-foreground hidden sm:block">Admin Panel</h1>
               <h1 className="text-lg font-bold text-foreground sm:hidden">Admin</h1>
@@ -325,6 +333,8 @@ export const Admin = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <RevisionHistory open={showRevisionHistory} onOpenChange={setShowRevisionHistory} />
     </div>;
 };
 export default Admin;
