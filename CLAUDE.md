@@ -5,27 +5,27 @@
 **Status:** In Transition
 
 ## What This Was
-Bunting Magnetics tool — likely a single-purpose app for a specific Bunting workflow
+BuntingGPT pulse insight — Bunting-specific tool for pulse insight
 
 ## Current State
-Deprecated — function should be handled by agent. Last pushed 2025-12-28.
+Function replaceable by agent — last pushed 2025-12-28
 
 ## Agent Replacement
 **Agent Name:** PENDING
-**Lives On:** Maggie or Pete VPS (TBD)
-**Orchestrator:** n8n scheduled workflow to Supabase query to formatted digest
-**Endpoint or Trigger:** N/A
+**Lives On:** Maggie or Pete VPS (to be determined during build)
+**Orchestrator:** n8n scheduled workflow → Supabase → digest
+**Endpoint or Trigger:** PENDING
 **Supabase Table:** N/A
 
 ## Handoff Notes
-This repo's core function was: Bunting-specific: Operations dashboard/KPIs. The recommended replacement pattern is: n8n scheduled workflow to Supabase query to formatted digest. Check ORC skill list at https://orc.gp3.app/skills before building anything new.
+Core function: Bunting workflow: pulse insight. Recommended replacement: n8n scheduled workflow → Supabase → digest. Verify at https://orc.gp3.app/skills before building anything new.
 
 ## Dependencies
-- None identified from README
+- None identified — check package.json for specifics
 
 ## Last Known Working State
 2025-12-28
 
 ## Claude's Notes
-- Bunting-specific tool — verify ORC can handle this function before archiving.
-- Agent replacement not yet built. This is a backlog item.
+- Bunting-specific — verify ORC handles this function before retiring.
+- Agent replacement not yet built. This is a backlog item for the GP3 platform team.
